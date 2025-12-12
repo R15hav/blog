@@ -1,5 +1,18 @@
+#Standard library imports
 from fastapi import FastAPI, HTTPException
+from sqlalchemy.ext.asyncio import AsyncSession
+from contextlib import asynccontextmanager
+
+#Local application imports
 from app.schemas import PostBase
+from app.db import Post, get_async_session, create_db_and_tables
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    # Startup: create database and tables
+    await create_db_and_tables()
+    yield
+    # Shutdown: any cleanup can be done here
 
 app = FastAPI()
 
