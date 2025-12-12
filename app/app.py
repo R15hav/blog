@@ -14,7 +14,7 @@ async def lifespan(app: FastAPI):
     yield
     # Shutdown: any cleanup can be done here
 
-app = FastAPI()
+app = FastAPI(lifespan=lifespan)
 
 @app.get("/get-blogs")
 def get_blogs():
