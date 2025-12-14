@@ -1,0 +1,118 @@
+PROPOSED FOLDER STRUCTURE
+
+app/
+  api/                # HTTP route modules (posts, auth, health)
+  auth/               # fastapi-users wiring, user manager, auth utilities
+  core/               # app factory, config (Pydantic Settings), logging, lifespan
+  db/                 # models, session/engine, migration metadata export
+  crud/               # data-access functions (separate from routes)
+  schemas/            # Pydantic input/output schemas
+  tests/              # tests for API and CRUD
+
+Top-level helpers
+  main.py             # bootstraps uv/uv run entrypoint (imports app factory)
+  alembic/            # (placeholder) DB migrations
+  .env.example
+
+REFACTOR TODO (ordered, step-by-step)
+
+1) Create new directories
+   - mkdir -p app/api app/auth app/core app/db app/crud app/schemas tests alembic
+   - add empty `__init__.py` files where needed to make packages (app/api/__init__.py etc.)
+
+2) Split `app/db.py` into models + session modules
+   - create `app/db/models.py` and move `User` and `Post` model classes from `app/db.py` into it
+   - create `app/db/session.py` and move `engine`, `async_session_maker`, `create_db_and_tables`, `get_async_session` into it
+   - create `app/db/__init__.py` to re-export `models`, `session`, and `Base` metadata as `from .models import Base, User, Post; from .session import engine, get_async_session, create_db_and_tables`
+
+3) Add configuration management
+   - create `app/core/config.py` containing a Pydantic `Settings` class reading `SECRET`, `DATABASE_URL`, `ENV`, and other env vars
+   - add `app/.env.example` with `SECRET=changeme` and `DATABASE_URL=sqlite+aiosqlite:///./test.db`
+
+4) Create app factory and central startup
+   - create `app/core/app.py` with `def create_app(settings: Settings) -> FastAPI:` that constructs FastAPI, registers routers, and uses a lifespan that calls `create_db_and_tables()`
+   - move any `app`-level router mounting from `app/app.py` into the factory
+
+5) Move auth wiring into `app/auth`
+   - create `app/auth/users.py` and move code from `app/users.py` here
+   - change `SECRET` usage to `from app.core.config import settings` and use `settings.SECRET`
+   - export `fastapi_users`, `current_active_user`, and `auth_backend` from this module
+
+6) Extract route modules into `app/api`
+   - create `app/api/posts.py` and move blog route functions (`get_blogs`, `get_blog`, `create_blog`, `delete_blog`) from `app/app.py` to this file
+   - ensure each route uses injected dependencies: `session: AsyncSession = Depends(get_async_session)` and `user: User = Depends(current_active_user)` where needed
+   - create `app/api/auth.py` to mount fastapi-users routers using `fastapi_users.get_*_router(...)` (or import and mount in factory)
+
+7) Create CRUD layer
+   - create `app/crud/posts.py` implementing: `async def list_posts(session)`, `async def get_post(session, id)`, `async def create_post(session, owner_id, post_in)`, `async def delete_post(session, post)`
+   - update `app/api/posts.py` to call `crud` functions instead of embedding SQL/ORM logic
+
+8) Rework schemas
+   - move `app/schemas.py` -> `app/schemas/__init__.py` or keep as module but update types
+   - change `PostBase.created_date` from `str` to `datetime` (Pydantic will parse strings)
+   - add response schemas `PostRead` and `PostCreate` and set `orm_mode = True` where needed
+
+9) Adjust models for dialect compatibility
+   - in `app/db/models.py`, annotate the UUID column usage and add fallback for SQLite (use `String`/`BINARY` or SQLAlchemy `GUID` helper)
+   - add a short comment about switching to Postgres in production
+
+10) Centralize session/engine creation to read from `settings.DATABASE_URL`
+    - modify `app/db/session.py` to lazily create the engine from `settings` or expose `init_engine(settings)` called by `create_app`
+
+11) Update imports across repository
+    - replace `from app.db import Post, get_async_session, User` with `from app.db.models import Post, User` and `from app.db.session import get_async_session`
+    - update `app/app.py` to be minimal (or remove it) and ensure `main.py` imports `create_app` from `app.core.app`
+
+12) Update `app/auth/users.py` to use Settings and avoid hard-coded SECRET
+    - replace `SECRET = "SECRET_KEY"` with `SECRET = settings.SECRET`
+
+13) Replace direct ORM returns with Pydantic responses
+    - in each route, convert ORM objects to Pydantic using `PostRead.from_orm(post)` or set `response_model` on route decorators
+
+14) Add Alembic skeleton and document migrations
+    - create `alembic/` directory placeholder and add `MIGRATIONS.md` explaining `alembic init alembic` and how to set `target_metadata` to `app.db.models.Base.metadata`
+
+15) Add tests scaffold
+    - create `tests/conftest.py` with a test `AsyncSession` fixture and test client using `httpx.AsyncClient` and the app factory
+    - create `tests/test_posts.py` with basic async tests for list/create/delete
+
+16) Add logging and error handling
+    - create `app/core/logging.py` to configure `logging` and initialize it in `create_app`
+    - ensure HTTPExceptions use consistent messages and status codes
+
+17) Add `.env.example` and document UV workflow
+    - update `README.md` Quick start to show `uv init` and `uv run ./main.py` and sample `.env` usage
+
+18) Add formatting and linting commands
+    - add short notes to README: `black .`, `ruff check .`, `isort .`
+
+19) Manual smoke-test sequence (validate after major moves)
+    - run `uv run ./main.py` to catch import errors
+    - register via `POST /auth/register`, login via `POST /auth/jwt/login`, create blog, list blogs
+
+20) Commit strategy
+    - Commit A: create directories and empty modules (`WIP: layout`) and push
+    - Commit B: move models and session files, update imports (`WIP: db split`) and run smoke tests
+    - Commit C: add config and app factory, wire auth (`WIP: factory + auth`)
+    - Commit D: extract CRUD, schemas, and tests (`WIP: crud + tests`)
+    - Commit E: docs, alembic note, lint fixes, final smoke tests
+
+21) PR checklist
+    - run `uv run ./main.py` locally and ensure app starts
+    - run tests: `pytest -q`
+    - run linters/formatters
+    - verify sample curl flows succeed
+
+RISK NOTES (short)
+- Import path breakage: update imports and run `uv run ./main.py` early to surface errors
+- UUID/dialect mismatch: test SQLite run and document Postgres migration steps
+- SECRET rotation: env change invalidates tokens — inform stakeholders and rotate with care
+
+VALIDATION (quick checks after each major step)
+- After moving DB code: run `uv run ./main.py` and confirm `./test.db` tables exist
+- After auth change: register a test user (POST /auth/register), login (POST /auth/jwt/login), obtain token and call an authenticated endpoint (POST /create-blog)
+- After CRUD extraction: run unit/async tests (pytest tests/) focusing on `tests/test_posts.py`
+- After config/env change: test app with missing env vars to ensure clear errors, then with env vars set and verify behavior unchanged
+- After migrations note: run `alembic revision --autogenerate -m 'test'` (in dev) to ensure models import correctly into Alembic env and no unexpected changes are produced
+
+END
