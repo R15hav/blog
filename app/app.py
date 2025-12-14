@@ -10,7 +10,7 @@ from datetime import datetime
 from app.models.articles import ArticleBase
 from app.models.users import UserRead, UserCreate, UserUpdate
 
-from app.db import Post, get_async_session, create_db_and_tables, User
+from app.database.db import Post, get_async_session, create_db_and_tables, User
 from app.core.users import fastapi_users, auth_backend, current_active_user
 
 @asynccontextmanager
