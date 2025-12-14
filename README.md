@@ -147,7 +147,3 @@ Notes on patterns and gotchas
 Development tips
 - Move `SECRET` into environment variables (e.g., via `python-dotenv`) and update `app/users.py`.
 - To reset the DB during development, remove `./test.db` and restart the server.
-
-If you want
-- I can (a) update `app/users.py` to read `SECRET` from environment, (b) add a small smoke-test script that registers a user and creates a blog, or (c) add instructions for containerization. Tell me which.
-
