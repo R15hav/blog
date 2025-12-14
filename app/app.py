@@ -7,9 +7,11 @@ from sqlalchemy import select
 from datetime import datetime
 
 #Local application imports
-from app.schemas import PostBase, UserRead, UserCreate, UserUpdate
+from app.models.articles import ArticleBase
+from app.models.users import UserRead, UserCreate, UserUpdate
+
 from app.db import Post, get_async_session, create_db_and_tables, User
-from app.users import fastapi_users, auth_backend, current_active_user
+from app.core.users import fastapi_users, auth_backend, current_active_user
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -68,7 +70,7 @@ async def get_blog(id: str, session: AsyncSession = Depends(get_async_session)):
 
 @app.post("/create-blog")
 async def create_blog(
-    post: PostBase, 
+    post: ArticleBase, 
     user: User = Depends(current_active_user),
     session: AsyncSession = Depends(get_async_session)
     ):
