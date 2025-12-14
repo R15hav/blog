@@ -1,12 +1,15 @@
-from fastapi import APIRouter, HTTPException, Depends
+from fastapi import APIRouter, Depends
 from sqlalchemy.ext.asyncio import AsyncSession
-from datetime import datetime
-from sqlalchemy import select
-import uuid
 
 from app.models.articles import ArticleBase
-from app.database.db import Post, get_async_session, User
+from app.database.db import get_async_session, User
 from app.core.users import current_active_user
+from app.services.articles import (
+    create_article as svc_create_article,
+    list_articles as svc_list_articles,
+    get_article_by_id as svc_get_article_by_id,
+    delete_article as svc_delete_article,
+)
 
 
 router = APIRouter()
@@ -18,78 +21,41 @@ async def create_article(
     user: User = Depends(current_active_user),
     session: AsyncSession = Depends(get_async_session),
 ):
-    try:
-        format_pattern = "%Y-%m-%d %H:%M:%S"
-        datetime_object = datetime.strptime(post.created_date, format_pattern)
+    new_post = await svc_create_article(session, user, post)
+    return {"blog": new_post}
 
-        new_post = Post(
-            owner_id=user.id,
-            title=post.title,
-            content=post.content,
-            published=str(post.published).lower(),
-            created_date=datetime_object,
-        )
 
-        session.add(new_post)
-        await session.commit()
-        await session.refresh(new_post)
-        return {"blog": new_post}
-
-    except Exception as e:
-        raise HTTPException(status_code=400, detail=str(e))
-    
 @router.get("/get-articles")
-async def get_articles( session: AsyncSession = Depends(get_async_session) ):
-    results = await session.execute(select(Post))
-    articles = [ row[0] for row in results.all() ]
+async def get_articles(session: AsyncSession = Depends(get_async_session)):
+    articles = await svc_list_articles(session)
     return {"articles": articles}
+
 
 @router.get("/get-article/{id}")
 async def get_article(id: str, session: AsyncSession = Depends(get_async_session)):
-    try:
-        article_id = uuid.UUID(id)
-        results = await session.execute(select(Post).where(Post.id == article_id))
-        article = [ row[0] for row in results.all() ]
+    article = await svc_get_article_by_id(session, id)
+    return {"article": article}
 
-        if not article:
-            raise HTTPException(status_code=404, detail="Article not found")
-        
-        return {"article": article}
-    
-    except Exception as e:
-        raise HTTPException(status_code=400, detail=str(e))
 
-# `create-blog` moved to `router/api/v1/articles.py` and mounted under `/api/v1`
+@router.put("/update-blog/{id}")
+def update_blog(id: int):
+    return {"message": "Blog " + str(id) + " updated"}
 
-# @router.put("/update-blog/{id}")
-# def update_blog(id: int):
-#     return {"message": "Blog "+ str(id) + " updated"}
 
 @router.delete("/delete-article/{id}")
 async def delete_article(
-    id: str, 
+    id: str,
     user: User = Depends(current_active_user),
-    session: AsyncSession = Depends(get_async_session)):
-    try:
-        article_id = uuid.UUID(id)
-        results = await session.execute(select(Post).where(Post.id == article_id))
-        article = results.scalars().first()
+    session: AsyncSession = Depends(get_async_session),
+):
+    result = await svc_delete_article(session, user, id)
+    return result
 
-        if not article:
-            raise HTTPException(status_code=404, detail="Article not found")
-        if article.owner_id != user.id:
-            raise HTTPException(status_code=403, detail="Not authorized to delete this article")
 
-        await session.delete(article)
-        await session.commit()
-        return {"success": True, "message": "Article deleted successfully"}
-
-    except Exception as e:
-        raise HTTPException(status_code=400, detail=str(e)) 
-
-@router.get("/search")
-def search(q: str = None):
-    if q:
-        return {"message": f"Search results for query: {q}"}
-    else:
-        raise HTTPException(status_code=400, detail="Query parameter 'q' is required")
+# @router.get("/search")
+# def search(q: str = None):
+#     if q:
+#         return {"message": f"Search results for query: {q}"}
+#     else:
+#         from fastapi import HTTPException
+#         raise HTTPException(status_code=400, detail="Query parameter 'q' is required")
