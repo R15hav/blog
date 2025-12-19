@@ -37,15 +37,6 @@ Auth & configuration
 - Auth is provided by `fastapi-users` (JWT). The `SECRET` used for JWT lives in `backend/app/core/users.py` — move it to environment variables for production.
 - Database URL is configured in `backend/app/database/db.py` (default: `sqlite+aiosqlite:///./test.db`).
 
-Notes & next steps
-- There are no DB migrations by default; `create_db_and_tables()` runs on startup. Add Alembic for production.
-- If you want, I can: move `SECRET` to env-vars and add `.env` loading, add a small smoke test, or scaffold Alembic.
-
-Files to inspect
-- Backend entry: [backend/main.py](backend/main.py)
-- FastAPI app: [backend/app/app.py](backend/app/app.py)
-- DB & models: [backend/app/database/db.py](backend/app/database/db.py)
-- Auth setup: [backend/app/core/users.py](backend/app/core/users.py)
-
-License
-- (Add license info here if needed)
+Development tips
+- Move `SECRET` into environment variables (e.g., via `python-dotenv`) and update `app/users.py`.
+- To reset the DB during development, remove `./test.db` and restart the server.
