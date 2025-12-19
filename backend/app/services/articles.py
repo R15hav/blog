@@ -74,3 +74,36 @@ async def delete_article(session: AsyncSession, user, id_str: str):
     except Exception as e:
         from fastapi import HTTPException
         raise HTTPException(status_code=400, detail=str(e))
+    
+async def update_article(session: AsyncSession, user, id_str: str, post):
+    """Business logic for updating an article.
+
+    - Parses `post.created_date` (expects "%Y-%m-%d %H:%M:%S").
+    - Updates `Post`, commits, refreshes and returns it.
+    Raises `HTTPException` on failure.
+    """
+    try:
+        article_id = uuid.UUID(id_str)
+        results = await session.execute(select(Post).where(Post.id == article_id))
+        article = results.scalars().first()
+
+        if not article:
+            raise HTTPException(status_code=404, detail="Article not found")
+        if article.owner_id != user.id:
+            raise HTTPException(status_code=403, detail="Not authorized to update this article")
+
+        format_pattern = "%Y-%m-%d %H:%M:%S"
+        datetime_object = datetime.strptime(post.created_date, format_pattern)
+
+        article.title = post.title
+        article.content = post.content
+        article.published = str(post.published).lower()
+        article.created_date = datetime_object
+
+        session.add(article)
+        await session.commit()
+        await session.refresh(article)
+        return article
+
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=str(e))

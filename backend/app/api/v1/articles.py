@@ -9,6 +9,7 @@ from app.services.articles import (
     list_articles as svc_list_articles,
     get_article_by_id as svc_get_article_by_id,
     delete_article as svc_delete_article,
+    update_article as svc_update_article
 )
 
 
@@ -37,9 +38,15 @@ async def get_article(id: str, session: AsyncSession = Depends(get_async_session
     return {"article": article}
 
 
-@router.put("/update-blog/{id}")
-def update_blog(id: int):
-    return {"message": "Blog " + str(id) + " updated"}
+@router.put("/update-article/{id}")
+async def update_article(
+    id: str,
+    post: ArticleBase,
+    user: User = Depends(current_active_user),
+    session: AsyncSession = Depends(get_async_session),
+):
+    updated_post = await svc_update_article(session, user, id, post)
+    return {"article": updated_post}
 
 
 @router.delete("/delete-article/{id}")
