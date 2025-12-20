@@ -2,10 +2,7 @@
 //Standard Imports
 import dynamic from 'next/dynamic';
 
-//Component Imports
-//import Editorjs from "../components/Editorjs";
-
-//preinitialize Editorjs as a dynamic import to prevent SSR issues
+//Dynamic Import 
 const DynamicEditorjs = dynamic(() => import('../components/Editorjs'), {
   ssr: false,
 });

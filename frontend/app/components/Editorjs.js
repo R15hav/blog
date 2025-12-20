@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import EditorJS from "@editorjs/editorjs";
 import Embed from "@editorjs/embed";
 import Table from "@editorjs/table";
@@ -21,8 +21,12 @@ import SimpleImage from "@editorjs/simple-image";
 
 function Editorjs() {
     const [loading, setLoading] = useState(true);
+    const editorInstance = useRef();
 
-    async function initEditorjs(){
+    function initEditorjs(){
+        if( editorInstance.current ) {
+            return;
+        }
         const editor = new EditorJS({ 
             holder: 'editorjs', 
             tools: { 
@@ -41,26 +45,33 @@ function Editorjs() {
                 delimiter: Delimiter,
                 inlineCode: InlineCode,
                 simpleImage: SimpleImage
-            }, 
-            onReady: () => {
-                setLoading(false);
             }
-        })
+        });
+        editorInstance.current = editor;
     }
 
     useEffect(() => {
-        const init = async () => {
-            await initEditorjs();
+        const init = () => {
+            initEditorjs();
         }
         if(window !== undefined){
             init();
         }
     }, []);
 
+    const save = () => {
+        editorInstance.current.save().then((outputData) => {
+            console.log('Article data: ', outputData)
+        }).catch((error) => {
+            console.log('Saving failed: ', error)
+        });
+    }
+
     return (
-        <div id="editorjs">
-            {loading && <p>Loading Editor...</p>}
-        </div>
+        <>
+            <div id="editorjs"></div>
+            <button onClick={save}>Save</button>
+        </>
     )
 }
 
