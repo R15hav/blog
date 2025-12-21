@@ -3,7 +3,7 @@
 import dynamic from 'next/dynamic';
 
 //Dynamic Import 
-const DynamicEditorjs = dynamic(() => import('../components/Editorjs'), {
+const DynamicEditorjs = dynamic(() => import('../../components/Editorjs'), {
   ssr: false,
 });
 

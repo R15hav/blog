@@ -1,5 +1,6 @@
 #Standard library imports
 from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
 from contextlib import asynccontextmanager
 
 #Local application imports
@@ -17,6 +18,22 @@ async def lifespan(app: FastAPI):
     # Shutdown: any cleanup can be done here
 
 app = FastAPI(lifespan=lifespan)
+
+# Define allowed origins (frontend URLs)
+origins = [
+    "http://localhost:3000",
+    "https://your-production-frontend.com",
+]
+
+# Add the CORSMiddleware
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=origins,         # Allows specified origins
+    allow_credentials=True,        # Allows cookies/authorization headers
+    allow_methods=["*"],           # Allows all methods (GET, POST, PUT, DELETE, etc)
+    allow_headers=["*"],           # Allows all headers
+)
+
 app.include_router(
     fastapi_users.get_auth_router(auth_backend), 
     prefix="/auth/jwt", 
