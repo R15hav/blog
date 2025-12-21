@@ -96,7 +96,6 @@ function Editorjs() {
 
             const body = {
                 owner_id: owner_id || "",
-                title: title || "",
                 content: JSON.stringify(outputData),
                 published: Boolean(published),
                 created_date,

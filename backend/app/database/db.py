@@ -23,7 +23,6 @@ class Post(Base):
 
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     owner_id = Column(UUID(as_uuid=True), ForeignKey("users.id"))
-    title = Column(String, nullable=False)
     content = Column(String, nullable=False)
     published = Column(String, default="true")
     created_date = Column(DateTime(timezone=True), default=datetime.utcnow)

@@ -20,7 +20,6 @@ async def create_article(session: AsyncSession, user, post):
 
         new_post = Post(
             owner_id=user.id,
-            title=post.title,
             content=post.content,
             published=str(post.published).lower(),
             created_date=datetime_object,
@@ -95,7 +94,6 @@ async def update_article(session: AsyncSession, user, id_str: str, post):
         format_pattern = "%Y-%m-%d %H:%M:%S"
         datetime_object = datetime.strptime(post.created_date, format_pattern)
 
-        article.title = post.title
         article.content = post.content
         article.published = str(post.published).lower()
         article.created_date = datetime_object
