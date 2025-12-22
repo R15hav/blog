@@ -2,8 +2,10 @@
 "use client"
 
 import { useState } from "react"
+import { useRouter } from 'next/navigation';
 
 export default function Login() {
+  const router = useRouter();
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
   const [loading, setLoading] = useState(false)
@@ -56,7 +58,7 @@ export default function Login() {
       } catch (e) {}
 
       // redirect to home
-      window.location.href = "/"
+      router.push("/");
     } catch (err) {
       setError(err.message || String(err))
     } finally {

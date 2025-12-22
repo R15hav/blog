@@ -1,6 +1,11 @@
 "use client";
 
 import { useEffect, useState, useRef } from "react";
+import { useRouter } from 'next/navigation';
+
+import { getTokenFromLocalStorage, getCurrentFormattedDate } from "../_lib/utility";
+import { verifyToken } from "../_lib/api_callout";
+
 import EditorJS from "@editorjs/editorjs";
 import Embed from "@editorjs/embed";
 import Table from "@editorjs/table";
@@ -20,14 +25,17 @@ import SimpleImage from "@editorjs/simple-image";
 
 
 function Editorjs({id}) {
-    
+
+    const router = useRouter();
+
     const editorInstance = useRef();
     const articleDataToUpdate= useRef();
+    const loggedInownerId = useRef();
+    const loggedIntoken = useRef();
 
     const [loading, setLoading] = useState(true);
     const [published, setPublished] = useState(true);
     const [statusMsg, setStatusMsg] = useState(null);
-
 
     async function fetchArticleData(articleId) {
         try {
@@ -108,43 +116,29 @@ function Editorjs({id}) {
 
     useEffect(() => {
         if (id) return;
+        const {owner_id, token} = getTokenFromLocalStorage();
+        loggedInownerId.current = owner_id;
+        loggedIntoken.current = token;
         editorInitSnippet();
     }, []);
 
     const save = async () => {
+        if (!loggedIntoken.current) { return ;}
         setStatusMsg(null)
         try {
-            const outputData = await editorInstance.current.save()
+            const outputData = await editorInstance.current.save();
+            const created_date = getCurrentFormattedDate();
+            const tokenValid = await verifyToken(loggedIntoken.current);
 
-            // infer owner_id from localStorage or JWT payload if available
-            let owner_id = null
-            let token = null
-            try {
-                owner_id = localStorage.getItem('user_id')
-            } catch (e) {}
-
-            if (!owner_id) {
-                try {
-                    token = localStorage.getItem('access_token')
-                    if (!token) {
-                        setStatusMsg('No access token found. Please login first.')
-                        return
-                    }
-                    else {
-                        const payload = JSON.parse(atob(token.split('.')[1].replace(/-/g, '+').replace(/_/g, '/')))
-                        owner_id = payload.sub || payload.user_id || payload.id || null
-                    }
-                } catch (e) {
-                    // ignore
-                }
+            if (!tokenValid) {
+                console.error('token not valid');
+                setStatusMsg('token not valid, please login again');
+                //router.push("/login");
+                return;
             }
-
-            const pad = (n) => String(n).padStart(2, '0')
-            const d = new Date()
-            const created_date = `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`
-
+            
             const body = {
-                owner_id: owner_id || "",
+                owner_id: loggedInownerId.current || "",
                 content: JSON.stringify(outputData),
                 published: Boolean(published),
                 created_date,
@@ -154,7 +148,7 @@ function Editorjs({id}) {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${token}`,
+                    'Authorization': `Bearer ${loggedIntoken.current}`,
                 },
                 credentials: 'include',
                 body: JSON.stringify(body),
@@ -169,6 +163,7 @@ function Editorjs({id}) {
             setStatusMsg('Article created successfully')
             console.log('Create response:', data)
         } catch (error) {
+            console.error('Nothing created', error);
             setStatusMsg('Saving failed: ' + (error && error.message ? error.message : String(error)))
         }
     }
