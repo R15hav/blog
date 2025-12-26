@@ -4,7 +4,7 @@ import { useEffect, useState, useRef } from "react";
 import { useRouter } from 'next/navigation';
 
 import { getTokenFromLocalStorage, getCurrentFormattedDate } from "../_lib/utility";
-import { verifyToken } from "../_lib/api_callout";
+import { verifyToken,createArticle, updateArticle } from "../_lib/api_callout";
 
 import EditorJS from "@editorjs/editorjs";
 import Embed from "@editorjs/embed";
@@ -30,8 +30,6 @@ function Editorjs({id}) {
 
     const editorInstance = useRef();
     const articleDataToUpdate= useRef();
-    const loggedInownerId = useRef();
-    const loggedIntoken = useRef();
 
     const [loading, setLoading] = useState(true);
     const [published, setPublished] = useState(true);
@@ -116,52 +114,51 @@ function Editorjs({id}) {
 
     useEffect(() => {
         if (id) return;
-        const {owner_id, token} = getTokenFromLocalStorage();
-        loggedInownerId.current = owner_id;
-        loggedIntoken.current = token;
         editorInitSnippet();
     }, []);
 
     const save = async () => {
-        if (!loggedIntoken.current) { return ;}
         setStatusMsg(null)
         try {
             const outputData = await editorInstance.current.save();
             const created_date = getCurrentFormattedDate();
-            const tokenValid = await verifyToken(loggedIntoken.current);
+            const {owner_id, token} = getTokenFromLocalStorage();
+            if (!token) { 
+                console.error('no token found');
+                return; 
+            }
 
-            if (!tokenValid) {
-                console.error('token not valid');
-                setStatusMsg('token not valid, please login again');
-                //router.push("/login");
+            const verification =  await verifyToken(token);
+            if (!verification.valid) {
+                console.error('Token verification failed');
+                setStatusMsg('Token verification failed. Please login again.');
                 return;
             }
-            
+
             const body = {
-                owner_id: loggedInownerId.current || "",
+                owner_id: owner_id || "",
                 content: JSON.stringify(outputData),
                 published: Boolean(published),
                 created_date,
             }
 
-            const res = await fetch('http://localhost:8000/api/v1/create-article', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${loggedIntoken.current}`,
-                },
-                credentials: 'include',
-                body: JSON.stringify(body),
-            })
-
-            const data = await res.json().catch(() => null)
-            if (!res.ok) {
-                setStatusMsg(`Create failed: ${data && (data.detail || data.error || JSON.stringify(data))}`)
-                return
+            let res = null;
+            if(id){
+                res = await updateArticle(id, body, token);
+            }else{
+                res = await createArticle(body, token);
             }
 
-            setStatusMsg('Article created successfully')
-            console.log('Create response:', data)
+            if (!res.success) {
+                const data = res.detail;
+                console.error('Article creation failed:', data);
+                setStatusMsg(`Create failed: ${data && (data.detail || data.error || JSON.stringify(data))}`);
+                return;
+            }
+            setStatusMsg('Article created successfully');
+            console.log('Article created');
+            
+            //router.push("/");
         } catch (error) {
             console.error('Nothing created', error);
             setStatusMsg('Saving failed: ' + (error && error.message ? error.message : String(error)))
