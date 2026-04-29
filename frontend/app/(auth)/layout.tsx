@@ -19,7 +19,12 @@ export default async function AuthLayout({
         {themeUrl && <link rel="stylesheet" href={themeUrl} />}
       </head>
       <body>
-        {children}
+        <header>
+          <nav>
+            <a className="nav-home" href="/">Home</a>
+          </nav>
+        </header>
+        <main>{children}</main>
       </body>
     </html>
   );

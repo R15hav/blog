@@ -1,8 +1,13 @@
+"use client";
+import BackButton from "../../components/BackButton";
 
 function ForgotPassword() {
   return (
-    <div>ForgotPassword</div>
-  )
+    <div>
+      <BackButton />
+      ForgotPassword
+    </div>
+  );
 }
 
-export default ForgotPassword
+export default ForgotPassword;

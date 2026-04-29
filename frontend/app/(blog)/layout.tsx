@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import "./globals.css";
 import { AuthProvider } from "../context/AuthContext";
 import { getActiveThemeUrl } from "../_lib/theme";
+import NavLinks from "./components/NavLinks";
 
 export const metadata: Metadata = {
   title: "Blog",
@@ -23,17 +24,7 @@ export default async function BlogLayout({
       <body>
         <AuthProvider>
           <header>
-            <nav>
-              <a href="/">Blog</a>
-              <span> | </span>
-              <a href="/search-article">Search</a>
-              <span> | </span>
-              <a href="/create-article">Write</a>
-              <span> | </span>
-              <a href="/login">Login</a>
-              <span> | </span>
-              <a href="/register">Register</a>
-            </nav>
+            <NavLinks />
           </header>
           <main>{children}</main>
           <footer>

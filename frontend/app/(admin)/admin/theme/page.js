@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useAuth } from "../../../context/AuthContext";
+import BackButton from "../../../components/BackButton";
 import {
     getThemes,
     createTheme,
@@ -76,6 +77,7 @@ export default function ThemePage() {
 
     return (
         <div>
+            <BackButton />
             <h1>Theme Management</h1>
             <p>
                 Paste any external CSS URL. The active theme is injected as a{" "}

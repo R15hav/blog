@@ -1,127 +1,413 @@
 /* ============================================================
-   Blog Platform — Default Theme
-   Raw URL (after pushing to GitHub):
-   https://raw.githubusercontent.com/R15hav/blog/feature/frontend-setup/themes/default.css
+   Blog Platform — Medium Theme
    ============================================================ */
 
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
 :root {
-  --bg: #f8f7f2;
+  --bg: #ffffff;
   --surface: #ffffff;
-  --border: #e2e0d6;
-  --text: #1a1a1a;
+  --border: rgba(0, 0, 0, 0.15);
+  --border-light: #e6e6e6;
+  --text: #242424;
   --muted: #6b6b6b;
-  --accent: #2563eb;
-  --accent-hover: #1d4ed8;
-  --danger: #dc2626;
-  --success: #16a34a;
-  --radius: 6px;
-  --font: "Georgia", "Times New Roman", serif;
-  --mono: "Courier New", monospace;
-  --max-w: 760px;
+  --subtle: #9b9b9b;
+  --accent: #1a8917;
+  --accent-hover: #156812;
+  --danger: #c05e5e;
+  --success: #1a8917;
+  --radius: 4px;
+  --font-serif: charter, Georgia, Cambria, "Times New Roman", Times, serif;
+  --font-sans: sohne, "Helvetica Neue", Helvetica, Arial, sans-serif;
+  --font-mono: "Courier Prime", Courier, monospace;
+  --max-w: 1192px;
+  --content-w: 680px;
 }
 
-html { font-size: 17px; }
+html { font-size: 16px; }
 
 body {
   background: var(--bg);
   color: var(--text);
-  font-family: var(--font);
-  line-height: 1.7;
+  font-family: var(--font-sans);
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
 }
 
-/* ── Layout ─────────────────────────────────────────── */
+/* ── Header ─────────────────────────────────────────────── */
 
 header {
-  background: var(--surface);
-  border-bottom: 2px solid var(--text);
-  padding: 0.75rem 1.5rem;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  background: var(--bg);
+  border-bottom: 1px solid var(--border-light);
+  height: 65px;
+  display: flex;
+  align-items: center;
+  padding: 0 24px;
 }
 
 header nav {
   max-width: var(--max-w);
+  width: 100%;
   margin: 0 auto;
   display: flex;
-  gap: 1.25rem;
   align-items: center;
-  flex-wrap: wrap;
+  gap: 0;
 }
 
-header nav a {
+/* Site logo / brand */
+header nav a.nav-home {
+  font-family: var(--font-sans);
+  font-size: 26px;
+  font-weight: 700;
+  letter-spacing: -1px;
   color: var(--text);
   text-decoration: none;
-  font-family: sans-serif;
-  font-size: 0.9rem;
-  font-weight: 600;
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
+  margin-right: auto;
 }
-header nav a:hover { color: var(--accent); }
+header nav a.nav-home::before {
+  content: "M";
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  background: var(--text);
+  color: #fff;
+  border-radius: 50%;
+  font-size: 22px;
+  font-weight: 800;
+  letter-spacing: 0;
+  margin-right: 0;
+  font-family: var(--font-sans);
+}
+header nav a.nav-home span { display: none; }
 
-header nav span { color: var(--border); }
+/* Spacer after logo */
+header nav span {
+  display: none;
+}
+
+/* Regular nav links */
+header nav a:not(.nav-home) {
+  font-family: var(--font-sans);
+  font-size: 14px;
+  color: var(--text);
+  text-decoration: none;
+  font-weight: 400;
+  padding: 8px 16px;
+  border-radius: 99px;
+  transition: background 0.15s;
+  white-space: nowrap;
+}
+header nav a:not(.nav-home):hover {
+  background: rgba(0, 0, 0, 0.05);
+}
+
+/* Login link styled as pill button */
+header nav a[href="/login"] {
+  background: var(--text);
+  color: #fff;
+  font-weight: 500;
+  padding: 8px 20px;
+  margin-left: 8px;
+}
+header nav a[href="/login"]:hover {
+  background: #3d3d3d;
+}
+
+/* Register link */
+header nav a[href="/register"] {
+  color: var(--text);
+  margin-left: 4px;
+}
+
+/* Logout button */
+header nav button.btn-logout {
+  background: transparent;
+  color: var(--muted);
+  border: none;
+  font-family: var(--font-sans);
+  font-size: 14px;
+  font-weight: 400;
+  padding: 8px 16px;
+  border-radius: 99px;
+  cursor: pointer;
+  margin-left: 4px;
+  transition: background 0.15s;
+}
+header nav button.btn-logout:hover {
+  background: rgba(0, 0, 0, 0.05);
+  color: var(--text);
+}
+
+/* ── Main / Layout ───────────────────────────────────────── */
 
 main {
   max-width: var(--max-w);
-  margin: 2.5rem auto;
-  padding: 0 1.25rem;
+  margin: 0 auto;
+  padding: 48px 24px 80px;
+  min-height: calc(100vh - 65px);
 }
 
 footer {
+  border-top: 1px solid var(--border-light);
+  padding: 24px;
   text-align: center;
-  padding: 2rem 1rem;
-  color: var(--muted);
-  font-size: 0.85rem;
-  font-family: sans-serif;
-  border-top: 1px solid var(--border);
-  margin-top: 3rem;
+  font-family: var(--font-sans);
+  font-size: 13px;
+  color: var(--subtle);
 }
 
-/* ── Typography ─────────────────────────────────────── */
+/* ── Typography ──────────────────────────────────────────── */
 
-h1 { font-size: 2rem; line-height: 1.2; margin-bottom: 1rem; }
-h2 { font-size: 1.35rem; line-height: 1.3; margin: 1.5rem 0 0.4rem; }
-h3 { font-size: 1.1rem; margin: 1.2rem 0 0.3rem; }
-p  { margin-bottom: 1rem; }
+h1 {
+  font-family: var(--font-sans);
+  font-size: 42px;
+  font-weight: 700;
+  line-height: 1.15;
+  letter-spacing: -0.5px;
+  color: var(--text);
+  margin-bottom: 12px;
+}
 
-a { color: var(--accent); }
-a:hover { color: var(--accent-hover); }
+h2 {
+  font-family: var(--font-sans);
+  font-size: 22px;
+  font-weight: 700;
+  line-height: 1.3;
+  color: var(--text);
+  margin-bottom: 4px;
+}
 
-/* ── Articles ───────────────────────────────────────── */
+h3 {
+  font-family: var(--font-sans);
+  font-size: 18px;
+  font-weight: 600;
+  line-height: 1.4;
+  color: var(--text);
+  margin: 24px 0 8px;
+}
+
+p {
+  font-size: 16px;
+  line-height: 1.6;
+  color: var(--text);
+  margin-bottom: 16px;
+}
+
+a { color: inherit; }
+a:hover { color: var(--text); }
+
+/* ── Article Feed (home page) ────────────────────────────── */
+
+/* The outer div wrapping articles */
+main > div > h1 {
+  font-family: var(--font-sans);
+  font-size: 28px;
+  font-weight: 700;
+  margin-bottom: 32px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid var(--border-light);
+}
 
 article {
-  padding: 1.25rem 0;
+  display: flex;
+  flex-direction: column;
+  padding: 24px 0;
+  max-width: var(--content-w);
+  margin: 0 auto;
+  cursor: pointer;
+}
+article:hover h2 a { text-decoration: underline; }
+
+article h2 {
+  font-family: var(--font-sans);
+  font-size: 20px;
+  font-weight: 700;
+  line-height: 1.3;
+  margin-bottom: 4px;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
 }
 
 article h2 a {
   color: var(--text);
   text-decoration: none;
 }
-article h2 a:hover { color: var(--accent); text-decoration: underline; }
+article h2 a:hover { text-decoration: underline; }
 
 article p {
-  color: var(--muted);
-  font-family: sans-serif;
-  font-size: 0.85rem;
+  font-family: var(--font-sans);
+  font-size: 13px;
+  color: var(--subtle);
+  line-height: 1.5;
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  flex-wrap: wrap;
 }
 
 hr {
   border: none;
-  border-top: 1px solid var(--border);
+  border-top: 1px solid var(--border-light);
   margin: 0;
+  max-width: var(--content-w);
+  margin: 0 auto;
 }
 
-/* ── Forms ──────────────────────────────────────────── */
+/* ── Article reading page ────────────────────────────────── */
 
-form { display: flex; flex-direction: column; gap: 0.9rem; }
+article > h1 {
+  max-width: var(--content-w);
+  margin: 0 auto 16px;
+  font-size: 46px;
+  font-weight: 700;
+  font-family: var(--font-sans);
+  letter-spacing: -0.7px;
+  line-height: 1.1;
+}
+
+/* Article metadata line (date) */
+article > p {
+  max-width: var(--content-w);
+  margin: 0 auto 32px;
+  font-family: var(--font-sans);
+  font-size: 13px;
+  color: var(--subtle);
+}
+
+/* Article body */
+article > div {
+  max-width: var(--content-w);
+  margin: 0 auto;
+  font-family: var(--font-serif);
+  font-size: 20px;
+  line-height: 1.8;
+  color: var(--text);
+}
+
+article > div p {
+  font-family: var(--font-serif);
+  font-size: 20px;
+  line-height: 1.8;
+  color: var(--text);
+  margin-bottom: 24px;
+}
+
+article > div h1,
+article > div h2,
+article > div h3 {
+  font-family: var(--font-sans);
+  margin: 36px 0 16px;
+}
+
+article > div ul,
+article > div ol {
+  margin: 0 0 24px 28px;
+  font-family: var(--font-serif);
+  font-size: 20px;
+  line-height: 1.8;
+}
+
+article > div li { margin-bottom: 8px; }
+
+/* Back button */
+article a[href^="/"],
+article button {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-family: var(--font-sans);
+  font-size: 14px;
+  color: var(--muted);
+  background: transparent;
+  border: none;
+  padding: 0;
+  margin: 0 auto 32px;
+  max-width: var(--content-w);
+  display: block;
+  cursor: pointer;
+  text-decoration: none;
+}
+article a[href^="/"]:hover,
+article button:hover {
+  color: var(--text);
+}
+
+/* ── Search form ─────────────────────────────────────────── */
+
+form[action="/search-article"] {
+  display: flex;
+  flex-direction: row;
+  gap: 0;
+  margin: 0 auto 40px;
+  max-width: var(--content-w);
+  border: 1px solid var(--border-light);
+  border-radius: 99px;
+  overflow: hidden;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+form[action="/search-article"]:focus-within {
+  border-color: var(--text);
+  box-shadow: none;
+}
+
+form[action="/search-article"] input {
+  flex: 1;
+  border: none;
+  padding: 12px 20px;
+  font-family: var(--font-sans);
+  font-size: 15px;
+  color: var(--text);
+  background: transparent;
+  outline: none;
+}
+form[action="/search-article"] input::placeholder {
+  color: var(--subtle);
+}
+
+form[action="/search-article"] button {
+  border: none;
+  border-left: 1px solid var(--border-light);
+  background: transparent;
+  color: var(--muted);
+  font-family: var(--font-sans);
+  font-size: 14px;
+  font-weight: 500;
+  padding: 0 20px;
+  border-radius: 0;
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s;
+}
+form[action="/search-article"] button:hover {
+  background: #f5f5f5;
+  color: var(--text);
+}
+
+/* ── Generic forms ───────────────────────────────────────── */
+
+form {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  max-width: 400px;
+  margin: 0 auto;
+}
 
 label {
   display: flex;
   flex-direction: column;
-  gap: 0.3rem;
-  font-family: sans-serif;
-  font-size: 0.9rem;
-  font-weight: 600;
+  gap: 6px;
+  font-family: var(--font-sans);
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--text);
 }
 
 input[type="text"],
@@ -129,119 +415,193 @@ input[type="email"],
 input[type="password"],
 input[type="url"] {
   width: 100%;
-  padding: 0.55rem 0.75rem;
-  border: 1px solid var(--border);
+  padding: 10px 14px;
+  border: 1px solid var(--border-light);
   border-radius: var(--radius);
-  font-size: 1rem;
-  font-family: var(--font);
+  font-size: 16px;
+  font-family: var(--font-sans);
   background: var(--surface);
   color: var(--text);
   transition: border-color 0.15s;
 }
 input:focus {
   outline: none;
-  border-color: var(--accent);
-  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.12);
+  border-color: var(--text);
+  box-shadow: none;
 }
 
-/* Search bar on home page */
-form[action="/search-article"] {
-  flex-direction: row;
-  gap: 0.5rem;
-  margin-bottom: 2rem;
-}
-form[action="/search-article"] input { flex: 1; }
-
-/* ── Buttons ────────────────────────────────────────── */
+/* ── Buttons ─────────────────────────────────────────────── */
 
 button,
 input[type="submit"] {
-  display: inline-block;
-  padding: 0.55rem 1.25rem;
-  background: var(--accent);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 10px 24px;
+  background: var(--text);
   color: #fff;
   border: none;
-  border-radius: var(--radius);
-  font-family: sans-serif;
-  font-size: 0.9rem;
-  font-weight: 600;
+  border-radius: 99px;
+  font-family: var(--font-sans);
+  font-size: 14px;
+  font-weight: 500;
   cursor: pointer;
   transition: background 0.15s;
+  letter-spacing: 0.01em;
 }
-button:hover { background: var(--accent-hover); }
-button:disabled { opacity: 0.55; cursor: not-allowed; }
+button:hover { background: #3d3d3d; }
+button:disabled { opacity: 0.4; cursor: not-allowed; }
 
-/* ── Tables (admin) ─────────────────────────────────── */
+/* Green "Write" / primary action button */
+button[type="submit"],
+input[type="submit"] {
+  background: var(--accent);
+}
+button[type="submit"]:hover,
+input[type="submit"]:hover {
+  background: var(--accent-hover);
+}
+
+/* ── Tables (admin) ──────────────────────────────────────── */
 
 table {
   width: 100%;
   border-collapse: collapse;
-  font-family: sans-serif;
-  font-size: 0.9rem;
-  margin-top: 1rem;
+  font-family: var(--font-sans);
+  font-size: 14px;
+  margin-top: 16px;
 }
+
 th {
   text-align: left;
-  padding: 0.6rem 0.75rem;
-  background: var(--text);
-  color: #fff;
+  padding: 12px 16px;
+  border-bottom: 2px solid var(--text);
   font-weight: 600;
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--muted);
+  background: transparent;
 }
-td {
-  padding: 0.6rem 0.75rem;
-  border-bottom: 1px solid var(--border);
-  vertical-align: middle;
-}
-tr:nth-child(even) td { background: #f2f1ec; }
 
-/* ── Code ───────────────────────────────────────────── */
+td {
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--border-light);
+  vertical-align: middle;
+  color: var(--text);
+}
+
+tr:hover td { background: #fafafa; }
+
+/* ── Code ────────────────────────────────────────────────── */
 
 pre, code {
-  font-family: var(--mono);
-  font-size: 0.88rem;
-  background: #f0eeea;
-  border-radius: var(--radius);
+  font-family: var(--font-mono);
+  font-size: 15px;
 }
-pre { padding: 1rem; overflow-x: auto; margin-bottom: 1rem; }
-code { padding: 0.15em 0.4em; }
-pre code { background: none; padding: 0; }
 
-/* ── Alerts ─────────────────────────────────────────── */
+pre {
+  background: #f9f9f9;
+  border: 1px solid var(--border-light);
+  border-radius: var(--radius);
+  padding: 20px 24px;
+  overflow-x: auto;
+  margin-bottom: 24px;
+  line-height: 1.6;
+}
+
+code {
+  background: rgba(0, 0, 0, 0.05);
+  border-radius: 3px;
+  padding: 2px 5px;
+  font-size: 0.9em;
+}
+
+pre code {
+  background: none;
+  padding: 0;
+  font-size: inherit;
+}
+
+/* ── Alerts ──────────────────────────────────────────────── */
 
 [role="alert"] {
-  background: #fef2f2;
-  color: var(--danger);
-  border: 1px solid #fecaca;
+  background: #fff8f0;
+  color: #b05c00;
+  border: 1px solid #ffd6a0;
   border-radius: var(--radius);
-  padding: 0.6rem 0.9rem;
-  font-family: sans-serif;
-  font-size: 0.9rem;
+  padding: 12px 16px;
+  font-family: var(--font-sans);
+  font-size: 14px;
+  max-width: var(--content-w);
+  margin: 0 auto 16px;
 }
 
-/* ── Editor.js holder ───────────────────────────────── */
+/* ── Editor.js holder ────────────────────────────────────── */
 
 #editorjs {
-  border: 1px solid var(--border) !important;
-  border-radius: var(--radius);
-  min-height: 220px;
-  padding: 1rem !important;
-  background: var(--surface);
-  font-family: var(--font);
+  border: none !important;
+  border-bottom: 1px solid var(--border-light) !important;
+  border-radius: 0;
+  min-height: 300px;
+  padding: 0 !important;
+  background: transparent;
+  font-family: var(--font-serif);
+  font-size: 20px;
+  line-height: 1.8;
+  max-width: var(--content-w);
+  margin: 0 auto;
 }
 
-/* ── Admin nav ──────────────────────────────────────── */
+/* ── Admin nav ───────────────────────────────────────────── */
 
 body > nav {
-  background: #1e293b;
+  background: #242424;
   color: #e2e8f0;
-  padding: 0.75rem 1.5rem;
+  padding: 0 24px;
+  height: 52px;
   display: flex;
-  gap: 1.25rem;
+  gap: 8px;
   align-items: center;
-  font-family: sans-serif;
-  font-size: 0.875rem;
-  font-weight: 600;
+  font-family: var(--font-sans);
+  font-size: 14px;
+  font-weight: 500;
 }
-body > nav a { color: #93c5fd; text-decoration: none; }
-body > nav a:hover { color: #fff; }
-body > nav strong { color: #fff; font-size: 1rem; }
+
+body > nav a {
+  color: #a8a8a8;
+  text-decoration: none;
+  padding: 6px 12px;
+  border-radius: 4px;
+  transition: background 0.15s, color 0.15s;
+}
+body > nav a:hover { color: #fff; background: rgba(255,255,255,0.08); }
+body > nav strong { color: #fff; font-size: 15px; margin-right: 8px; }
+
+/* ── Divider ─────────────────────────────────────────────── */
+
+.divider {
+  height: 1px;
+  background: var(--border-light);
+  margin: 32px auto;
+  max-width: var(--content-w);
+}
+
+/* ── Responsive ──────────────────────────────────────────── */
+
+@media (max-width: 768px) {
+  header { padding: 0 16px; height: 57px; }
+  main { padding: 32px 16px 60px; }
+
+  h1 { font-size: 28px; }
+  article > h1 { font-size: 32px; }
+
+  article > div,
+  article > div p,
+  article > div ul,
+  article > div ol {
+    font-size: 18px;
+  }
+
+  header nav a.nav-home::before { width: 30px; height: 30px; font-size: 18px; }
+}

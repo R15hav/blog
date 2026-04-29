@@ -1,3 +1,5 @@
+import BackButton from "../../../components/BackButton";
+
 export default async function ArticlePage({ params }) {
   const { articleId } = await params;
   const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
@@ -58,12 +60,12 @@ export default async function ArticlePage({ params }) {
 
   return (
     <article>
+      <BackButton />
       <h1>{article.title || "(Untitled)"}</h1>
       <p>
         {article.created_date ? new Date(article.created_date).toLocaleDateString() : ""}
       </p>
       <div>{content}</div>
-      <p><a href="/">← Back to all articles</a></p>
     </article>
   );
 }

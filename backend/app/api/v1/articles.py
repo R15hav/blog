@@ -3,7 +3,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.models.articles import ArticleBase
 from app.database.db import get_async_session, User
-from app.core.users import current_active_user
+from app.core.users import current_active_user, current_author_or_admin
 from app.services.articles import (
     create_article as svc_create_article,
     list_articles as svc_list_articles,
@@ -20,7 +20,7 @@ router = APIRouter()
 @router.post("/create-article")
 async def create_article(
     post: ArticleBase,
-    user: User = Depends(current_active_user),
+    user: User = Depends(current_author_or_admin),
     session: AsyncSession = Depends(get_async_session),
 ):
     new_post = await svc_create_article(session, user, post)
@@ -52,7 +52,7 @@ async def get_article(id: str, session: AsyncSession = Depends(get_async_session
 async def update_article(
     id: str,
     post: ArticleBase,
-    user: User = Depends(current_active_user),
+    user: User = Depends(current_author_or_admin),
     session: AsyncSession = Depends(get_async_session),
 ):
     updated_post = await svc_update_article(session, user, id, post)

@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import BackButton from "../../components/BackButton";
 
 const API = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
 
@@ -59,6 +60,7 @@ export default function Register() {
 
     return (
         <form onSubmit={handleSubmit}>
+            <BackButton />
             <h2>Register</h2>
             <div>
                 <label>

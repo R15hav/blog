@@ -19,6 +19,7 @@ class Base(DeclarativeBase):
 
 class User(Base, SQLAlchemyBaseUserTableUUID):
     __tablename__ = "users"
+    role = Column(String, nullable=False, default="guest", server_default="guest")
     posts = relationship("Post", back_populates="owner")
 
 class Post(Base):

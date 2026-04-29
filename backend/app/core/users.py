@@ -1,7 +1,7 @@
 import os
 import uuid
 from typing import Optional
-from fastapi import Depends, Request
+from fastapi import Depends, HTTPException, Request, status
 from fastapi_users import BaseUserManager, FastAPIUsers, UUIDIDMixin
 from fastapi_users.authentication import (
         AuthenticationBackend,
@@ -41,3 +41,12 @@ fastapi_users = FastAPIUsers[User, uuid.UUID](
 )
 
 current_active_user = fastapi_users.current_user(active=True)
+
+
+async def current_author_or_admin(user: User = Depends(current_active_user)) -> User:
+    if user.role not in ("author", "admin"):
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Only authors and admins can perform this action.",
+        )
+    return user
