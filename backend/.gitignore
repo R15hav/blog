@@ -7,3 +7,12 @@ __pycache__/
 build/
 dist/
 wheels/
+
+# Virtual environment
+.venv/
+
+# Environment and secrets
+.env
+
+# SQLite dev database
+*.db

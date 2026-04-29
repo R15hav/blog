@@ -1,107 +1,88 @@
+"use client";
 
-"use client"
+import { useState } from "react";
+import { useRouter } from "next/navigation";
+import { verifyToken } from "../../_lib/api_callout";
 
-import { useState } from "react"
-import { useRouter } from 'next/navigation';
+const API = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";export default function Login() {
+    const router = useRouter();
+    const [email, setEmail] = useState("");
+    const [password, setPassword] = useState("");
+    const [loading, setLoading] = useState(false);
+    const [error, setError] = useState(null);
 
-export default function Login() {
-  const router = useRouter();
-  const [email, setEmail] = useState("")
-  const [password, setPassword] = useState("")
-  const [loading, setLoading] = useState(false)
-  const [error, setError] = useState(null)
+    async function handleSubmit(e) {
+        e.preventDefault();
+        setLoading(true);
+        setError(null);
+        try {
+            const body = new URLSearchParams();
+            body.append("username", email);
+            body.append("password", password);
 
-  async function handleSubmit(e) {
-    e.preventDefault()
-    setLoading(true)
-    setError(null)
-
-    try {
-      const body = new URLSearchParams()
-      body.append("username", email)
-      body.append("password", password)
-
-      const res = await fetch("http://localhost:8000/auth/jwt/login", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/x-www-form-urlencoded",
-        },
-        body: body.toString(),
-      })
-
-      const data = await res.json().catch(() => null)
-
-      if (!res.ok) {
-        // fastapi-users typically returns { detail: ... }
-        setError((data && (data.detail || data)) || `Login failed (${res.status})`)
-        setLoading(false)
-        return
-      }
-
-      const token = (data && (data.access_token || data.token))
-      if (!token) {
-        setError("No access token returned by server")
-        setLoading(false)
-        return
-      }
-
-      // store token in localStorage
-      try {
-        localStorage.setItem("access_token", token)
-      } catch (e) {
-        // ignore storage errors
-      }
-
-      // also set a non-HttpOnly cookie for convenience (not secure for sensitive apps)
-      try {
-        document.cookie = `access_token=${token}; path=/`
-      } catch (e) {}
-
-      // redirect to home
-      router.push("/");
-    } catch (err) {
-      setError(err.message || String(err))
-    } finally {
-      setLoading(false)
+            const res = await fetch(`${API}/auth/jwt/login`, {
+                method: "POST",
+                headers: { "Content-Type": "application/x-www-form-urlencoded" },
+                body: body.toString(),
+            });
+            const data = await res.json().catch(() => null);
+            if (!res.ok) {
+                setError((data && (data.detail || JSON.stringify(data))) || `Login failed (${res.status})`);
+                return;
+            }
+            const token = data?.access_token ?? data?.token;
+            if (!token) {
+                setError("No access token returned by server.");
+                return;
+            }
+            // Fetch the user profile so AuthContext has the full user object
+            const { valid, detail: userData } = await verifyToken(token);
+            if (!valid) {
+                setError("Token verification failed. Please try again.");
+                return;
+            }
+            // Store token — the destination page's AuthProvider reads it from localStorage
+            localStorage.setItem("access_token", token);
+            router.push(userData?.is_superuser ? "/admin/users" : "/");
+        } catch (err) {
+            setError(err?.message ?? String(err));
+        } finally {
+            setLoading(false);
+        }
     }
-  }
 
-  return (
-    <form onSubmit={handleSubmit}>
-      <div>
-        <label>
-          Email:
-          <input
-            type="email"
-            name="email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            required
-          />
-        </label>
-      </div>
-      <div>
-        <label>
-          Password:
-          <input
-            type="password"
-            name="password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            required
-          />
-        </label>
-      </div>
-      <div>
-        <button type="submit" disabled={loading}>
-          {loading ? "Logging in..." : "Login"}
-        </button>
-      </div>
-      {error && (
-        <div role="alert" style={{ color: "red" }}>
-          {String(error)}
-        </div>
-      )}
-    </form>
-  )
+    return (
+        <form onSubmit={handleSubmit}>
+            <h2>Login</h2>
+            <div>
+                <label>
+                    Email:
+                    <input
+                        type="email"
+                        value={email}
+                        onChange={(e) => setEmail(e.target.value)}
+                        required
+                    />
+                </label>
+            </div>
+            <div>
+                <label>
+                    Password:
+                    <input
+                        type="password"
+                        value={password}
+                        onChange={(e) => setPassword(e.target.value)}
+                        required
+                    />
+                </label>
+            </div>
+            <button type="submit" disabled={loading}>
+                {loading ? "Logging in…" : "Login"}
+            </button>
+            {error && <p role="alert" style={{ color: "red" }}>{String(error)}</p>}
+            <p>
+                No account? <a href="/register">Register</a>
+            </p>
+        </form>
+    );
 }

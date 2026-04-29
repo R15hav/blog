@@ -1,10 +1,10 @@
 "use client";
 
 import { useEffect, useState, useRef } from "react";
-import { useRouter } from 'next/navigation';
+import { useRouter } from "next/navigation";
 
-import { getTokenFromLocalStorage, getCurrentFormattedDate } from "../_lib/utility";
-import { verifyToken,createArticle, updateArticle } from "../_lib/api_callout";
+import { getCurrentFormattedDate } from "../_lib/utility";
+import { verifyToken, createArticle, updateArticle, getArticle } from "../_lib/api_callout";
 
 import EditorJS from "@editorjs/editorjs";
 import Embed from "@editorjs/embed";
@@ -13,7 +13,6 @@ import List from "@editorjs/list";
 import Warning from "@editorjs/warning";
 import Code from "@editorjs/code";
 import LinkTool from "@editorjs/link";
-import Image from "@editorjs/image";
 import Raw from "@editorjs/raw";
 import Header from "@editorjs/header";
 import Quote from "@editorjs/quote";
@@ -23,48 +22,21 @@ import Delimiter from "@editorjs/delimiter";
 import InlineCode from "@editorjs/inline-code";
 import SimpleImage from "@editorjs/simple-image";
 
-
-function Editorjs({id}) {
-
+function Editorjs({ id }) {
     const router = useRouter();
+    const editorInstance = useRef(null);
+    const initialData = useRef(null);
 
-    const editorInstance = useRef();
-    const articleDataToUpdate= useRef();
-
-    const [loading, setLoading] = useState(true);
+    const [title, setTitle] = useState("");
     const [published, setPublished] = useState(true);
     const [statusMsg, setStatusMsg] = useState(null);
+    const [loading, setLoading] = useState(!!id);
 
-    async function fetchArticleData(articleId) {
-        try {
-            const res = await fetch(`http://localhost:8000/api/v1/get-article/${articleId}`, {
-                method: 'GET',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-            });
-
-            const data = await res.json().catch(() => null);
-            
-            if (!res.ok) {
-                setStatusMsg(`Fetch failed: ${data && (data.detail || data.error || JSON.stringify(data))}`);
-                return null;
-            }
-
-            return data;
-        } catch (error) {
-            setStatusMsg('Fetching article failed: ' + (error && error.message ? error.message : String(error)));
-            return null;
-        }
-    }
-    
-    function initEditorjs(){
-        if( editorInstance.current ) {
-            return;
-        }
-        const editor = new EditorJS({ 
-            holder: 'editorjs', 
-            tools: { 
+    function initEditor(data) {
+        if (editorInstance.current) return;
+        editorInstance.current = new EditorJS({
+            holder: "editorjs",
+            tools: {
                 embed: Embed,
                 table: Table,
                 marker: Marker,
@@ -72,105 +44,99 @@ function Editorjs({id}) {
                 warning: Warning,
                 code: Code,
                 linkTool: LinkTool,
-                image: Image,
                 raw: Raw,
                 header: Header,
                 quote: Quote,
                 checklist: CheckList,
                 delimiter: Delimiter,
                 inlineCode: InlineCode,
-                simpleImage: SimpleImage
+                simpleImage: SimpleImage,
             },
-            data: articleDataToUpdate.current || { },
-
-            onReady: () => {
-                console.log('Editor.js is ready to work!')
-            }
+            data: data ?? {},
+            onReady: () => {},
         });
-        editorInstance.current = editor;
-    }
-
-    function editorInitSnippet() {
-        const init = () => {
-            initEditorjs();
-        }
-        if(window !== undefined){
-            init();
-        }
     }
 
     useEffect(() => {
-        if (!id) return;
-        const articleData = async () =>await fetchArticleData(id);
-        articleData().then(data => {
-            if (data) {
-                console.log('retrived data', data.article[0].content);
-                const content = JSON.parse(data.article[0].content);
-                articleDataToUpdate.current = content;
-                editorInitSnippet();
+        if (!id) {
+            initEditor(null);
+            return;
+        }
+        getArticle(id).then(({ success, detail }) => {
+            if (success && detail?.article?.[0]) {
+                const article = detail.article[0];
+                setTitle(article.title ?? "");
+                setPublished(article.published === true || article.published === "true");
+                try {
+                    initialData.current = JSON.parse(article.content);
+                } catch {
+                    initialData.current = null;
+                }
             }
-        })
+            setLoading(false);
+            initEditor(initialData.current);
+        });
     }, [id]);
 
-    useEffect(() => {
-        if (id) return;
-        editorInitSnippet();
-    }, []);
-
     const save = async () => {
-        setStatusMsg(null)
+        setStatusMsg(null);
         try {
-            const outputData = await editorInstance.current.save();
-            const created_date = getCurrentFormattedDate();
-            const {owner_id, token} = getTokenFromLocalStorage();
-            if (!token) { 
-                console.error('no token found');
-                return; 
-            }
-
-            const verification =  await verifyToken(token);
-            if (!verification.valid) {
-                console.error('Token verification failed');
-                setStatusMsg('Token verification failed. Please login again.');
+            const token = localStorage.getItem("access_token");
+            if (!token) {
+                setStatusMsg("Not logged in. Please login first.");
                 return;
             }
-
-            const body = {
-                owner_id: owner_id || "",
+            const { valid } = await verifyToken(token);
+            if (!valid) {
+                setStatusMsg("Session expired. Please login again.");
+                return;
+            }
+            const outputData = await editorInstance.current.save();
+            const payload = {
+                title: title.trim(),
                 content: JSON.stringify(outputData),
                 published: Boolean(published),
-                created_date,
-            }
-
-            let res = null;
-            if(id){
-                res = await updateArticle(id, body, token);
-            }else{
-                res = await createArticle(body, token);
-            }
+                created_date: getCurrentFormattedDate(),
+            };
+            const res = id
+                ? await updateArticle(id, payload, token)
+                : await createArticle(payload, token);
 
             if (!res.success) {
-                const data = res.detail;
-                console.error('Article creation failed:', data);
-                setStatusMsg(`Create failed: ${data && (data.detail || data.error || JSON.stringify(data))}`);
+                setStatusMsg(`Save failed: ${JSON.stringify(res.detail)}`);
                 return;
             }
-            setStatusMsg('Article created successfully');
-            console.log('Article created');
-            
-            //router.push("/");
-        } catch (error) {
-            console.error('Nothing created', error);
-            setStatusMsg('Saving failed: ' + (error && error.message ? error.message : String(error)))
+            setStatusMsg(id ? "Article updated." : "Article created.");
+            if (!id) router.push("/");
+        } catch (err) {
+            setStatusMsg("Save error: " + (err?.message ?? String(err)));
         }
-    }
+    };
+
+    if (loading) return <p>Loading article…</p>;
 
     return (
-        <>
-            <div id="editorjs"></div>
+        <div>
+            <input
+                type="text"
+                placeholder="Article title"
+                value={title}
+                onChange={(e) => setTitle(e.target.value)}
+                style={{ display: "block", width: "100%", fontSize: "1.5em", marginBottom: "1em" }}
+            />
+            <label>
+                <input
+                    type="checkbox"
+                    checked={published}
+                    onChange={(e) => setPublished(e.target.checked)}
+                />
+                {" Published"}
+            </label>
+            <div id="editorjs" style={{ border: "1px solid #ccc", minHeight: "200px", padding: "8px" }} />
             <button onClick={save}>Save</button>
-        </>
-    )
+            {statusMsg && <p>{statusMsg}</p>}
+        </div>
+    );
 }
 
-export default Editorjs
+export default Editorjs;

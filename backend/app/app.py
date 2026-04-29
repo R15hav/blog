@@ -1,63 +1,70 @@
-#Standard library imports
-from fastapi import FastAPI
-from fastapi.middleware.cors import CORSMiddleware
+import os
 from contextlib import asynccontextmanager
 
-#Local application imports
-from app.models.users import UserRead, UserCreate, UserUpdate
-from app.api.v1.articles import router as articles_router
+from fastapi import FastAPI, Depends
+from fastapi.middleware.cors import CORSMiddleware
+from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.database.db import create_db_and_tables
+from app.models.users import UserRead, UserCreate, UserUpdate
+from app.models.theme import ThemeActiveResponse
+from app.api.v1.articles import router as articles_router
+from app.api.v1.admin import router as admin_router
+from app.database.db import create_db_and_tables, get_async_session
 from app.core.users import fastapi_users, auth_backend
+from app.services.theme import get_active_theme
+
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    # Startup: create database and tables
     await create_db_and_tables()
     yield
-    # Shutdown: any cleanup can be done here
+
 
 app = FastAPI(lifespan=lifespan)
 
-# Define allowed origins (frontend URLs)
-origins = [
-    "http://localhost:3000",
-    "https://your-production-frontend.com",
-]
+FRONTEND_URL = os.getenv("FRONTEND_URL", "http://localhost:3000")
 
-# Add the CORSMiddleware
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=origins,         # Allows specified origins
-    allow_credentials=True,        # Allows cookies/authorization headers
-    allow_methods=["*"],           # Allows all methods (GET, POST, PUT, DELETE, etc)
-    allow_headers=["*"],           # Allows all headers
+    allow_origins=[FRONTEND_URL],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
 )
 
+# ── fastapi-users routes ───────────────────────────────────────────────────────
 app.include_router(
-    fastapi_users.get_auth_router(auth_backend), 
-    prefix="/auth/jwt", 
-    tags=["auth"]
+    fastapi_users.get_auth_router(auth_backend),
+    prefix="/auth/jwt",
+    tags=["auth"],
 )
 app.include_router(
-    fastapi_users.get_register_router( UserRead, UserCreate ), 
-    prefix="/auth", 
-    tags=["auth"]
+    fastapi_users.get_register_router(UserRead, UserCreate),
+    prefix="/auth",
+    tags=["auth"],
 )
 app.include_router(
-    fastapi_users.get_reset_password_router(), 
-    prefix="/auth", 
-    tags=["auth"]
+    fastapi_users.get_reset_password_router(),
+    prefix="/auth",
+    tags=["auth"],
 )
 app.include_router(
-    fastapi_users.get_verify_router( UserRead ), 
-    prefix="/auth", 
-    tags=["auth"]
+    fastapi_users.get_verify_router(UserRead),
+    prefix="/auth",
+    tags=["auth"],
 )
 app.include_router(
-    fastapi_users.get_users_router( UserRead, UserUpdate ), 
-    prefix="/users", 
-    tags=["users"]
+    fastapi_users.get_users_router(UserRead, UserUpdate),
+    prefix="/users",
+    tags=["users"],
 )
+
+# ── Application routes ─────────────────────────────────────────────────────────
 app.include_router(articles_router, prefix="/api/v1", tags=["articles"])
+app.include_router(admin_router, prefix="/api/v1", tags=["admin"])
 
+
+@app.get("/api/v1/theme/active", response_model=ThemeActiveResponse, tags=["theme"])
+async def active_theme(session: AsyncSession = Depends(get_async_session)):
+    theme = await get_active_theme(session)
+    return ThemeActiveResponse(url=theme.url if theme else None)

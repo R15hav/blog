@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, Query
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.models.articles import ArticleBase
@@ -7,9 +7,10 @@ from app.core.users import current_active_user
 from app.services.articles import (
     create_article as svc_create_article,
     list_articles as svc_list_articles,
+    search_articles as svc_search_articles,
     get_article_by_id as svc_get_article_by_id,
     delete_article as svc_delete_article,
-    update_article as svc_update_article
+    update_article as svc_update_article,
 )
 
 
@@ -29,6 +30,15 @@ async def create_article(
 @router.get("/get-articles")
 async def get_articles(session: AsyncSession = Depends(get_async_session)):
     articles = await svc_list_articles(session)
+    return {"articles": articles}
+
+
+@router.get("/search-articles")
+async def search_articles(
+    title: str = Query(..., min_length=1),
+    session: AsyncSession = Depends(get_async_session),
+):
+    articles = await svc_search_articles(session, title)
     return {"articles": articles}
 
 

@@ -1,49 +1,147 @@
+const API = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
+
+// ── Auth ───────────────────────────────────────────────────────────────────────
+
 export async function verifyToken(token) {
-    const res = await fetch('http://localhost:8000/users/me', {
-        method: 'get',
+    const res = await fetch(`${API}/users/me`, {
         headers: {
-            'Content-Type': 'application/json',
-            'Accept': 'application/json',
-            'Authorization': `Bearer ${token}`,
+            "Content-Type": "application/json",
+            Accept: "application/json",
+            Authorization: `Bearer ${token}`,
         },
     });
-    const data = await res.json().catch(() => null)
-    if (!res.ok) {
-        return { valid: false, detail: data };
-    }
-    return { valid: true, detail: data };
+    const data = await res.json().catch(() => null);
+    return res.ok ? { valid: true, detail: data } : { valid: false, detail: data };
+}
+
+// ── Articles ───────────────────────────────────────────────────────────────────
+
+export async function getArticles() {
+    const res = await fetch(`${API}/api/v1/get-articles`);
+    const data = await res.json().catch(() => null);
+    return res.ok ? { success: true, detail: data } : { success: false, detail: data };
+}
+
+export async function getArticle(id) {
+    const res = await fetch(`${API}/api/v1/get-article/${id}`);
+    const data = await res.json().catch(() => null);
+    return res.ok ? { success: true, detail: data } : { success: false, detail: data };
+}
+
+export async function searchArticles(title) {
+    const res = await fetch(`${API}/api/v1/search-articles?title=${encodeURIComponent(title)}`);
+    const data = await res.json().catch(() => null);
+    return res.ok ? { success: true, detail: data } : { success: false, detail: data };
 }
 
 export async function createArticle(payload, token) {
-    const res = await fetch('http://localhost:8000/api/v1/create-article', {
-        method: 'POST',
+    const res = await fetch(`${API}/api/v1/create-article`, {
+        method: "POST",
         headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${token}`,
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
         },
-        credentials: 'include',
         body: JSON.stringify(payload),
     });
-    const data = await res.json().catch(() => null)
-    if (!res.ok) {
-        return { success: false, detail: data };
-    }
-    return { success: true, detail: data };
+    const data = await res.json().catch(() => null);
+    return res.ok ? { success: true, detail: data } : { success: false, detail: data };
 }
 
 export async function updateArticle(articleId, payload, token) {
-    const res = await fetch(`http://localhost:8000/api/v1/update-article/${articleId}`, {
-        method: 'PUT',
+    const res = await fetch(`${API}/api/v1/update-article/${articleId}`, {
+        method: "PUT",
         headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${token}`,
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
         },
-        credentials: 'include',
         body: JSON.stringify(payload),
     });
-    const data = await res.json().catch(() => null)
-    if (!res.ok) {
-        return { success: false, detail: data };
-    }
-    return { success: true, detail: data };
+    const data = await res.json().catch(() => null);
+    return res.ok ? { success: true, detail: data } : { success: false, detail: data };
+}
+
+export async function deleteArticle(articleId, token) {
+    const res = await fetch(`${API}/api/v1/delete-article/${articleId}`, {
+        method: "DELETE",
+        headers: { Authorization: `Bearer ${token}` },
+    });
+    const data = await res.json().catch(() => null);
+    return res.ok ? { success: true, detail: data } : { success: false, detail: data };
+}
+
+// ── Public theme ───────────────────────────────────────────────────────────────
+
+export async function getActiveTheme() {
+    const res = await fetch(`${API}/api/v1/theme/active`);
+    const data = await res.json().catch(() => null);
+    return res.ok ? { success: true, detail: data } : { success: false, detail: null };
+}
+
+// ── Admin — users ──────────────────────────────────────────────────────────────
+
+export async function getUsers(token) {
+    const res = await fetch(`${API}/api/v1/admin/users`, {
+        headers: { Authorization: `Bearer ${token}` },
+    });
+    const data = await res.json().catch(() => null);
+    return res.ok ? { success: true, detail: data } : { success: false, detail: data };
+}
+
+export async function activateUser(userId, token) {
+    const res = await fetch(`${API}/api/v1/admin/users/${userId}/activate`, {
+        method: "PATCH",
+        headers: { Authorization: `Bearer ${token}` },
+    });
+    const data = await res.json().catch(() => null);
+    return res.ok ? { success: true, detail: data } : { success: false, detail: data };
+}
+
+export async function deactivateUser(userId, token) {
+    const res = await fetch(`${API}/api/v1/admin/users/${userId}/deactivate`, {
+        method: "PATCH",
+        headers: { Authorization: `Bearer ${token}` },
+    });
+    const data = await res.json().catch(() => null);
+    return res.ok ? { success: true, detail: data } : { success: false, detail: data };
+}
+
+// ── Admin — themes ─────────────────────────────────────────────────────────────
+
+export async function getThemes(token) {
+    const res = await fetch(`${API}/api/v1/admin/themes`, {
+        headers: { Authorization: `Bearer ${token}` },
+    });
+    const data = await res.json().catch(() => null);
+    return res.ok ? { success: true, detail: data } : { success: false, detail: data };
+}
+
+export async function createTheme(name, url, token) {
+    const res = await fetch(`${API}/api/v1/admin/themes`, {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({ name, url }),
+    });
+    const data = await res.json().catch(() => null);
+    return res.ok ? { success: true, detail: data } : { success: false, detail: data };
+}
+
+export async function activateTheme(themeId, token) {
+    const res = await fetch(`${API}/api/v1/admin/themes/${themeId}/activate`, {
+        method: "PUT",
+        headers: { Authorization: `Bearer ${token}` },
+    });
+    const data = await res.json().catch(() => null);
+    return res.ok ? { success: true, detail: data } : { success: false, detail: data };
+}
+
+export async function deleteTheme(themeId, token) {
+    const res = await fetch(`${API}/api/v1/admin/themes/${themeId}`, {
+        method: "DELETE",
+        headers: { Authorization: `Bearer ${token}` },
+    });
+    const data = await res.json().catch(() => null);
+    return res.ok ? { success: true, detail: data } : { success: false, detail: data };
 }

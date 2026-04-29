@@ -1,0 +1,18 @@
+# Environment files — never commit secrets
+.env
+.env.local
+.env.*.local
+
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info
+.venv/
+*.db
+
+# Node
+node_modules/
+.next/
+
+# Misc
+.DS_Store
