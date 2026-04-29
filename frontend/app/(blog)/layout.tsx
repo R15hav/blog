@@ -1,26 +1,12 @@
 import type { Metadata } from "next";
 import "./globals.css";
 import { AuthProvider } from "../context/AuthContext";
+import { getActiveThemeUrl } from "../_lib/theme";
 
 export const metadata: Metadata = {
   title: "Blog",
   description: "An open-source configurable blog platform",
 };
-
-async function getActiveThemeUrl(): Promise<string | null> {
-  try {
-    const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
-    const res = await fetch(`${apiUrl}/api/v1/theme/active`, {
-      // Revalidate every 60 seconds so theme changes propagate quickly
-      next: { revalidate: 60 },
-    });
-    if (!res.ok) return null;
-    const data = await res.json();
-    return data?.url ?? null;
-  } catch {
-    return null;
-  }
-}
 
 export default async function BlogLayout({
   children,
