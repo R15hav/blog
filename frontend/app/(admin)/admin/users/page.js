@@ -1,8 +1,8 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useAuth } from "../../context/AuthContext";
-import { getUsers, activateUser, deactivateUser } from "../../_lib/api_callout";
+import { useAuth } from "../../../context/AuthContext";
+import { getUsers, activateUser, deactivateUser } from "../../../_lib/api_callout";
 
 export default function UsersPage() {
     const { token } = useAuth();

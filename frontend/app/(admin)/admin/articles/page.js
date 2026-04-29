@@ -2,8 +2,8 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { useAuth } from "../../context/AuthContext";
-import { getArticles, deleteArticle } from "../../_lib/api_callout";
+import { useAuth } from "../../../context/AuthContext";
+import { getArticles, deleteArticle } from "../../../_lib/api_callout";
 
 export default function AdminArticlesPage() {
     const { token } = useAuth();

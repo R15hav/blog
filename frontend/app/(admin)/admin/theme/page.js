@@ -1,13 +1,13 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useAuth } from "../../context/AuthContext";
+import { useAuth } from "../../../context/AuthContext";
 import {
     getThemes,
     createTheme,
     activateTheme,
     deleteTheme,
-} from "../../_lib/api_callout";
+} from "../../../_lib/api_callout";
 
 export default function ThemePage() {
     const { token } = useAuth();
@@ -80,6 +80,11 @@ export default function ThemePage() {
             <p>
                 Paste any external CSS URL. The active theme is injected as a{" "}
                 <code>&lt;link&gt;</code> tag for all visitors — no redeploy needed.
+            </p>
+            <p style={{ fontSize: "0.85em", color: "#666" }}>
+                ⚠️ GitHub raw URLs (<code>raw.githubusercontent.com</code>) are blocked by browsers due to MIME type.
+                Use <strong>jsDelivr</strong> instead:{" "}
+                <code>https://cdn.jsdelivr.net/gh/USER/REPO@BRANCH/path/file.css</code>
             </p>
 
             <form onSubmit={handleAdd}>
