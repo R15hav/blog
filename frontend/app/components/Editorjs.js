@@ -1,10 +1,10 @@
 "use client";
 
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 
 import { getCurrentFormattedDate } from "../_lib/utility";
-import { verifyToken, createArticle, updateArticle, getArticle } from "../_lib/api_callout";
+import { verifyToken, createArticle, updateArticle } from "../_lib/api_callout";
 
 import EditorJS from "@editorjs/editorjs";
 import Embed from "@editorjs/embed";
@@ -12,7 +12,6 @@ import Table from "@editorjs/table";
 import List from "@editorjs/list";
 import Warning from "@editorjs/warning";
 import Code from "@editorjs/code";
-import LinkTool from "@editorjs/link";
 import Raw from "@editorjs/raw";
 import Header from "@editorjs/header";
 import Quote from "@editorjs/quote";
@@ -22,82 +21,68 @@ import Delimiter from "@editorjs/delimiter";
 import InlineCode from "@editorjs/inline-code";
 import SimpleImage from "@editorjs/simple-image";
 
-function Editorjs({ id }) {
+const TOOLS = {
+    embed: Embed,
+    table: Table,
+    marker: Marker,
+    list: List,
+    warning: Warning,
+    code: Code,
+    raw: Raw,
+    header: Header,
+    quote: Quote,
+    checklist: CheckList,
+    delimiter: Delimiter,
+    inlineCode: InlineCode,
+    simpleImage: SimpleImage,
+};
+
+function Editorjs({ id, initialData = null, initialTitle = "", initialPublished = true }) {
     const router = useRouter();
-    const editorInstance = useRef(null);
-    const initialData = useRef(null);
+    const editorRef = useRef(null);
 
-    const [title, setTitle] = useState("");
-    const [published, setPublished] = useState(true);
+    const [title, setTitle] = useState(initialTitle);
+    const [published, setPublished] = useState(initialPublished);
     const [statusMsg, setStatusMsg] = useState(null);
-    const [loading, setLoading] = useState(!!id);
-
-    function initEditor(data) {
-        if (editorInstance.current) return;
-        editorInstance.current = new EditorJS({
-            holder: "editorjs",
-            tools: {
-                embed: Embed,
-                table: Table,
-                marker: Marker,
-                list: List,
-                warning: Warning,
-                code: Code,
-                linkTool: LinkTool,
-                raw: Raw,
-                header: Header,
-                quote: Quote,
-                checklist: CheckList,
-                delimiter: Delimiter,
-                inlineCode: InlineCode,
-                simpleImage: SimpleImage,
-            },
-            data: data ?? {},
-            onReady: () => {},
-        });
-    }
 
     useEffect(() => {
-        if (!id) {
-            initEditor(null);
-            return;
-        }
-        getArticle(id).then(({ success, detail }) => {
-            if (success && detail?.article?.[0]) {
-                const article = detail.article[0];
-                setTitle(article.title ?? "");
-                setPublished(article.published === true || article.published === "true");
-                try {
-                    initialData.current = JSON.parse(article.content);
-                } catch {
-                    initialData.current = null;
-                }
-            }
-            setLoading(false);
-            initEditor(initialData.current);
+        if (editorRef.current) return;
+
+        editorRef.current = new EditorJS({
+            holder: "editorjs",
+            tools: TOOLS,
+            data: initialData ?? {},
         });
-    }, [id]);
+
+        return () => {
+            // Null synchronously so a re-mount correctly reinitialises
+            const editor = editorRef.current;
+            editorRef.current = null;
+            editor?.isReady.then(() => editor.destroy()).catch(() => {});
+        };
+    }, []);
 
     const save = async () => {
         setStatusMsg(null);
         try {
+            if (!editorRef.current) { setStatusMsg("Editor not ready. Please wait."); return; }
+
             const token = localStorage.getItem("access_token");
-            if (!token) {
-                setStatusMsg("Not logged in. Please login first.");
-                return;
-            }
+            if (!token) { setStatusMsg("Not logged in."); return; }
+
             const { valid } = await verifyToken(token);
-            if (!valid) {
-                setStatusMsg("Session expired. Please login again.");
-                return;
-            }
-            const outputData = await editorInstance.current.save();
+            if (!valid) { setStatusMsg("Session expired. Please login again."); return; }
+
+            await editorRef.current.isReady;
+            const outputData = await editorRef.current.save();
+
             const payload = {
                 title: title.trim(),
                 content: JSON.stringify(outputData),
                 published: Boolean(published),
                 created_date: getCurrentFormattedDate(),
             };
+
             const res = id
                 ? await updateArticle(id, payload, token)
                 : await createArticle(payload, token);
@@ -112,8 +97,6 @@ function Editorjs({ id }) {
             setStatusMsg("Save error: " + (err?.message ?? String(err)));
         }
     };
-
-    if (loading) return <p>Loading article…</p>;
 
     return (
         <div>

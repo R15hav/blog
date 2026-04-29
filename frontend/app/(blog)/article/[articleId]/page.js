@@ -39,10 +39,12 @@ export default async function ArticlePage({ params }) {
           }
           if (block.type === "list") {
             const Tag = block.data.style === "ordered" ? "ol" : "ul";
+            // v2 list items are objects { content, items }, v1 items are plain strings
+            const itemText = (item) => (typeof item === "string" ? item : item?.content ?? "");
             return (
               <Tag key={i}>
                 {block.data.items.map((item, j) => (
-                  <li key={j} dangerouslySetInnerHTML={{ __html: item }} />
+                  <li key={j} dangerouslySetInnerHTML={{ __html: itemText(item) }} />
                 ))}
               </Tag>
             );

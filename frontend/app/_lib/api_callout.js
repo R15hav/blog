@@ -16,8 +16,8 @@ export async function verifyToken(token) {
 
 // ── Articles ───────────────────────────────────────────────────────────────────
 
-export async function getArticles() {
-    const res = await fetch(`${API}/api/v1/get-articles`);
+export async function getArticles({ skip = 0, limit = 10 } = {}) {
+    const res = await fetch(`${API}/api/v1/get-articles?skip=${skip}&limit=${limit}`);
     const data = await res.json().catch(() => null);
     return res.ok ? { success: true, detail: data } : { success: false, detail: data };
 }

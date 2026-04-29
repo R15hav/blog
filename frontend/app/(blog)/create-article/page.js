@@ -13,16 +13,14 @@ function page() {
   const { user, loading } = useAuth();
   const router = useRouter();
 
+  const allowed = user?.is_superuser || ["author", "admin"].includes(user?.role);
+
   useEffect(() => {
     if (loading) return;
-    if (!user || !["author", "admin"].includes(user.role)) {
-      router.replace("/login");
-    }
-  }, [user, loading, router]);
+    if (!user || !allowed) router.replace("/login");
+  }, [user, loading, allowed, router]);
 
-  if (loading || !user || !["author", "admin"].includes(user.role)) {
-    return null;
-  }
+  if (loading || !user || !allowed) return null;
 
   return (
     <div>

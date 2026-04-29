@@ -1,7 +1,7 @@
 from datetime import datetime
 from fastapi import HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select
+from sqlalchemy import select, func
 import uuid
 
 from app.database.db import Post
@@ -25,9 +25,12 @@ async def create_article(session: AsyncSession, user, post):
         raise HTTPException(status_code=400, detail=str(e))
 
 
-async def list_articles(session: AsyncSession):
-    results = await session.execute(select(Post))
-    return [row[0] for row in results.all()]
+async def list_articles(session: AsyncSession, skip: int = 0, limit: int = 10):
+    total = (await session.execute(select(func.count()).select_from(Post))).scalar()
+    results = await session.execute(
+        select(Post).order_by(Post.created_date.desc()).offset(skip).limit(limit)
+    )
+    return [row[0] for row in results.all()], total
 
 
 async def search_articles(session: AsyncSession, title: str):

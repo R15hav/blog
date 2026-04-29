@@ -28,9 +28,13 @@ async def create_article(
 
 
 @router.get("/get-articles")
-async def get_articles(session: AsyncSession = Depends(get_async_session)):
-    articles = await svc_list_articles(session)
-    return {"articles": articles}
+async def get_articles(
+    skip: int = Query(0, ge=0),
+    limit: int = Query(10, ge=1, le=100),
+    session: AsyncSession = Depends(get_async_session),
+):
+    articles, total = await svc_list_articles(session, skip, limit)
+    return {"articles": articles, "total": total}
 
 
 @router.get("/search-articles")
