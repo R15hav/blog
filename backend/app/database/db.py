@@ -4,10 +4,11 @@ from collections.abc import AsyncGenerator
 from datetime import datetime
 
 from fastapi import Depends
-from sqlalchemy import Boolean, Column, DateTime, Integer, String, ForeignKey, Uuid, UniqueConstraint
+from sqlalchemy import Boolean, Column, DateTime, Integer, String, ForeignKey, UniqueConstraint
 from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine, async_sessionmaker
 from sqlalchemy.orm import DeclarativeBase, relationship
 from fastapi_users.db import SQLAlchemyUserDatabase, SQLAlchemyBaseUserTableUUID
+from fastapi_users_db_sqlalchemy.generics import GUID
 
 DATABASE_URL = os.getenv("DATABASE_URL", "sqlite+aiosqlite:///./test.db")
 
@@ -31,8 +32,8 @@ class User(Base, SQLAlchemyBaseUserTableUUID):
 class Post(Base):
     __tablename__ = "posts"
 
-    id = Column(Uuid(as_uuid=True), primary_key=True, default=uuid.uuid4)
-    owner_id = Column(Uuid(as_uuid=True), ForeignKey("users.id"))
+    id = Column(GUID, primary_key=True, default=uuid.uuid4)
+    owner_id = Column(GUID, ForeignKey("users.id"))
     title = Column(String, nullable=False, default="")
     content = Column(String, nullable=False)
     published = Column(String, default="true")
@@ -47,17 +48,17 @@ class Like(Base):
     __table_args__ = (UniqueConstraint("post_id", "user_id", name="uq_like_post_user"),)
 
     id      = Column(Integer, primary_key=True, autoincrement=True)
-    post_id = Column(Uuid(as_uuid=True), ForeignKey("posts.id"), nullable=False)
-    user_id = Column(Uuid(as_uuid=True), ForeignKey("users.id"), nullable=False)
+    post_id = Column(GUID, ForeignKey("posts.id"), nullable=False)
+    user_id = Column(GUID, ForeignKey("users.id"), nullable=False)
 
     post = relationship("Post", back_populates="likes")
 
 class Comment(Base):
     __tablename__ = "comments"
 
-    id         = Column(Uuid(as_uuid=True), primary_key=True, default=uuid.uuid4)
-    post_id    = Column(Uuid(as_uuid=True), ForeignKey("posts.id"), nullable=False)
-    author_id  = Column(Uuid(as_uuid=True), ForeignKey("users.id"), nullable=False)
+    id         = Column(GUID, primary_key=True, default=uuid.uuid4)
+    post_id    = Column(GUID, ForeignKey("posts.id"), nullable=False)
+    author_id  = Column(GUID, ForeignKey("users.id"), nullable=False)
     body       = Column(String, nullable=False)
     created_at = Column(DateTime(timezone=True), default=datetime.utcnow)
 
@@ -67,7 +68,7 @@ class Comment(Base):
 class UserProfile(Base):
     __tablename__ = "user_profiles"
     id = Column(Integer, primary_key=True, autoincrement=True)
-    user_id = Column(Uuid(as_uuid=True), ForeignKey("users.id"), unique=True, nullable=False)
+    user_id = Column(GUID, ForeignKey("users.id"), unique=True, nullable=False)
     bio = Column(String, nullable=True)
     contact = Column(String, nullable=True)
     location = Column(String, nullable=True)
@@ -78,7 +79,7 @@ class UserProfile(Base):
 class Experience(Base):
     __tablename__ = "experiences"
     id = Column(Integer, primary_key=True, autoincrement=True)
-    user_id = Column(Uuid(as_uuid=True), ForeignKey("users.id"), nullable=False)
+    user_id = Column(GUID, ForeignKey("users.id"), nullable=False)
     company_name = Column(String, nullable=False, default="")
     designation = Column(String, nullable=False, default="")
     years = Column(Integer, nullable=False, default=0)
@@ -88,7 +89,7 @@ class Experience(Base):
 class Qualification(Base):
     __tablename__ = "qualifications"
     id = Column(Integer, primary_key=True, autoincrement=True)
-    user_id = Column(Uuid(as_uuid=True), ForeignKey("users.id"), nullable=False)
+    user_id = Column(GUID, ForeignKey("users.id"), nullable=False)
     institution = Column(String, nullable=False, default="")
     degree = Column(String, nullable=False, default="")
     field_of_study = Column(String, nullable=True)
@@ -98,7 +99,7 @@ class Qualification(Base):
 class SchoolEducation(Base):
     __tablename__ = "school_education"
     id = Column(Integer, primary_key=True, autoincrement=True)
-    user_id = Column(Uuid(as_uuid=True), ForeignKey("users.id"), nullable=False)
+    user_id = Column(GUID, ForeignKey("users.id"), nullable=False)
     grade = Column(String, nullable=False)
     school_name = Column(String, nullable=True)
     board = Column(String, nullable=True)

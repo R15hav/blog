@@ -42,8 +42,8 @@ function fmt(dateStr, opts = { month: "short", day: "numeric", year: "numeric" }
   return new Date(dateStr).toLocaleDateString("en-US", opts);
 }
 
-function AuthorInitial(email) {
-  return email?.[0]?.toUpperCase() ?? "?";
+function AuthorInitial(name) {
+  return name?.[0]?.toUpperCase() ?? "?";
 }
 
 export default function Home() {
@@ -111,9 +111,9 @@ export default function Home() {
               {getFirstParagraph(featured.content).slice(0, 280) || " "}
             </p>
             <div className="hero-meta">
-              <div className="avatar">{AuthorInitial(featured.author_email)}</div>
+              <div className="avatar">{AuthorInitial(featured.author_name)}</div>
               <div>
-                <div className="byline-name">{featured.author_email ?? "Unknown"}</div>
+                <div className="byline-name">{featured.author_name ?? "Unknown"}</div>
                 <div className="byline-meta">
                   <span>{getReadTime(featured.content)} min read</span>
                   {featured.created_date && (
@@ -139,7 +139,7 @@ export default function Home() {
                   )}
                   <h5><a href={`/article/${a.id}`}>{a.title || "(Untitled)"}</a></h5>
                   <span className="meta">
-                    By {a.author_email ?? "Unknown"} · {getReadTime(a.content)} min
+                    By {a.author_name ?? "Unknown"} · {getReadTime(a.content)} min
                   </span>
                 </div>
               ))}
@@ -164,10 +164,10 @@ export default function Home() {
                     {getFirstParagraph(a.content).slice(0, 200)}
                   </p>
                   <div className="list-meta">
-                    <div className="avatar sm">{AuthorInitial(a.author_email)}</div>
+                    <div className="avatar sm">{AuthorInitial(a.author_name)}</div>
                     <div className="byline-meta">
                       <span style={{ color: "var(--ink-2)", fontWeight: 500 }}>
-                        {a.author_email ?? "Unknown"}
+                        {a.author_name ?? "Unknown"}
                       </span>
                       {a.created_date && (
                         <>
