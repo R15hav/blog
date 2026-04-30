@@ -11,7 +11,7 @@ function SearchIcon() {
   );
 }
 
-export default function NavLinks({ siteName = "Blog" }: { siteName?: string }) {
+export default function NavLinks({ siteName = "Blog", allowRegistration = true }: { siteName?: string; allowRegistration?: boolean }) {
   const { user, logout } = useAuth();
   const pathname = usePathname();
   const router = useRouter();
@@ -68,7 +68,9 @@ export default function NavLinks({ siteName = "Blog" }: { siteName?: string }) {
         ) : (
           <>
             <a className="nav-link" href="/login">Sign in</a>
-            <a className="btn btn-primary btn-sm" href="/register">Get started</a>
+            {allowRegistration && (
+              <a className="btn btn-primary btn-sm" href="/register">Get started</a>
+            )}
           </>
         )}
       </div>

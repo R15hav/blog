@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import "./globals.css";
 import { AuthProvider } from "../context/AuthContext";
-import { getActiveThemeUrl, getSiteName } from "../_lib/theme";
+import { getActiveThemeUrl, getSiteName, getAllowRegistration } from "../_lib/theme";
 import NavLinks from "./components/NavLinks";
 
 export const metadata: Metadata = {
@@ -12,7 +12,11 @@ export const metadata: Metadata = {
 export default async function BlogLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
-  const [themeUrl, siteName] = await Promise.all([getActiveThemeUrl(), getSiteName()]);
+  const [themeUrl, siteName, allowRegistration] = await Promise.all([
+    getActiveThemeUrl(),
+    getSiteName(),
+    getAllowRegistration(),
+  ]);
 
   return (
     <html lang="en">
@@ -27,7 +31,7 @@ export default async function BlogLayout({
       </head>
       <body>
         <AuthProvider>
-          <NavLinks siteName={siteName} />
+          <NavLinks siteName={siteName} allowRegistration={allowRegistration} />
           {children}
         </AuthProvider>
       </body>

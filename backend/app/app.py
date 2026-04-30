@@ -80,4 +80,8 @@ async def active_theme(session: AsyncSession = Depends(get_async_session)):
 @app.get("/api/v1/settings", tags=["settings"])
 async def public_settings(session: AsyncSession = Depends(get_async_session)):
     config = await get_site_config(session)
-    return {"site_name": config.site_name, "logo_url": config.logo_url}
+    return {
+        "site_name": config.site_name,
+        "logo_url": config.logo_url,
+        "allow_registration": config.allow_registration,
+    }

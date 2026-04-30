@@ -28,6 +28,7 @@ export default function AdminDashboard() {
 
   const [siteName, setSiteName] = useState("");
   const [logoUrl, setLogoUrl] = useState("");
+  const [allowRegistration, setAllowRegistration] = useState(true);
   const [settingsMsg, setSettingsMsg] = useState(null);
   const [settingsError, setSettingsError] = useState(null);
   const [savingSettings, setSavingSettings] = useState(false);
@@ -45,6 +46,7 @@ export default function AdminDashboard() {
       if (success) {
         setSiteName(detail.site_name ?? "");
         setLogoUrl(detail.logo_url ?? "");
+        setAllowRegistration(detail.allow_registration ?? true);
       }
     });
   }, [token]);
@@ -55,7 +57,7 @@ export default function AdminDashboard() {
     setSettingsError(null);
     setSavingSettings(true);
     const { success, detail } = await updateAdminSettings(
-      { site_name: siteName, logo_url: logoUrl || null },
+      { site_name: siteName, logo_url: logoUrl || null, allow_registration: allowRegistration },
       token
     );
     setSavingSettings(false);
@@ -132,6 +134,23 @@ export default function AdminDashboard() {
             <img src={logoUrl} alt="Logo preview" className="logo-preview" />
           </div>
         )}
+
+        <div>
+          <label style={{ display: "flex", alignItems: "center", gap: 10, cursor: "pointer" }}>
+            <input
+              type="checkbox"
+              checked={allowRegistration}
+              onChange={(e) => setAllowRegistration(e.target.checked)}
+              style={{ accentColor: "var(--accent)", width: 15, height: 15, cursor: "pointer" }}
+            />
+            <span style={{ fontFamily: "var(--font-sans)", fontSize: 14, color: "var(--ink-2)" }}>
+              Allow self-registration
+            </span>
+          </label>
+          <p style={{ fontFamily: "var(--font-sans)", fontSize: 12, color: "var(--ink-4)", marginTop: 5 }}>
+            When unchecked, the Register page and &ldquo;Get started&rdquo; links are hidden from visitors.
+          </p>
+        </div>
 
         <div>
           <button type="submit" className="btn btn-primary" disabled={savingSettings}>

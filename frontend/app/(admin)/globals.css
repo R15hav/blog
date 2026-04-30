@@ -168,6 +168,7 @@ table.dataset { width: 100%; border-collapse: collapse; font-family: var(--font-
 .btn-ghost { background: transparent; color: var(--ink-2); border-color: var(--rule); }
 .btn-ghost:hover { color: var(--ink); border-color: var(--ink-3); }
 .btn-sm { padding: 5px 11px; font-size: 12px; }
+.btn:disabled { opacity: 0.38; cursor: not-allowed; pointer-events: none; }
 
 /* ── Icon button ─────────────────────────────── */
 
@@ -264,6 +265,47 @@ table.dataset { width: 100%; border-collapse: collapse; font-family: var(--font-
   font-family: var(--font-serif); font-weight: 500; font-size: 22px;
   letter-spacing: -0.008em; color: var(--ink); margin: 28px 0 14px;
 }
+
+/* ── Modal ───────────────────────────────────────── */
+
+.modal-overlay {
+  position: fixed; inset: 0; z-index: 400;
+  background: oklch(0.10 0.01 60 / 0.45);
+  display: flex; align-items: center; justify-content: center;
+  padding: 24px;
+  animation: modal-fade-in 0.12s ease;
+}
+@keyframes modal-fade-in {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+.modal {
+  background: var(--paper); border: 1px solid var(--rule);
+  border-radius: var(--r-lg); padding: 28px 28px 22px;
+  width: 100%; max-width: 380px;
+  box-shadow: 0 8px 32px oklch(0.10 0.01 60 / 0.14);
+  animation: modal-slide-in 0.14s ease;
+}
+@keyframes modal-slide-in {
+  from { transform: translateY(6px); opacity: 0; }
+  to   { transform: translateY(0);   opacity: 1; }
+}
+.modal-icon {
+  width: 40px; height: 40px; border-radius: 50%; margin-bottom: 16px;
+  display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+  background: color-mix(in oklch, var(--warn), transparent 88%);
+  border: 1px solid color-mix(in oklch, var(--warn), transparent 72%);
+  color: oklch(0.46 0.13 70);
+}
+.modal h3 {
+  font-family: var(--font-serif); font-weight: 500; font-size: 19px;
+  letter-spacing: -0.01em; color: var(--ink); margin: 0 0 7px;
+}
+.modal p {
+  font-family: var(--font-sans); font-size: 13.5px; color: var(--ink-3);
+  line-height: 1.5; margin: 0 0 22px;
+}
+.modal-actions { display: flex; justify-content: flex-end; gap: 8px; }
 
 /* ── Feedback messages ───────────────────────── */
 

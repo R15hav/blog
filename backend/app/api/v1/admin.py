@@ -137,6 +137,7 @@ async def get_stats(
 class SiteConfigUpdate(BaseModel):
     site_name: str | None = None
     logo_url: str | None = None
+    allow_registration: bool | None = None
 
 
 @router.get("/settings")
@@ -145,7 +146,11 @@ async def get_settings(
     _=Depends(current_superuser),
 ):
     config = await get_site_config(session)
-    return {"site_name": config.site_name, "logo_url": config.logo_url}
+    return {
+        "site_name": config.site_name,
+        "logo_url": config.logo_url,
+        "allow_registration": config.allow_registration,
+    }
 
 
 @router.put("/settings")
@@ -154,8 +159,14 @@ async def put_settings(
     session: AsyncSession = Depends(get_async_session),
     _=Depends(current_superuser),
 ):
-    config = await update_site_config(session, data.site_name, data.logo_url)
-    return {"site_name": config.site_name, "logo_url": config.logo_url}
+    config = await update_site_config(
+        session, data.site_name, data.logo_url, data.allow_registration
+    )
+    return {
+        "site_name": config.site_name,
+        "logo_url": config.logo_url,
+        "allow_registration": config.allow_registration,
+    }
 
 
 @router.post("/upload-logo")
