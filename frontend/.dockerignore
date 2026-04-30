@@ -1,0 +1,23 @@
+# Dependencies — reinstalled inside the image by npm ci
+node_modules
+
+# Next.js build output — rebuilt inside the image
+.next
+out
+
+# Local env files — injected at runtime or as build args
+.env
+.env.local
+.env.*.local
+
+# Source maps and debug artifacts
+*.map
+
+# OS and editor noise
+.DS_Store
+Thumbs.db
+.idea
+.vscode
+
+# Docs
+*.md

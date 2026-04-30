@@ -1,0 +1,31 @@
+# Python cache and compiled bytecode
+__pycache__
+*.pyc
+*.pyo
+*.pyd
+.pytest_cache
+
+# Virtual environments
+.venv
+venv
+env
+
+# Local SQLite database — production uses PostgreSQL via DATABASE_URL
+*.db
+*.sqlite3
+
+# Test suite
+tests/
+
+# Dev tooling and docs
+todo.txt
+*.md
+README.md
+
+# OS and editor noise
+.DS_Store
+.idea
+.vscode
+
+# Secrets — never bake these into the image
+.env

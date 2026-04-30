@@ -1,42 +1,220 @@
+# Blog Project — Local Development Guide
 
-# Blog Project
+Full-stack blog app: **FastAPI** backend + **Next.js 16** frontend.
 
-Small full-stack blog example: a FastAPI backend and a Next.js frontend.
+> Running with Docker or deploying to the cloud? See the **[Docker & Cloud Deployment Guide](DOCKER.md)**.
 
-Repository layout
-- `backend/` — Python FastAPI app (async SQLAlchemy, `fastapi-users` for auth).
-- `frontend/` — Next.js application (React).
+| Service  | URL                        |
+|----------|----------------------------|
+| Frontend | http://localhost:3000      |
+| Backend  | http://localhost:8000      |
+| API docs | http://localhost:8000/docs |
 
-Quickstart (development)
+---
 
-Backend
+## Prerequisites
 
-1. Create a Python environment and install dependencies from `backend/pyproject.toml`.
-2. Run the backend (development):
+### Backend — `uv`
+
+The backend uses [`uv`](https://github.com/astral-sh/uv) to manage the Python environment.
+
+Install it if you don't have it:
 
 ```bash
-# from repo root
-uv run ./backend/main.py
-# or
-uvicorn backend.app.app:app --reload --host 0.0.0.0 --port 8000
+curl -LsSf https://astral.sh/uv/install.sh | sh
 ```
 
-The backend will create a local SQLite DB `test.db` under `backend/` on first startup.
-
-Frontend
-
-1. From `frontend/`, install dependencies (`npm install` / `pnpm install` / `yarn`).
-2. Start the dev server:
+Verify:
 
 ```bash
+uv --version
+```
+
+### Frontend — Node.js ≥ 20.9.0
+
+Next.js 16 requires **Node.js 20.9.0 or higher**. The system default Node (e.g. the Debian/Ubuntu apt package) is often v18, which will cause this error on startup:
+
+```
+You are using Node.js 18.x.x. For Next.js, Node.js version ">=20.9.0" is required.
+```
+
+Use [nvm](https://github.com/nvm-sh/nvm) to manage Node versions:
+
+```bash
+# Install nvm (if not already installed)
+curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.40.0/install.sh | bash
+
+# Then reload your shell
+source ~/.bashrc   # or source ~/.zshrc
+
+# Install and use Node 24 (LTS)
+nvm install 24
+nvm use 24
+
+# Verify
+node --version   # should print v24.x.x
+```
+
+> **Important:** `nvm` is loaded via your shell profile (`.bashrc` / `.zshrc`). It is NOT available in non-interactive shells unless you explicitly source it. See the startup commands below.
+
+---
+
+## Starting the Backend
+
+The `uv` project root is `backend/`, so you **must run from the `backend/` directory** (not the repo root). Running `uv run` from the repo root will fail with `ModuleNotFoundError: No module named 'uvicorn'` because `uv` won't find the `pyproject.toml`.
+
+```bash
+cd backend
+uv run python main.py
+```
+
+Expected output:
+
+```
+INFO:     Will watch for changes in these directories: ['...']
+INFO:     Uvicorn running on http://0.0.0.0:8000 (Press CTRL+C to quit)
+INFO:     Started reloader process [...] using WatchFiles
+INFO:     Application startup complete.
+```
+
+On first run, `backend/test.db` (SQLite) is created automatically. To reset the database, delete that file and restart the server.
+
+---
+
+## Starting the Frontend
+
+Because `nvm` is not available in non-interactive shells, you need to source it explicitly before running npm commands in scripts or new terminals:
+
+```bash
+source ~/.nvm/nvm.sh
+nvm use 24
+
 cd frontend
 npm run dev
 ```
 
-Auth & configuration
-- Auth is provided by `fastapi-users` (JWT). The `SECRET` used for JWT lives in `backend/app/core/users.py` — move it to environment variables for production.
-- Database URL is configured in `backend/app/database/db.py` (default: `sqlite+aiosqlite:///./test.db`).
+Expected output:
 
-Development tips
-- Move `SECRET` into environment variables (e.g., via `python-dotenv`) and update `app/users.py`.
-- To reset the DB during development, remove `./test.db` and restart the server.
+```
+▲ Next.js 16.x.x (Turbopack)
+- Local:    http://localhost:3000
+- Network:  http://192.168.x.x:3000
+
+✓ Starting...
+✓ Ready in ...ms
+```
+
+If you haven't installed dependencies yet (fresh clone):
+
+```bash
+cd frontend
+npm install
+```
+
+---
+
+## Running Both Together
+
+Open two terminal tabs:
+
+**Terminal 1 — Backend:**
+
+```bash
+cd /path/to/blog/backend
+uv run python main.py
+```
+
+**Terminal 2 — Frontend:**
+
+```bash
+source ~/.nvm/nvm.sh
+nvm use 24
+cd /path/to/blog/frontend
+npm run dev
+```
+
+---
+
+## Common Issues & Fixes
+
+### `ModuleNotFoundError: No module named 'uvicorn'`
+
+**Cause:** You ran `uv run` from the repo root instead of `backend/`.  
+**Fix:** `cd backend` first, then run `uv run python main.py`.
+
+---
+
+### `You are using Node.js 18.x.x. For Next.js, Node.js version ">=20.9.0" is required.`
+
+**Cause:** The system Node.js (installed via apt) is v18.  
+**Fix:** Use nvm to switch to Node 24:
+
+```bash
+source ~/.nvm/nvm.sh && nvm use 24
+```
+
+---
+
+### `nvm: command not found` in a terminal or script
+
+**Cause:** `nvm` is sourced in interactive shell profiles (`.bashrc` / `.zshrc`) but not in non-interactive shells.  
+**Fix:** Explicitly source it before use:
+
+```bash
+source ~/.nvm/nvm.sh
+```
+
+---
+
+### Backend `VIRTUAL_ENV` warning
+
+You may see this warning when starting the backend:
+
+```
+warning: `VIRTUAL_ENV=/usr` does not match the project environment path `.venv` and will be ignored
+```
+
+This is harmless. It means `uv` is ignoring a system-level virtual environment and using the project's own `.venv` as expected.
+
+---
+
+## Project Structure
+
+```
+blog/
+├── backend/                  # FastAPI app
+│   ├── app/
+│   │   ├── api/v1/articles.py   # Route handlers
+│   │   ├── app.py               # App entry point, CORS config
+│   │   ├── core/users.py        # fastapi-users auth wiring
+│   │   ├── database/db.py       # SQLAlchemy models & engine
+│   │   ├── models/              # Pydantic schemas
+│   │   └── services/articles.py # Business logic
+│   ├── main.py               # Uvicorn entrypoint
+│   ├── pyproject.toml        # Python dependencies (uv)
+│   └── test.db               # SQLite DB (auto-created, gitignored)
+│
+└── frontend/                 # Next.js app
+    ├── app/
+    │   ├── (auth)/           # Login, register, forgot-password
+    │   ├── (blog)/           # Feed, create, update, search
+    │   ├── _lib/
+    │   │   ├── api_callout.js   # Fetch wrappers → http://localhost:8000
+    │   │   └── utility.js       # JWT helpers, date utils
+    │   └── components/
+    │       └── Editorjs.js      # Rich-text editor
+    └── package.json
+```
+
+---
+
+## Configuration
+
+| Variable       | Default                          | Where                              |
+|----------------|----------------------------------|------------------------------------|
+| `DATABASE_URL` | `sqlite+aiosqlite:///./test.db`  | `backend/app/database/db.py`       |
+| `SECRET`       | `dev-secret-change-me`           | `backend/app/core/users.py`        |
+| `FRONTEND_URL` | `http://localhost:3000`          | `backend/app/app.py` (CORS)        |
+| API base URL   | `http://localhost:8000`          | `frontend/app/_lib/api_callout.js` |
+
+Override `DATABASE_URL`, `SECRET`, and `FRONTEND_URL` via environment variables or a `backend/.env` file (loaded automatically by `python-dotenv`).
