@@ -4,7 +4,6 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "../../../context/AuthContext";
 import { getArticles, deleteArticle } from "../../../_lib/api_callout";
-import BackButton from "../../../components/BackButton";
 
 export default function AdminArticlesPage() {
     const { token } = useAuth();
@@ -42,7 +41,6 @@ export default function AdminArticlesPage() {
 
     return (
         <div>
-            <BackButton />
             <h1>All Articles</h1>
             {error && <p role="alert" style={{ color: "red" }}>{error}</p>}
             <table>

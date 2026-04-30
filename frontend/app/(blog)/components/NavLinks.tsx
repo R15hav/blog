@@ -1,5 +1,6 @@
 "use client";
 import { useAuth } from "../../context/AuthContext";
+import BackButton from "../../components/BackButton";
 
 export default function NavLinks() {
   const { user, logout } = useAuth();
@@ -7,6 +8,8 @@ export default function NavLinks() {
 
   return (
     <nav>
+      <BackButton />
+      <span> | </span>
       <a className="nav-home" href="/">Home</a>
       {canWrite && (
         <>

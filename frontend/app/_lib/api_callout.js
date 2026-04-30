@@ -145,3 +145,56 @@ export async function deleteTheme(themeId, token) {
     const data = await res.json().catch(() => null);
     return res.ok ? { success: true, detail: data } : { success: false, detail: data };
 }
+
+// ── Admin — dashboard stats ────────────────────────────────────────────────────
+
+export async function getAdminStats(token) {
+    const res = await fetch(`${API}/api/v1/admin/stats`, {
+        headers: { Authorization: `Bearer ${token}` },
+    });
+    const data = await res.json().catch(() => null);
+    return res.ok ? { success: true, detail: data } : { success: false, detail: data };
+}
+
+// ── Admin — site settings ──────────────────────────────────────────────────────
+
+export async function getAdminSettings(token) {
+    const res = await fetch(`${API}/api/v1/admin/settings`, {
+        headers: { Authorization: `Bearer ${token}` },
+    });
+    const data = await res.json().catch(() => null);
+    return res.ok ? { success: true, detail: data } : { success: false, detail: data };
+}
+
+export async function updateAdminSettings(payload, token) {
+    const res = await fetch(`${API}/api/v1/admin/settings`, {
+        method: "PUT",
+        headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify(payload),
+    });
+    const data = await res.json().catch(() => null);
+    return res.ok ? { success: true, detail: data } : { success: false, detail: data };
+}
+
+export async function uploadLogo(file, token) {
+    const form = new FormData();
+    form.append("file", file);
+    const res = await fetch(`${API}/api/v1/admin/upload-logo`, {
+        method: "POST",
+        headers: { Authorization: `Bearer ${token}` },
+        body: form,
+    });
+    const data = await res.json().catch(() => null);
+    return res.ok ? { success: true, detail: data } : { success: false, detail: data };
+}
+
+// ── Public site settings ───────────────────────────────────────────────────────
+
+export async function getSiteSettings() {
+    const res = await fetch(`${API}/api/v1/settings`);
+    const data = await res.json().catch(() => null);
+    return res.ok ? { success: true, detail: data } : { success: false, detail: null };
+}

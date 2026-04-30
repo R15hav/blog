@@ -43,6 +43,13 @@ class ThemeConfig(Base):
     is_active = Column(Boolean, default=False, nullable=False)
     created_at = Column(DateTime(timezone=True), default=datetime.utcnow)
 
+class SiteConfig(Base):
+    __tablename__ = "site_configs"
+
+    id = Column(Integer, primary_key=True, default=1)
+    site_name = Column(String, nullable=False, default="My Blog")
+    logo_url = Column(String, nullable=True)
+
 
 engine = create_async_engine(DATABASE_URL)
 async_session_maker = async_sessionmaker(engine, expire_on_commit=False)

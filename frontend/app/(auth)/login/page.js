@@ -3,7 +3,6 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { verifyToken } from "../../_lib/api_callout";
-import BackButton from "../../components/BackButton";
 
 const API = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";export default function Login() {
     const router = useRouter();
@@ -54,7 +53,6 @@ const API = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";export de
 
     return (
         <form onSubmit={handleSubmit}>
-            <BackButton />
             <h2>Login</h2>
             <div>
                 <label>

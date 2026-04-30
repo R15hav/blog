@@ -3,7 +3,6 @@ import { useEffect } from "react";
 import { useRouter } from "next/navigation";
 import dynamic from "next/dynamic";
 import { useAuth } from "../../context/AuthContext";
-import BackButton from "../../components/BackButton";
 
 const DynamicEditorjs = dynamic(() => import("../../components/Editorjs"), {
   ssr: false,
@@ -24,7 +23,6 @@ function page() {
 
   return (
     <div>
-      <BackButton />
       Editor Page
       <DynamicEditorjs />
     </div>

@@ -3,6 +3,7 @@
 import { useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "../context/AuthContext";
+import BackButton from "../components/BackButton";
 
 export default function AdminGuard({ children }) {
     const { user, loading } = useAuth();
@@ -20,7 +21,11 @@ export default function AdminGuard({ children }) {
     return (
         <>
             <nav>
+                <BackButton />
+                {" | "}
                 <strong>Admin</strong>
+                {" | "}
+                <a href="/admin">Dashboard</a>
                 {" | "}
                 <a href="/admin/users">Users</a>
                 {" | "}

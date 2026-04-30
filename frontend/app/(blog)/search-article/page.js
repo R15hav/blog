@@ -1,5 +1,3 @@
-import BackButton from "../../components/BackButton";
-
 export default async function SearchPage({ searchParams }) {
   const { title } = await searchParams;
   const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
@@ -26,7 +24,6 @@ export default async function SearchPage({ searchParams }) {
 
   return (
     <div>
-      <BackButton />
       <h1>Search</h1>
       <form action="/search-article" method="get">
         <input type="text" name="title" defaultValue={title ?? ""} placeholder="Article title..." />

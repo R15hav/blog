@@ -1,10 +1,16 @@
-from fastapi import APIRouter, Depends
+import os
+import uuid as _uuid
+
+from fastapi import APIRouter, Depends, UploadFile, File
+from pydantic import BaseModel
+from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.database.db import get_async_session
+from app.database.db import get_async_session, Post, User
 from app.core.users import fastapi_users
 from app.models.theme import ThemeBase, ThemeRead
 from app.services.admin import list_users, set_user_active
+from app.services.site_settings import get_site_config, update_site_config
 from app.services.theme import (
     list_themes,
     create_theme,
@@ -95,3 +101,74 @@ async def remove_theme(
     _=Depends(current_superuser),
 ):
     return await delete_theme(session, theme_id)
+
+
+# ── Dashboard stats ────────────────────────────────────────────────────────────
+
+@router.get("/stats")
+async def get_stats(
+    session: AsyncSession = Depends(get_async_session),
+    _=Depends(current_superuser),
+):
+    total_articles = (await session.execute(select(func.count(Post.id)))).scalar() or 0
+    published_articles = (
+        await session.execute(select(func.count(Post.id)).where(Post.published == "true"))
+    ).scalar() or 0
+    total_users = (await session.execute(select(func.count(User.id)))).scalar() or 0
+    active_users = (
+        await session.execute(select(func.count(User.id)).where(User.is_active == True))
+    ).scalar() or 0
+
+    return {
+        "articles": {
+            "total": total_articles,
+            "published": published_articles,
+            "draft": total_articles - published_articles,
+        },
+        "users": {
+            "total": total_users,
+            "active": active_users,
+        },
+    }
+
+
+# ── Site settings ──────────────────────────────────────────────────────────────
+
+class SiteConfigUpdate(BaseModel):
+    site_name: str | None = None
+    logo_url: str | None = None
+
+
+@router.get("/settings")
+async def get_settings(
+    session: AsyncSession = Depends(get_async_session),
+    _=Depends(current_superuser),
+):
+    config = await get_site_config(session)
+    return {"site_name": config.site_name, "logo_url": config.logo_url}
+
+
+@router.put("/settings")
+async def put_settings(
+    data: SiteConfigUpdate,
+    session: AsyncSession = Depends(get_async_session),
+    _=Depends(current_superuser),
+):
+    config = await update_site_config(session, data.site_name, data.logo_url)
+    return {"site_name": config.site_name, "logo_url": config.logo_url}
+
+
+@router.post("/upload-logo")
+async def upload_logo(
+    file: UploadFile = File(...),
+    _=Depends(current_superuser),
+):
+    uploads_dir = os.path.join(os.path.dirname(__file__), "..", "..", "..", "uploads")
+    os.makedirs(uploads_dir, exist_ok=True)
+    ext = os.path.splitext(file.filename or "logo")[1] or ".png"
+    filename = f"logo_{_uuid.uuid4().hex}{ext}"
+    dest = os.path.join(uploads_dir, filename)
+    content = await file.read()
+    with open(dest, "wb") as f:
+        f.write(content)
+    return {"url": f"/uploads/{filename}"}

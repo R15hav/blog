@@ -1,13 +1,10 @@
 "use client";
 
 import { useState } from "react";
-import { useRouter } from "next/navigation";
-import BackButton from "../../components/BackButton";
 
 const API = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
 
 export default function Register() {
-    const router = useRouter();
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
     const [confirm, setConfirm] = useState("");
@@ -60,7 +57,6 @@ export default function Register() {
 
     return (
         <form onSubmit={handleSubmit}>
-            <BackButton />
             <h2>Register</h2>
             <div>
                 <label>

@@ -1,7 +1,6 @@
 "use client";
 import dynamic from "next/dynamic";
 import { useEffect, useState } from "react";
-import BackButton from "../../../components/BackButton";
 import { getArticle } from "../../../_lib/api_callout";
 
 const DynamicEditorjs = dynamic(() => import("../../../components/Editorjs"), { ssr: false });
@@ -37,7 +36,6 @@ export default function UpdateArticlePage({ params }) {
 
     return (
         <div>
-            <BackButton />
             <DynamicEditorjs
                 id={articleId}
                 initialData={initialData}

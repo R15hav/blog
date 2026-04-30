@@ -1,5 +1,3 @@
-import BackButton from "../../../components/BackButton";
-
 function renderBlock(block, i) {
   const { type, data } = block;
 
@@ -154,7 +152,6 @@ export default async function ArticlePage({ params }) {
 
   return (
     <article>
-      <BackButton />
       <h1>{article.title || "(Untitled)"}</h1>
       <p>{article.created_date ? new Date(article.created_date).toLocaleDateString() : ""}</p>
       <div className="article-body">

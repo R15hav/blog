@@ -3,7 +3,6 @@
 import { useEffect, useState } from "react";
 import { useAuth } from "../../../context/AuthContext";
 import { getUsers, activateUser, deactivateUser } from "../../../_lib/api_callout";
-import BackButton from "../../../components/BackButton";
 
 export default function UsersPage() {
     const { token } = useAuth();
@@ -44,7 +43,6 @@ export default function UsersPage() {
 
     return (
         <div>
-            <BackButton />
             <h1>User Management</h1>
             {error && <p role="alert" style={{ color: "red" }}>{error}</p>}
             <table>
