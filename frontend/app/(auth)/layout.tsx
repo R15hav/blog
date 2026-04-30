@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { getActiveThemeUrl } from "../_lib/theme";
+import { getActiveThemeUrl, getSiteName } from "../_lib/theme";
 import AuthNav from "./components/AuthNav";
 
 export const metadata: Metadata = {
@@ -12,7 +12,7 @@ export default async function AuthLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  const themeUrl = await getActiveThemeUrl();
+  const [themeUrl, siteName] = await Promise.all([getActiveThemeUrl(), getSiteName()]);
 
   return (
     <html lang="en">
@@ -21,9 +21,9 @@ export default async function AuthLayout({
       </head>
       <body>
         <header>
-          <AuthNav />
+          <AuthNav siteName={siteName} />
         </header>
-        <main>{children}</main>
+        <main className="auth-main">{children}</main>
       </body>
     </html>
   );

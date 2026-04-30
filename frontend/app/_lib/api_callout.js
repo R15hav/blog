@@ -198,3 +198,51 @@ export async function getSiteSettings() {
     const data = await res.json().catch(() => null);
     return res.ok ? { success: true, detail: data } : { success: false, detail: null };
 }
+
+// ── Likes ──────────────────────────────────────────────────────────────────────
+
+export async function getLikeStatus(articleId, token = null) {
+    const headers = token ? { Authorization: `Bearer ${token}` } : {};
+    const res = await fetch(`${API}/api/v1/articles/${articleId}/likes`, { headers });
+    const data = await res.json().catch(() => null);
+    return res.ok ? { success: true, detail: data } : { success: false, detail: data };
+}
+
+export async function toggleLike(articleId, token) {
+    const res = await fetch(`${API}/api/v1/articles/${articleId}/like`, {
+        method: "POST",
+        headers: { Authorization: `Bearer ${token}` },
+    });
+    const data = await res.json().catch(() => null);
+    return res.ok ? { success: true, detail: data } : { success: false, detail: data };
+}
+
+// ── Comments ───────────────────────────────────────────────────────────────────
+
+export async function getComments(articleId) {
+    const res = await fetch(`${API}/api/v1/articles/${articleId}/comments`);
+    const data = await res.json().catch(() => null);
+    return res.ok ? { success: true, detail: data } : { success: false, detail: data };
+}
+
+export async function addComment(articleId, body, token) {
+    const res = await fetch(`${API}/api/v1/articles/${articleId}/comments`, {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({ body }),
+    });
+    const data = await res.json().catch(() => null);
+    return res.ok ? { success: true, detail: data } : { success: false, detail: data };
+}
+
+export async function deleteComment(articleId, commentId, token) {
+    const res = await fetch(`${API}/api/v1/articles/${articleId}/comments/${commentId}`, {
+        method: "DELETE",
+        headers: { Authorization: `Bearer ${token}` },
+    });
+    const data = await res.json().catch(() => null);
+    return res.ok ? { success: true, detail: data } : { success: false, detail: data };
+}

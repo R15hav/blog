@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import "./globals.css";
 import { AuthProvider } from "../context/AuthContext";
-import { getActiveThemeUrl } from "../_lib/theme";
+import { getActiveThemeUrl, getSiteName } from "../_lib/theme";
 import NavLinks from "./components/NavLinks";
 
 export const metadata: Metadata = {
@@ -12,7 +12,7 @@ export const metadata: Metadata = {
 export default async function BlogLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
-  const themeUrl = await getActiveThemeUrl();
+  const [themeUrl, siteName] = await Promise.all([getActiveThemeUrl(), getSiteName()]);
 
   return (
     <html lang="en">
@@ -24,9 +24,9 @@ export default async function BlogLayout({
       <body>
         <AuthProvider>
           <header>
-            <NavLinks />
+            <NavLinks siteName={siteName} />
           </header>
-          <main>{children}</main>
+          <main className="blog-main">{children}</main>
           <footer>
             <p>Powered by open-source blog platform</p>
           </footer>

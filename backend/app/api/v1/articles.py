@@ -1,9 +1,11 @@
+from typing import Optional
+
 from fastapi import APIRouter, Depends, Query
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.models.articles import ArticleBase
+from app.models.articles import ArticleBase, CommentCreate
 from app.database.db import get_async_session, User
-from app.core.users import current_active_user, current_author_or_admin
+from app.core.users import current_active_user, current_author_or_admin, current_optional_user
 from app.services.articles import (
     create_article as svc_create_article,
     list_articles as svc_list_articles,
@@ -11,8 +13,12 @@ from app.services.articles import (
     get_article_by_id as svc_get_article_by_id,
     delete_article as svc_delete_article,
     update_article as svc_update_article,
+    toggle_like as svc_toggle_like,
+    get_like_status as svc_get_like_status,
+    list_comments as svc_list_comments,
+    add_comment as svc_add_comment,
+    delete_comment as svc_delete_comment,
 )
-
 
 router = APIRouter()
 
@@ -73,10 +79,52 @@ async def delete_article(
     return result
 
 
-# @router.get("/search")
-# def search(q: str = None):
-#     if q:
-#         return {"message": f"Search results for query: {q}"}
-#     else:
-#         from fastapi import HTTPException
-#         raise HTTPException(status_code=400, detail="Query parameter 'q' is required")
+# ── Likes ──────────────────────────────────────────────────────────────────────
+
+@router.post("/articles/{id}/like")
+async def like_article(
+    id: str,
+    user: User = Depends(current_active_user),
+    session: AsyncSession = Depends(get_async_session),
+):
+    return await svc_toggle_like(session, id, user.id)
+
+
+@router.get("/articles/{id}/likes")
+async def article_likes(
+    id: str,
+    session: AsyncSession = Depends(get_async_session),
+    user: Optional[User] = Depends(current_optional_user),
+):
+    user_id = getattr(user, "id", None)
+    return await svc_get_like_status(session, id, user_id)
+
+
+# ── Comments ───────────────────────────────────────────────────────────────────
+
+@router.get("/articles/{id}/comments")
+async def article_comments(
+    id: str,
+    session: AsyncSession = Depends(get_async_session),
+):
+    return await svc_list_comments(session, id)
+
+
+@router.post("/articles/{id}/comments", status_code=201)
+async def post_comment(
+    id: str,
+    data: CommentCreate,
+    user: User = Depends(current_active_user),
+    session: AsyncSession = Depends(get_async_session),
+):
+    return await svc_add_comment(session, id, user.id, data.body)
+
+
+@router.delete("/articles/{id}/comments/{comment_id}")
+async def remove_comment(
+    id: str,
+    comment_id: str,
+    user: User = Depends(current_active_user),
+    session: AsyncSession = Depends(get_async_session),
+):
+    return await svc_delete_comment(session, comment_id, user)

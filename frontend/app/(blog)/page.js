@@ -60,13 +60,30 @@ export default function Home() {
 
   const hasMore = total === null || skipRef.current < total;
 
+  function getReadTime(content) {
+    try {
+      const { blocks = [] } = JSON.parse(content);
+      let words = 0;
+      for (const b of blocks) {
+        if (b.type === "paragraph" || b.type === "header") {
+          words += (b.data?.text ?? "").replace(/<[^>]+>/g, "").trim().split(/\s+/).filter(Boolean).length;
+        }
+        if (b.type === "list") {
+          for (const item of b.data?.items ?? []) {
+            const t = (typeof item === "string" ? item : item?.content ?? "").replace(/<[^>]+>/g, "");
+            words += t.trim().split(/\s+/).filter(Boolean).length;
+          }
+        }
+      }
+      return Math.max(1, Math.ceil(words / 200));
+    } catch {
+      return 1;
+    }
+  }
+
   return (
-    <div>
+    <div className="home-feed">
       <h1>Articles</h1>
-      <form action="/search-article" method="get">
-        <input type="text" name="title" placeholder="Search articles…" />
-        <button type="submit">Search</button>
-      </form>
       {error && <p role="alert">Error: {error}</p>}
       {!error && articles.length === 0 && !loading && <p>No articles yet.</p>}
       {articles.map((a, i) => (
@@ -75,7 +92,10 @@ export default function Home() {
             <a href={`/article/${a.id}`}>{a.title || "(Untitled)"}</a>
           </h2>
           <p>
-            {a.created_date ? new Date(a.created_date).toLocaleDateString() : ""}
+            {a.author_email && <span className="card-author">{a.author_email}</span>}
+            {a.author_email && <span> · </span>}
+            <span>{getReadTime(a.content)} min read</span>
+            {a.created_date && <span> · {new Date(a.created_date).toLocaleDateString()}</span>}
           </p>
           <hr />
         </article>

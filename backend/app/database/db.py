@@ -4,7 +4,7 @@ from collections.abc import AsyncGenerator
 from datetime import datetime
 
 from fastapi import Depends
-from sqlalchemy import Boolean, Column, DateTime, Integer, String, ForeignKey, Uuid
+from sqlalchemy import Boolean, Column, DateTime, Integer, String, ForeignKey, Uuid, UniqueConstraint
 from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine, async_sessionmaker
 from sqlalchemy.orm import DeclarativeBase, relationship
 from fastapi_users.db import SQLAlchemyUserDatabase, SQLAlchemyBaseUserTableUUID
@@ -33,6 +33,30 @@ class Post(Base):
     created_date = Column(DateTime(timezone=True), default=datetime.utcnow)
 
     owner = relationship("User", back_populates="posts")
+    likes = relationship("Like", back_populates="post", cascade="all, delete-orphan")
+    comments = relationship("Comment", back_populates="post", cascade="all, delete-orphan")
+
+class Like(Base):
+    __tablename__ = "likes"
+    __table_args__ = (UniqueConstraint("post_id", "user_id", name="uq_like_post_user"),)
+
+    id      = Column(Integer, primary_key=True, autoincrement=True)
+    post_id = Column(Uuid(as_uuid=True), ForeignKey("posts.id"), nullable=False)
+    user_id = Column(Uuid(as_uuid=True), ForeignKey("users.id"), nullable=False)
+
+    post = relationship("Post", back_populates="likes")
+
+class Comment(Base):
+    __tablename__ = "comments"
+
+    id         = Column(Uuid(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    post_id    = Column(Uuid(as_uuid=True), ForeignKey("posts.id"), nullable=False)
+    author_id  = Column(Uuid(as_uuid=True), ForeignKey("users.id"), nullable=False)
+    body       = Column(String, nullable=False)
+    created_at = Column(DateTime(timezone=True), default=datetime.utcnow)
+
+    post   = relationship("Post", back_populates="comments")
+    author = relationship("User")
 
 class ThemeConfig(Base):
     __tablename__ = "theme_configs"

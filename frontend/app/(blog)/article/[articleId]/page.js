@@ -1,3 +1,5 @@
+import ArticleInteractions from "../../components/ArticleInteractions";
+
 function renderBlock(block, i) {
   const { type, data } = block;
 
@@ -151,9 +153,14 @@ export default async function ArticlePage({ params }) {
   }
 
   return (
-    <article>
+    <article className="article-page">
       <h1>{article.title || "(Untitled)"}</h1>
-      <p>{article.created_date ? new Date(article.created_date).toLocaleDateString() : ""}</p>
+      <ArticleInteractions
+        articleId={articleId}
+        authorEmail={article.author_email ?? null}
+        blocks={blocks}
+        createdDate={article.created_date ?? null}
+      />
       <div className="article-body">
         {blocks ? blocks.map((block, i) => renderBlock(block, i)) : <pre>{rawContent}</pre>}
       </div>

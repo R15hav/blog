@@ -99,15 +99,15 @@ function Editorjs({ id, initialData = null, initialTitle = "", initialPublished 
     };
 
     return (
-        <div>
+        <div className="editor-container">
             <input
                 type="text"
+                className="editor-title"
                 placeholder="Article title"
                 value={title}
                 onChange={(e) => setTitle(e.target.value)}
-                style={{ display: "block", width: "100%", fontSize: "1.5em", marginBottom: "1em" }}
             />
-            <label>
+            <label className="editor-publish-label">
                 <input
                     type="checkbox"
                     checked={published}
@@ -115,7 +115,7 @@ function Editorjs({ id, initialData = null, initialTitle = "", initialPublished 
                 />
                 {" Published"}
             </label>
-            <div id="editorjs" style={{ border: "1px solid #ccc", minHeight: "200px", padding: "8px" }} />
+            <div id="editorjs" className="editor-body" />
             <button onClick={save}>Save</button>
             {statusMsg && <p>{statusMsg}</p>}
         </div>

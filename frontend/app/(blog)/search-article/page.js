@@ -23,7 +23,7 @@ export default async function SearchPage({ searchParams }) {
   }
 
   return (
-    <div>
+    <div className="search-page">
       <h1>Search</h1>
       <form action="/search-article" method="get">
         <input type="text" name="title" defaultValue={title ?? ""} placeholder="Article title..." />

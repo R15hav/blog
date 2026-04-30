@@ -75,7 +75,7 @@ export default function ThemePage() {
     if (loading) return <p>Loading themes…</p>;
 
     return (
-        <div>
+        <div className="admin-page">
             <h1>Theme Management</h1>
             <p>
                 Paste any external CSS URL. The active theme is injected as a{" "}
@@ -109,7 +109,6 @@ export default function ThemePage() {
                             value={url}
                             onChange={(e) => setUrl(e.target.value)}
                             placeholder="https://cdn.example.com/theme.css"
-                            style={{ width: "400px" }}
                             required
                         />
                     </label>

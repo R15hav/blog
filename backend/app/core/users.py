@@ -41,6 +41,7 @@ fastapi_users = FastAPIUsers[User, uuid.UUID](
 )
 
 current_active_user = fastapi_users.current_user(active=True)
+current_optional_user = fastapi_users.current_user(active=True, optional=True)
 
 
 async def current_author_or_admin(user: User = Depends(current_active_user)) -> User:

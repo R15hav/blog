@@ -42,7 +42,7 @@ export default function UsersPage() {
     if (loading) return <p>Loading users…</p>;
 
     return (
-        <div>
+        <div className="admin-page">
             <h1>User Management</h1>
             {error && <p role="alert" style={{ color: "red" }}>{error}</p>}
             <table>

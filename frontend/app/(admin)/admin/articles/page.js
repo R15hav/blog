@@ -40,7 +40,7 @@ export default function AdminArticlesPage() {
     if (loading) return <p>Loading articles…</p>;
 
     return (
-        <div>
+        <div className="admin-page">
             <h1>All Articles</h1>
             {error && <p role="alert" style={{ color: "red" }}>{error}</p>}
             <table>
