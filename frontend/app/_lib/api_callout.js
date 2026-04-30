@@ -79,8 +79,10 @@ export async function getActiveTheme() {
 
 // ── Admin — users ──────────────────────────────────────────────────────────────
 
-export async function getUsers(token) {
-    const res = await fetch(`${API}/api/v1/admin/users`, {
+export async function getUsers(token, { skip = 0, limit = 20, search = "" } = {}) {
+    const params = new URLSearchParams({ skip, limit });
+    if (search) params.set("q", search);
+    const res = await fetch(`${API}/api/v1/admin/users?${params}`, {
         headers: { Authorization: `Bearer ${token}` },
     });
     const data = await res.json().catch(() => null);

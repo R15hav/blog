@@ -1,7 +1,7 @@
 import os
 import uuid as _uuid
 
-from fastapi import APIRouter, Depends, UploadFile, File
+from fastapi import APIRouter, Depends, Query, UploadFile, File
 from pydantic import BaseModel
 from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -27,20 +27,26 @@ current_superuser = fastapi_users.current_user(active=True, superuser=True)
 
 @router.get("/users")
 async def get_users(
+    skip: int = Query(0, ge=0),
+    limit: int = Query(20, ge=1, le=100),
+    q: str = Query(""),
     session: AsyncSession = Depends(get_async_session),
     _=Depends(current_superuser),
 ):
-    users = await list_users(session)
-    return {"users": [
-        {
-            "id": str(u.id),
-            "email": u.email,
-            "is_active": u.is_active,
-            "is_superuser": u.is_superuser,
-            "is_verified": u.is_verified,
-        }
-        for u in users
-    ]}
+    users, total = await list_users(session, skip=skip, limit=limit, search=q)
+    return {
+        "users": [
+            {
+                "id": str(u.id),
+                "email": u.email,
+                "is_active": u.is_active,
+                "is_superuser": u.is_superuser,
+                "is_verified": u.is_verified,
+            }
+            for u in users
+        ],
+        "total": total,
+    }
 
 
 @router.patch("/users/{user_id}/activate")

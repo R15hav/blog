@@ -1,14 +1,27 @@
 import uuid
 from fastapi import HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select
+from sqlalchemy import select, func
 
 from app.database.db import User
 
 
-async def list_users(session: AsyncSession):
-    results = await session.execute(select(User).order_by(User.email))
-    return results.scalars().all()
+async def list_users(
+    session: AsyncSession,
+    skip: int = 0,
+    limit: int = 20,
+    search: str = "",
+):
+    count_q = select(func.count(User.id))
+    rows_q = select(User)
+    if search:
+        pattern = f"%{search}%"
+        count_q = count_q.where(User.email.ilike(pattern))
+        rows_q = rows_q.where(User.email.ilike(pattern))
+
+    total = (await session.execute(count_q)).scalar() or 0
+    result = await session.execute(rows_q.order_by(User.email).offset(skip).limit(limit))
+    return result.scalars().all(), total
 
 
 async def set_user_active(session: AsyncSession, user_id: str, active: bool) -> User:
