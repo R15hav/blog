@@ -16,10 +16,48 @@ import Raw from "@editorjs/raw";
 import Header from "@editorjs/header";
 import Quote from "@editorjs/quote";
 import Marker from "@editorjs/marker";
-import CheckList from "@editorjs/checklist";
 import Delimiter from "@editorjs/delimiter";
 import InlineCode from "@editorjs/inline-code";
 import SimpleImage from "@editorjs/simple-image";
+import Alert from "editorjs-alert";
+
+class SimpleImageTool extends SimpleImage {
+    static get toolbox() {
+        return {
+            title: "Image",
+            icon: `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" viewBox="0 0 24 24"><rect x="5" y="5" width="14" height="14" rx="3" stroke="currentColor" stroke-width="2"/><circle cx="9" cy="10" r="1.5" stroke="currentColor" stroke-width="1.5"/><path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 16l4-4 3 3 2-2 4 4"/></svg>`,
+        };
+    }
+
+    render() {
+        if (this.data.url) return super.render();
+
+        const wrapper = this._make("div", [this.CSS.baseClass, this.CSS.wrapper]);
+        const input = document.createElement("input");
+        input.type = "url";
+        input.placeholder = "Paste image URL and press Enter…";
+        Object.assign(input.style, {
+            width: "100%", padding: "8px 12px", border: "1px dashed #ccc",
+            borderRadius: "4px", outline: "none", fontSize: "14px",
+        });
+
+        input.addEventListener("keydown", (e) => {
+            if (e.key !== "Enter") return;
+            e.preventDefault();
+            const url = input.value.trim();
+            if (!url) return;
+            this.data = { url };
+            const rendered = super.render();
+            wrapper.replaceWith(rendered);
+            this.nodes.wrapper = rendered;
+        });
+
+        this.nodes.wrapper = wrapper;
+        wrapper.appendChild(input);
+        setTimeout(() => input.focus(), 50);
+        return wrapper;
+    }
+}
 
 const TOOLS = {
     embed: Embed,
@@ -31,10 +69,10 @@ const TOOLS = {
     raw: Raw,
     header: Header,
     quote: Quote,
-    checklist: CheckList,
     delimiter: Delimiter,
     inlineCode: InlineCode,
-    simpleImage: SimpleImage,
+    simpleImage: SimpleImageTool,
+    alert: Alert,
 };
 
 function Editorjs({ id, initialData = null, initialTitle = "", initialPublished = true }) {

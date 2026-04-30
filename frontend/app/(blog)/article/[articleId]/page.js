@@ -49,17 +49,19 @@ function renderBlock(block, i) {
   if (type === "header") {
     const Tag = `h${data.level}`;
     const id = `h-${slugify(data.text)}-${i}`;
-    return <Tag key={i} id={id} dangerouslySetInnerHTML={{ __html: data.text }} />;
+    return <Tag key={i} id={id} className="formatting-header" dangerouslySetInnerHTML={{ __html: data.text }} />;
   }
 
   if (type === "paragraph")
-    return <p key={i} dangerouslySetInnerHTML={{ __html: data.text }} />;
+    return <p key={i} className="formatting-paragraph" dangerouslySetInnerHTML={{ __html: data.text }} />;
 
   if (type === "list") {
-    const Tag = data.style === "ordered" ? "ol" : "ul";
+    const ordered = data.style === "ordered";
+    const Tag = ordered ? "ol" : "ul";
+    const cls = ordered ? "formatting-list-ordered" : "formatting-list-unordered";
     const itemText = (item) => (typeof item === "string" ? item : item?.content ?? "");
     return (
-      <Tag key={i}>
+      <Tag key={i} className={cls}>
         {data.items.map((item, j) => (
           <li key={j} dangerouslySetInnerHTML={{ __html: itemText(item) }} />
         ))}
@@ -67,25 +69,11 @@ function renderBlock(block, i) {
     );
   }
 
-  if (type === "quote")
-    return (
-      <blockquote key={i}>
-        <p dangerouslySetInnerHTML={{ __html: data.text }} />
-        {data.caption && <cite>{data.caption}</cite>}
-      </blockquote>
-    );
-
-  if (type === "code")
-    return <pre key={i}><code>{data.code}</code></pre>;
-
-  if (type === "delimiter")
-    return <hr key={i} />;
-
   if (type === "checklist")
     return (
       <ul key={i} className="formatting-checklist">
         {data.items.map((item, j) => (
-          <li key={j} className={item.checked ? "checked" : ""}>
+          <li key={j} className={`formatting-checklist-item${item.checked ? " checked" : ""}`}>
             <input type="checkbox" checked={item.checked} readOnly />
             <span dangerouslySetInnerHTML={{ __html: item.text }} />
           </li>
@@ -93,18 +81,40 @@ function renderBlock(block, i) {
       </ul>
     );
 
+  if (type === "quote")
+    return (
+      <blockquote key={i} className="formatting-quote">
+        <p dangerouslySetInnerHTML={{ __html: data.text }} />
+        {data.caption && <cite>{data.caption}</cite>}
+      </blockquote>
+    );
+
+  if (type === "code")
+    return <pre key={i} className="formatting-code"><code>{data.code}</code></pre>;
+
+  if (type === "delimiter")
+    return <hr key={i} className="formatting-delimiter" />;
+
   if (type === "warning")
     return (
       <div key={i} role="alert" className="formatting-warning">
-        {data.title && <strong>{data.title}</strong>}
-        <p>{data.message}</p>
+        {data.title && <strong dangerouslySetInnerHTML={{ __html: data.title }} />}
+        <p dangerouslySetInnerHTML={{ __html: data.message }} />
       </div>
+    );
+
+  if (type === "alert")
+    return (
+      <div key={i} role="alert"
+        className={`formatting-alert formatting-alert--${data.type ?? "info"}`}
+        style={{ textAlign: data.align ?? "left" }}
+        dangerouslySetInnerHTML={{ __html: data.message }} />
     );
 
   if (type === "table") {
     const [head, ...rows] = data.withHeadings ? data.content : [null, ...data.content];
     return (
-      <table key={i}>
+      <table key={i} className="formatting-table">
         {head && (
           <thead>
             <tr>{head.map((cell, j) => <th key={j} dangerouslySetInnerHTML={{ __html: cell }} />)}</tr>
@@ -136,7 +146,7 @@ function renderBlock(block, i) {
     );
 
   if (type === "raw")
-    return <div key={i} dangerouslySetInnerHTML={{ __html: data.html }} />;
+    return <div key={i} className="formatting-raw" dangerouslySetInnerHTML={{ __html: data.html }} />;
 
   return null;
 }
@@ -176,9 +186,8 @@ export default async function ArticlePage({ params }) {
   const dateStr = article.created_date
     ? new Date(article.created_date).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })
     : "";
-  const authorInitials = article.author_email
-    ? article.author_email.split("@")[0].slice(0, 2).toUpperCase()
-    : "?";
+  const authorDisplay = article.author_name ?? article.author_email ?? "Unknown";
+  const authorInitials = authorDisplay.split(" ").map((w) => w[0]).join("").slice(0, 2).toUpperCase() || "?";
 
   return (
     <>
@@ -197,7 +206,7 @@ export default async function ArticlePage({ params }) {
           <div className="byline">
             <div className="avatar lg">{authorInitials}</div>
             <div className="byline-text">
-              <span className="byline-name">{article.author_email ?? "Unknown"}</span>
+              <span className="byline-name">{authorDisplay}</span>
               <div className="byline-meta">
                 {dateStr && <span>{dateStr}</span>}
                 {dateStr && <span className="dot-sep" />}

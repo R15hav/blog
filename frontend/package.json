@@ -25,6 +25,7 @@
     "@editorjs/simple-image": "^1.6.0",
     "@editorjs/table": "^2.4.5",
     "@editorjs/warning": "^1.4.1",
+    "editorjs-alert": "^1.1.4",
     "next": "16.1.0",
     "react": "19.2.3",
     "react-dom": "19.2.3"

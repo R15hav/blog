@@ -1125,6 +1125,23 @@ textarea {
   line-height: 1.6;
 }
 
+.formatting-alert {
+  border-radius: var(--radius-lg);
+  padding: var(--space-4) var(--space-5);
+  margin-bottom: var(--space-5);
+  font-size: var(--text-sm);
+  line-height: 1.6;
+  border-left: 4px solid transparent;
+}
+.formatting-alert--info    { background: #eff6ff; border-color: #3b82f6; color: #1e40af; }
+.formatting-alert--success { background: #f0fdf4; border-color: #22c55e; color: #166534; }
+.formatting-alert--warning { background: #fefce8; border-color: #eab308; color: #854d0e; }
+.formatting-alert--danger  { background: #fef2f2; border-color: #ef4444; color: #991b1b; }
+.formatting-alert--primary { background: #f5f3ff; border-color: #8b5cf6; color: #4c1d95; }
+.formatting-alert--secondary { background: #f8fafc; border-color: #94a3b8; color: #334155; }
+.formatting-alert--dark    { background: #1e293b; border-color: #475569; color: #e2e8f0; }
+.formatting-alert--light   { background: #f8fafc; border-color: #e2e8f0; color: #475569; }
+
 .formatting-quote {
   border-left: 3px solid var(--color-quote-border);
   margin: var(--space-8) 0;
