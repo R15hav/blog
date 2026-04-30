@@ -5,19 +5,19 @@ function renderBlock(block, i) {
 
   if (type === "header") {
     const Tag = `h${data.level}`;
-    return <Tag key={i} dangerouslySetInnerHTML={{ __html: data.text }} />;
+    return <Tag key={i} className="formatting-header" dangerouslySetInnerHTML={{ __html: data.text }} />;
   }
 
   if (type === "paragraph") {
-    return <p key={i} dangerouslySetInnerHTML={{ __html: data.text }} />;
+    return <p key={i} className="formatting-paragraph" dangerouslySetInnerHTML={{ __html: data.text }} />;
   }
 
   if (type === "list") {
     const Tag = data.style === "ordered" ? "ol" : "ul";
-    // @editorjs/list v2 items are objects { content, items }, v1 are plain strings
+    const cls = data.style === "ordered" ? "formatting-list-ordered" : "formatting-list-unordered";
     const itemText = (item) => (typeof item === "string" ? item : item?.content ?? "");
     return (
-      <Tag key={i}>
+      <Tag key={i} className={cls}>
         {data.items.map((item, j) => (
           <li key={j} dangerouslySetInnerHTML={{ __html: itemText(item) }} />
         ))}
@@ -27,11 +27,10 @@ function renderBlock(block, i) {
 
   if (type === "checklist") {
     return (
-      <ul key={i} className="checklist">
+      <ul key={i} className="formatting-checklist">
         {data.items.map((item, j) => (
-          <li key={j} className={item.checked ? "checklist-item checked" : "checklist-item"}>
+          <li key={j} className={item.checked ? "formatting-checklist-item checked" : "formatting-checklist-item"}>
             <input type="checkbox" checked={item.checked} readOnly />
-            {" "}
             <span dangerouslySetInnerHTML={{ __html: item.text }} />
           </li>
         ))}
@@ -41,16 +40,16 @@ function renderBlock(block, i) {
 
   if (type === "warning") {
     return (
-      <div key={i} className="warning-block" role="alert">
-        {data.title && <strong className="warning-title">{data.title}</strong>}
-        <p className="warning-message">{data.message}</p>
+      <div key={i} className="formatting-warning" role="alert">
+        {data.title && <strong>{data.title}</strong>}
+        <p>{data.message}</p>
       </div>
     );
   }
 
   if (type === "quote") {
     return (
-      <blockquote key={i} className="quote-block">
+      <blockquote key={i} className="formatting-quote">
         <p dangerouslySetInnerHTML={{ __html: data.text }} />
         {data.caption && <cite>{data.caption}</cite>}
       </blockquote>
@@ -58,17 +57,21 @@ function renderBlock(block, i) {
   }
 
   if (type === "code") {
-    return <pre key={i}><code>{data.code}</code></pre>;
+    return (
+      <pre key={i} className="formatting-code">
+        <code>{data.code}</code>
+      </pre>
+    );
   }
 
   if (type === "delimiter") {
-    return <hr key={i} className="delimiter" />;
+    return <hr key={i} className="formatting-delimiter" />;
   }
 
   if (type === "table") {
     const [head, ...rows] = data.withHeadings ? data.content : [null, ...data.content];
     return (
-      <table key={i} className="editor-table">
+      <table key={i} className="formatting-table">
         {head && (
           <thead>
             <tr>{head.map((cell, j) => <th key={j} dangerouslySetInnerHTML={{ __html: cell }} />)}</tr>
@@ -110,10 +113,9 @@ function renderBlock(block, i) {
   }
 
   if (type === "raw") {
-    return <div key={i} dangerouslySetInnerHTML={{ __html: data.html }} />;
+    return <div key={i} className="formatting-raw" dangerouslySetInnerHTML={{ __html: data.html }} />;
   }
 
-  // Unknown block type — render nothing rather than leaking raw JSON
   return null;
 }
 
@@ -141,12 +143,13 @@ export default async function ArticlePage({ params }) {
   if (error) return <p role="alert">Error: {error}</p>;
   if (!article) return <p>Article not found.</p>;
 
-  let content = null;
+  let blocks = null;
+  let rawContent = null;
   try {
     const parsed = JSON.parse(article.content);
-    content = <div>{parsed.blocks?.map((block, i) => renderBlock(block, i))}</div>;
+    blocks = parsed.blocks ?? [];
   } catch {
-    content = <pre>{article.content}</pre>;
+    rawContent = article.content;
   }
 
   return (
@@ -154,7 +157,9 @@ export default async function ArticlePage({ params }) {
       <BackButton />
       <h1>{article.title || "(Untitled)"}</h1>
       <p>{article.created_date ? new Date(article.created_date).toLocaleDateString() : ""}</p>
-      <div>{content}</div>
+      <div className="article-body">
+        {blocks ? blocks.map((block, i) => renderBlock(block, i)) : <pre>{rawContent}</pre>}
+      </div>
     </article>
   );
 }
