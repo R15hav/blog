@@ -1,0 +1,9 @@
+Admin page - add config to disable login and register, also hide the buttons for the guest user when the config is off
+banner behind the article 
+direct links to article headings with smooth scroll to the heading on click. add a small hover on side with mouse hover the list of headings should appear.
+
+
+
+delete pending 
+ban email
+cloudflare turnstile captcha on signin

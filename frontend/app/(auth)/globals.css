@@ -1,0 +1,131 @@
+/* Paper — Auth pages design system */
+
+:root {
+  --paper:       oklch(0.972 0.012 85);
+  --paper-2:     oklch(0.955 0.015 82);
+  --paper-3:     oklch(0.930 0.018 80);
+  --rule:        oklch(0.860 0.022 78);
+  --rule-soft:   oklch(0.910 0.018 80);
+  --ink:         oklch(0.220 0.015 60);
+  --ink-2:       oklch(0.360 0.018 62);
+  --ink-3:       oklch(0.520 0.018 65);
+  --ink-4:       oklch(0.660 0.014 68);
+  --accent:      oklch(0.550 0.120 40);
+  --accent-soft: oklch(0.550 0.120 40 / 0.12);
+  --accent-ink:  oklch(0.420 0.120 40);
+  --font-serif: "Source Serif 4", "Source Serif Pro", Charter, Georgia, serif;
+  --font-sans:  "Inter", -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+  --font-mono:  "JetBrains Mono", ui-monospace, "SF Mono", Menlo, monospace;
+  --r-sm: 4px; --r: 6px; --r-lg: 10px;
+}
+
+*, *::before, *::after { box-sizing: border-box; }
+html, body { margin: 0; padding: 0; }
+
+body {
+  background: var(--paper); color: var(--ink); font-family: var(--font-serif);
+  -webkit-font-smoothing: antialiased; text-rendering: optimizeLegibility; min-height: 100vh;
+}
+
+.wordmark {
+  font-family: var(--font-serif); font-weight: 600; font-size: 24px;
+  letter-spacing: -0.01em; color: var(--ink);
+  display: inline-flex; align-items: baseline; gap: 3px; text-decoration: none;
+}
+.wordmark .dot {
+  width: 7px; height: 7px; border-radius: 50%; background: var(--accent);
+  display: inline-block; transform: translateY(-3px);
+}
+
+/* ── Two-column auth shell ─────────────────────── */
+
+.auth-shell {
+  display: grid; grid-template-columns: 1fr 1fr; min-height: 100vh;
+}
+
+.auth-marketing {
+  background: var(--paper-2); padding: 56px 52px;
+  display: flex; flex-direction: column; justify-content: space-between;
+  border-right: 1px solid var(--rule);
+}
+
+.auth-quote {
+  font-family: var(--font-serif); font-style: italic; font-size: 26px;
+  line-height: 1.34; color: var(--ink); letter-spacing: -0.005em;
+  max-width: 28ch; margin: 0;
+}
+.auth-quote-cite {
+  font-family: var(--font-sans); font-size: 13px; color: var(--ink-3); margin-top: 14px;
+}
+.auth-footer {
+  font-family: var(--font-sans); font-size: 12.5px; color: var(--ink-3);
+  display: flex; gap: 16px; flex-wrap: wrap;
+}
+.auth-footer a { color: inherit; text-decoration: none; }
+.auth-footer a:hover { color: var(--ink); }
+
+.auth-form {
+  padding: 64px 68px;
+  display: flex; flex-direction: column; justify-content: center;
+}
+.auth-form h1 {
+  font-family: var(--font-serif); font-weight: 500; font-size: 34px;
+  letter-spacing: -0.015em; color: var(--ink); margin: 0 0 8px;
+}
+.auth-form .lede {
+  font-family: var(--font-serif); font-size: 16.5px; color: var(--ink-2); margin: 0 0 28px;
+}
+
+/* ── Form fields ─────────────────────────────── */
+
+.field { display: flex; flex-direction: column; gap: 5px; margin-bottom: 18px; }
+.field label {
+  font-family: var(--font-sans); font-size: 11.5px; font-weight: 600;
+  letter-spacing: 0.08em; text-transform: uppercase; color: var(--ink-3);
+}
+.field input {
+  font-family: var(--font-serif); font-size: 16.5px; padding: 9px 0;
+  border: 0; border-bottom: 1.5px solid var(--rule);
+  background: transparent; outline: 0; color: var(--ink); transition: border-color .15s;
+}
+.field input:focus { border-bottom-color: var(--accent); }
+.field .hint { font-family: var(--font-sans); font-size: 12px; color: var(--ink-4); }
+
+/* ── Buttons ─────────────────────────────────── */
+
+.btn {
+  font-family: var(--font-sans); font-size: 13.5px; font-weight: 500;
+  padding: 11px 22px; border-radius: 999px; border: 1px solid transparent;
+  cursor: pointer; display: inline-flex; align-items: center; gap: 8px;
+  text-decoration: none; transition: background .15s;
+}
+.btn-primary { background: var(--ink); color: var(--paper); }
+.btn-primary:hover { background: var(--ink-2); }
+.btn-ghost { background: transparent; color: var(--ink-2); border-color: var(--rule); }
+.btn-ghost:hover { color: var(--ink); border-color: var(--ink-3); }
+
+/* ── Notice box ──────────────────────────────── */
+
+.notice {
+  background: var(--accent-soft);
+  border: 1px solid color-mix(in oklch, var(--accent), transparent 70%);
+  border-radius: var(--r); padding: 14px 16px;
+  font-family: var(--font-serif); font-size: 15px; color: var(--accent-ink);
+  display: flex; flex-direction: column; gap: 4px; margin-bottom: 22px;
+}
+.notice-label {
+  font-family: var(--font-sans); font-size: 11px; font-weight: 600;
+  letter-spacing: 0.14em; text-transform: uppercase;
+}
+
+/* ── Auth divider / links ────────────────────── */
+
+.auth-divider {
+  margin-top: 32px; padding-top: 18px; border-top: 1px solid var(--rule-soft);
+  font-family: var(--font-sans); font-size: 13.5px; color: var(--ink-3);
+}
+.auth-divider a { color: var(--accent-ink); font-weight: 500; text-decoration: none; }
+.auth-divider a:hover { text-decoration: underline; }
+
+/* Error message */
+.form-error { color: oklch(0.46 0.13 70); font-family: var(--font-sans); font-size: 13.5px; margin-top: 4px; }

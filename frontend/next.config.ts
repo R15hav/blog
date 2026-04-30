@@ -1,7 +1,8 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  /* config options here */
+  output: "standalone",
+  reactStrictMode: false, // EditorJS is incompatible with Strict Mode's double-invoke
 };
 
 export default nextConfig;
