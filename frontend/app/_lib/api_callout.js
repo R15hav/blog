@@ -248,3 +248,118 @@ export async function deleteComment(articleId, commentId, token) {
     const data = await res.json().catch(() => null);
     return res.ok ? { success: true, detail: data } : { success: false, detail: data };
 }
+
+// ── Profile ────────────────────────────────────────────────────────────────────
+
+export async function getMyProfile(token) {
+    const res = await fetch(`${API}/api/v1/profile/me`, {
+        headers: { Authorization: `Bearer ${token}` },
+    });
+    const data = await res.json().catch(() => null);
+    return res.ok ? { success: true, detail: data } : { success: false, detail: data };
+}
+
+export async function updateMyProfile(data, token) {
+    const res = await fetch(`${API}/api/v1/profile/me`, {
+        method: "PUT",
+        headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify(data),
+    });
+    const body = await res.json().catch(() => null);
+    return res.ok ? { success: true, detail: body } : { success: false, detail: body };
+}
+
+export async function addExperience(data, token) {
+    const res = await fetch(`${API}/api/v1/profile/experience`, {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify(data),
+    });
+    const body = await res.json().catch(() => null);
+    return res.ok ? { success: true, detail: body } : { success: false, detail: body };
+}
+
+export async function updateExperience(id, data, token) {
+    const res = await fetch(`${API}/api/v1/profile/experience/${id}`, {
+        method: "PUT",
+        headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify(data),
+    });
+    const body = await res.json().catch(() => null);
+    return res.ok ? { success: true, detail: body } : { success: false, detail: body };
+}
+
+export async function deleteExperience(id, token) {
+    const res = await fetch(`${API}/api/v1/profile/experience/${id}`, {
+        method: "DELETE",
+        headers: { Authorization: `Bearer ${token}` },
+    });
+    const body = await res.json().catch(() => null);
+    return res.ok ? { success: true, detail: body } : { success: false, detail: body };
+}
+
+export async function addQualification(data, token) {
+    const res = await fetch(`${API}/api/v1/profile/qualification`, {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify(data),
+    });
+    const body = await res.json().catch(() => null);
+    return res.ok ? { success: true, detail: body } : { success: false, detail: body };
+}
+
+export async function updateQualification(id, data, token) {
+    const res = await fetch(`${API}/api/v1/profile/qualification/${id}`, {
+        method: "PUT",
+        headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify(data),
+    });
+    const body = await res.json().catch(() => null);
+    return res.ok ? { success: true, detail: body } : { success: false, detail: body };
+}
+
+export async function deleteQualification(id, token) {
+    const res = await fetch(`${API}/api/v1/profile/qualification/${id}`, {
+        method: "DELETE",
+        headers: { Authorization: `Bearer ${token}` },
+    });
+    const body = await res.json().catch(() => null);
+    return res.ok ? { success: true, detail: body } : { success: false, detail: body };
+}
+
+export async function upsertSchool(data, token) {
+    const res = await fetch(`${API}/api/v1/profile/school`, {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify(data),
+    });
+    const body = await res.json().catch(() => null);
+    return res.ok ? { success: true, detail: body } : { success: false, detail: body };
+}
+
+export async function deleteSchool(id, token) {
+    const res = await fetch(`${API}/api/v1/profile/school/${id}`, {
+        method: "DELETE",
+        headers: { Authorization: `Bearer ${token}` },
+    });
+    const body = await res.json().catch(() => null);
+    return res.ok ? { success: true, detail: body } : { success: false, detail: body };
+}

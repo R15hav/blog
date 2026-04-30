@@ -63,6 +63,7 @@ export default function NavLinks({ siteName = "Blog", allowRegistration = true }
             >
               {initials}
             </div>
+            <a className={`nav-link${pathname === "/profile" ? " active" : ""}`} href="/profile">Profile</a>
             <button className="nav-link" onClick={logout}>Log out</button>
           </>
         ) : (

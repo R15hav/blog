@@ -20,7 +20,13 @@ class Base(DeclarativeBase):
 class User(Base, SQLAlchemyBaseUserTableUUID):
     __tablename__ = "users"
     role = Column(String, nullable=False, default="guest", server_default="guest")
+    first_name = Column(String, nullable=True)
+    last_name = Column(String, nullable=True)
     posts = relationship("Post", back_populates="owner")
+    profile = relationship("UserProfile", back_populates="user", uselist=False, cascade="all, delete-orphan")
+    experiences = relationship("Experience", back_populates="user", cascade="all, delete-orphan")
+    qualifications = relationship("Qualification", back_populates="user", cascade="all, delete-orphan")
+    school_education = relationship("SchoolEducation", back_populates="user", cascade="all, delete-orphan")
 
 class Post(Base):
     __tablename__ = "posts"
@@ -57,6 +63,48 @@ class Comment(Base):
 
     post   = relationship("Post", back_populates="comments")
     author = relationship("User")
+
+class UserProfile(Base):
+    __tablename__ = "user_profiles"
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    user_id = Column(Uuid(as_uuid=True), ForeignKey("users.id"), unique=True, nullable=False)
+    bio = Column(String, nullable=True)
+    contact = Column(String, nullable=True)
+    location = Column(String, nullable=True)
+    gender = Column(String, nullable=True)
+    headline = Column(String, nullable=True)
+    user = relationship("User", back_populates="profile")
+
+class Experience(Base):
+    __tablename__ = "experiences"
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    user_id = Column(Uuid(as_uuid=True), ForeignKey("users.id"), nullable=False)
+    company_name = Column(String, nullable=False, default="")
+    designation = Column(String, nullable=False, default="")
+    years = Column(Integer, nullable=False, default=0)
+    months = Column(Integer, nullable=False, default=0)
+    user = relationship("User", back_populates="experiences")
+
+class Qualification(Base):
+    __tablename__ = "qualifications"
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    user_id = Column(Uuid(as_uuid=True), ForeignKey("users.id"), nullable=False)
+    institution = Column(String, nullable=False, default="")
+    degree = Column(String, nullable=False, default="")
+    field_of_study = Column(String, nullable=True)
+    year = Column(Integer, nullable=True)
+    user = relationship("User", back_populates="qualifications")
+
+class SchoolEducation(Base):
+    __tablename__ = "school_education"
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    user_id = Column(Uuid(as_uuid=True), ForeignKey("users.id"), nullable=False)
+    grade = Column(String, nullable=False)
+    school_name = Column(String, nullable=True)
+    board = Column(String, nullable=True)
+    percentage = Column(String, nullable=True)
+    year = Column(Integer, nullable=True)
+    user = relationship("User", back_populates="school_education")
 
 class ThemeConfig(Base):
     __tablename__ = "theme_configs"
