@@ -9,7 +9,8 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.database.db import get_async_session, Post, User
 from app.core.users import fastapi_users
 from app.models.theme import ThemeBase, ThemeRead
-from app.services.admin import list_users, set_user_active
+from app.services.admin import list_users, set_user_active, list_all_comments
+from app.services.articles import list_all_articles
 from app.services.site_settings import get_site_config, update_site_config
 from app.services.theme import (
     list_themes,
@@ -173,6 +174,30 @@ async def put_settings(
         "logo_url": config.logo_url,
         "allow_registration": config.allow_registration,
     }
+
+
+@router.get("/articles")
+async def admin_all_articles(
+    skip: int = Query(0, ge=0),
+    limit: int = Query(20, ge=1, le=100),
+    q: str = Query(""),
+    _=Depends(current_superuser),
+    session: AsyncSession = Depends(get_async_session),
+):
+    articles, total = await list_all_articles(session, skip, limit, q)
+    return {"articles": articles, "total": total}
+
+
+@router.get("/comments")
+async def admin_all_comments(
+    skip: int = Query(0, ge=0),
+    limit: int = Query(50, ge=1, le=200),
+    q: str = Query(""),
+    _=Depends(current_superuser),
+    session: AsyncSession = Depends(get_async_session),
+):
+    comments, total = await list_all_comments(session, skip, limit, q)
+    return {"comments": comments, "total": total}
 
 
 @router.post("/upload-logo")

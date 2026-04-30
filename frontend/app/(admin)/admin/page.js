@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { useAuth } from "../../context/AuthContext";
+import { useRouter } from "next/navigation";
 import {
   getAdminStats,
   getAdminSettings,
@@ -21,7 +22,14 @@ function Kpi({ label, value }) {
 }
 
 export default function AdminDashboard() {
-  const { token } = useAuth();
+  const { token, user } = useAuth();
+  const router = useRouter();
+
+  useEffect(() => {
+    if (user && !user.is_superuser) {
+      router.replace("/admin/articles");
+    }
+  }, [user, router]);
 
   const [stats, setStats] = useState(null);
   const [statsError, setStatsError] = useState(null);

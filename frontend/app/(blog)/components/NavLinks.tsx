@@ -48,10 +48,15 @@ export default function NavLinks({ siteName = "Blog", allowRegistration = true }
         </form>
 
         {canWrite && (
-          <a className="nav-link" href="/create-article">Write</a>
-        )}
-        {user?.is_superuser && (
-          <a className="nav-link" href="/admin">Admin</a>
+          <>
+            <a
+              className={`nav-link${(pathname === "/admin" || pathname === "/dashboard") ? " active" : ""}`}
+              href={user?.is_superuser ? "/admin" : "/dashboard"}
+            >
+              Dashboard
+            </a>
+            <a className="nav-link" href="/create-article">Write</a>
+          </>
         )}
 
         {user ? (

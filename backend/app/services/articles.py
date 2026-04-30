@@ -6,10 +6,16 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, func
 from sqlalchemy.orm import selectinload
 
-from app.database.db import Post, Like, Comment
+from app.database.db import Post, Like, Comment, User
 
 
 def _post_to_dict(post: Post) -> dict:
+    owner = post.owner
+    if owner:
+        parts = [owner.first_name, owner.last_name]
+        author_name = " ".join(p for p in parts if p) or owner.email
+    else:
+        author_name = None
     return {
         "id": str(post.id),
         "owner_id": str(post.owner_id),
@@ -17,7 +23,8 @@ def _post_to_dict(post: Post) -> dict:
         "content": post.content,
         "published": post.published,
         "created_date": post.created_date,
-        "author_email": post.owner.email if post.owner else None,
+        "author_email": owner.email if owner else None,
+        "author_name": author_name,
         "like_count": len(post.likes),
         "comment_count": len(post.comments),
     }
@@ -49,17 +56,42 @@ async def create_article(session: AsyncSession, user, post):
         raise HTTPException(status_code=400, detail=str(e))
 
 
-async def list_articles(session: AsyncSession, skip: int = 0, limit: int = 10):
-    total = (await session.execute(select(func.count()).select_from(Post))).scalar()
+async def list_articles(session: AsyncSession, skip: int = 0, limit: int = 10, search: str = ""):
+    """Public endpoint — only published articles."""
+    count_q = select(func.count()).select_from(Post).where(Post.published == "true")
+    rows_q = select(Post).options(*_post_opts()).where(Post.published == "true")
+    if search:
+        pattern = f"%{search}%"
+        author_ids = select(User.id).where(
+            User.first_name.ilike(pattern) | User.last_name.ilike(pattern)
+        )
+        filt = Post.title.ilike(pattern) | Post.owner_id.in_(author_ids)
+        count_q = count_q.where(filt)
+        rows_q = rows_q.where(filt)
+    total = (await session.execute(count_q)).scalar() or 0
     result = await session.execute(
-        select(Post)
-        .options(*_post_opts())
-        .order_by(Post.created_date.desc())
-        .offset(skip)
-        .limit(limit)
+        rows_q.order_by(Post.created_date.desc()).offset(skip).limit(limit)
     )
-    posts = result.scalars().all()
-    return [_post_to_dict(p) for p in posts], total
+    return [_post_to_dict(p) for p in result.scalars().all()], total
+
+
+async def list_all_articles(session: AsyncSession, skip: int = 0, limit: int = 20, search: str = ""):
+    """Admin endpoint — all articles regardless of published status."""
+    count_q = select(func.count()).select_from(Post)
+    rows_q = select(Post).options(*_post_opts())
+    if search:
+        pattern = f"%{search}%"
+        author_ids = select(User.id).where(
+            User.first_name.ilike(pattern) | User.last_name.ilike(pattern)
+        )
+        filt = Post.title.ilike(pattern) | Post.owner_id.in_(author_ids)
+        count_q = count_q.where(filt)
+        rows_q = rows_q.where(filt)
+    total = (await session.execute(count_q)).scalar() or 0
+    result = await session.execute(
+        rows_q.order_by(Post.created_date.desc()).offset(skip).limit(limit)
+    )
+    return [_post_to_dict(p) for p in result.scalars().all()], total
 
 
 async def search_articles(session: AsyncSession, title: str):
@@ -164,6 +196,50 @@ async def get_like_status(session: AsyncSession, post_id_str: str, user_id=None)
         )).scalars().first()
         user_liked = row is not None
     return {"count": count, "user_liked": user_liked}
+
+
+# ── Author-scoped queries ──────────────────────────────────────────────────────
+
+async def list_author_articles(session: AsyncSession, owner_id, skip: int = 0, limit: int = 20, search: str = ""):
+    count_q = select(func.count()).select_from(Post).where(Post.owner_id == owner_id)
+    rows_q = select(Post).options(*_post_opts()).where(Post.owner_id == owner_id)
+    if search:
+        pattern = f"%{search}%"
+        count_q = count_q.where(Post.title.ilike(pattern))
+        rows_q = rows_q.where(Post.title.ilike(pattern))
+    total = (await session.execute(count_q)).scalar() or 0
+    result = await session.execute(rows_q.order_by(Post.created_date.desc()).offset(skip).limit(limit))
+    return [_post_to_dict(p) for p in result.scalars().all()], total
+
+
+async def list_comments_for_author(session: AsyncSession, owner_id, skip: int = 0, limit: int = 50):
+    count_q = (
+        select(func.count())
+        .select_from(Comment)
+        .join(Post, Comment.post_id == Post.id)
+        .where(Post.owner_id == owner_id)
+    )
+    rows_q = (
+        select(Comment)
+        .options(selectinload(Comment.author), selectinload(Comment.post))
+        .join(Post, Comment.post_id == Post.id)
+        .where(Post.owner_id == owner_id)
+        .order_by(Comment.created_at.desc())
+        .offset(skip).limit(limit)
+    )
+    total = (await session.execute(count_q)).scalar() or 0
+    comments = (await session.execute(rows_q)).scalars().all()
+    return [
+        {
+            "id": str(c.id),
+            "post_id": str(c.post_id),
+            "post_title": c.post.title if c.post else "",
+            "author_email": c.author.email if c.author else "unknown",
+            "body": c.body,
+            "created_at": c.created_at,
+        }
+        for c in comments
+    ], total
 
 
 # ── Comments ───────────────────────────────────────────────────────────────────

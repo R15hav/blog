@@ -37,9 +37,10 @@ async def create_article(
 async def get_articles(
     skip: int = Query(0, ge=0),
     limit: int = Query(10, ge=1, le=100),
+    q: str = Query(""),
     session: AsyncSession = Depends(get_async_session),
 ):
-    articles, total = await svc_list_articles(session, skip, limit)
+    articles, total = await svc_list_articles(session, skip, limit, q)
     return {"articles": articles, "total": total}
 
 

@@ -3,7 +3,7 @@
 import { useEffect, useState, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "../../../context/AuthContext";
-import { getArticles, searchArticles, deleteArticle, getAdminStats } from "../../../_lib/api_callout";
+import { getAdminArticles, getAuthorArticles, deleteArticle, getAdminStats } from "../../../_lib/api_callout";
 
 const PAGE_SIZE = 20;
 
@@ -32,7 +32,7 @@ function SortIcon({ active, dir }) {
 }
 
 export default function AdminArticlesPage() {
-  const { token } = useAuth();
+  const { token, user } = useAuth();
   const router = useRouter();
 
   const [articles, setArticles] = useState([]);
@@ -44,58 +44,36 @@ export default function AdminArticlesPage() {
 
   const [query, setQuery] = useState("");
   const [debouncedQuery, setDebouncedQuery] = useState("");
-  const [searching, setSearching] = useState(false);
 
   const [sortKey, setSortKey] = useState(null);
   const [sortDir, setSortDir] = useState("desc");
 
-  const [pendingDelete, setPendingDelete] = useState(null); // article object awaiting confirmation
+  const [pendingDelete, setPendingDelete] = useState(null);
   const [deleting, setDeleting] = useState(false);
 
-  const isSearchMode = debouncedQuery.trim().length > 0;
   const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE));
 
-  // Debounce query → debouncedQuery
+  // Debounce query → debouncedQuery, reset page
   useEffect(() => {
-    const t = setTimeout(() => setDebouncedQuery(query), 300);
+    const t = setTimeout(() => { setDebouncedQuery(query); setPage(1); }, 300);
     return () => clearTimeout(t);
   }, [query]);
 
-  // Paginated fetch (normal mode)
-  async function loadArticles(p) {
+  // Single unified fetch — admin sees all articles, authors see their own
+  useEffect(() => {
+    if (!token) return;
     setError(null);
     setLoading(true);
-    const { success, detail } = await getArticles({ skip: (p - 1) * PAGE_SIZE, limit: PAGE_SIZE });
-    if (!success) setError("Failed to load articles.");
-    else {
-      setArticles(detail?.articles ?? []);
-      setTotal(detail?.total ?? 0);
-    }
-    setLoading(false);
-  }
-
-  useEffect(() => {
-    if (isSearchMode) return;
-    loadArticles(page);
-  }, [page, isSearchMode]);
-
-  // Search fetch
-  useEffect(() => {
-    if (!isSearchMode) return;
-    setSearching(true);
-    setError(null);
-    searchArticles(debouncedQuery.trim()).then(({ success, detail }) => {
-      if (!success) setError("Search failed.");
-      else setArticles(detail?.articles ?? []);
-      setSearching(false);
+    const opts = { skip: (page - 1) * PAGE_SIZE, limit: PAGE_SIZE, search: debouncedQuery };
+    const fetch = user?.is_superuser
+      ? getAdminArticles(token, opts)
+      : getAuthorArticles(token, opts);
+    fetch.then(({ success, detail }) => {
+      if (!success) setError("Failed to load articles.");
+      else { setArticles(detail?.articles ?? []); setTotal(detail?.total ?? 0); }
+      setLoading(false);
     });
-  }, [debouncedQuery]);
-
-  // Reset page when entering/leaving search mode
-  useEffect(() => {
-    setPage(1);
-    setSortKey(null);
-  }, [isSearchMode]);
+  }, [token, user, page, debouncedQuery]);
 
   // Stats for KPI cards
   useEffect(() => {
@@ -117,6 +95,12 @@ export default function AdminArticlesPage() {
       if (sortKey === "status") {
         av = isPublished(a.published) ? 1 : 0;
         bv = isPublished(b.published) ? 1 : 0;
+      } else if (sortKey === "author") {
+        av = (a.author_name ?? "").toLowerCase();
+        bv = (b.author_name ?? "").toLowerCase();
+        return sortDir === "asc"
+          ? av.localeCompare(bv)
+          : bv.localeCompare(av);
       } else {
         av = a.created_date ? new Date(a.created_date).getTime() : 0;
         bv = b.created_date ? new Date(b.created_date).getTime() : 0;
@@ -133,7 +117,7 @@ export default function AdminArticlesPage() {
     setPendingDelete(null);
     if (!success) { setError(detail?.detail ?? "Delete failed."); return; }
     setArticles((prev) => prev.filter((a) => a.id !== pendingDelete.id));
-    if (!isSearchMode) setTotal((n) => n - 1);
+    setTotal((n) => n - 1);
     if (stats) setStats((s) => ({
       ...s,
       articles: { ...s.articles, total: s.articles.total - 1 },
@@ -143,7 +127,7 @@ export default function AdminArticlesPage() {
   const kpiTotal = stats?.articles?.total ?? total;
   const kpiPublished = stats?.articles?.published ?? "—";
   const kpiDrafts = stats?.articles?.draft ?? "—";
-  const isLoading = loading || searching;
+  const isSearchMode = debouncedQuery.trim().length > 0;
 
   return (
     <>
@@ -177,7 +161,7 @@ export default function AdminArticlesPage() {
             type="text"
             value={query}
             onChange={(e) => setQuery(e.target.value)}
-            placeholder="Search by title…"
+            placeholder="Search by title or author…"
             style={{
               background: "none", border: 0, outline: 0, width: "100%",
               fontFamily: "var(--font-sans)", fontSize: 13, color: "var(--ink)",
@@ -193,23 +177,29 @@ export default function AdminArticlesPage() {
             </button>
           )}
         </div>
-        {isSearchMode && !searching && (
+        {isSearchMode && !loading && (
           <span style={{ fontFamily: "var(--font-sans)", fontSize: 13, color: "var(--ink-3)" }}>
-            {articles.length} result{articles.length !== 1 ? "s" : ""} for &ldquo;{debouncedQuery}&rdquo;
+            {total} result{total !== 1 ? "s" : ""} for &ldquo;{debouncedQuery}&rdquo;
           </span>
         )}
       </div>
 
-      {isLoading ? (
-        <p style={{ fontFamily: "var(--font-sans)", color: "var(--ink-3)", fontSize: 14, paddingTop: 4 }}>
-          {searching ? `Searching…` : `Loading…`}
-        </p>
+      {loading ? (
+        <p style={{ fontFamily: "var(--font-sans)", color: "var(--ink-3)", fontSize: 14, paddingTop: 4 }}>Loading…</p>
       ) : (
         <>
           <table className="dataset">
             <thead>
               <tr>
                 <th>Title</th>
+                {user?.is_superuser && (
+                  <th
+                    style={{ cursor: "pointer", userSelect: "none", whiteSpace: "nowrap" }}
+                    onClick={() => toggleSort("author")}
+                  >
+                    Author <SortIcon active={sortKey === "author"} dir={sortDir} />
+                  </th>
+                )}
                 <th
                   style={{ cursor: "pointer", userSelect: "none", whiteSpace: "nowrap" }}
                   onClick={() => toggleSort("status")}
@@ -229,6 +219,11 @@ export default function AdminArticlesPage() {
               {sortedArticles.map((a) => (
                 <tr key={a.id}>
                   <td style={{ fontFamily: "var(--font-serif)", fontSize: 15 }}>{a.title || "(Untitled)"}</td>
+                  {user?.is_superuser && (
+                    <td style={{ fontFamily: "var(--font-sans)", fontSize: 13, color: "var(--ink-2)", whiteSpace: "nowrap" }}>
+                      {a.author_name || "—"}
+                    </td>
+                  )}
                   <td>
                     {isPublished(a.published) ? (
                       <span className="status ok"><span className="dot" />Published</span>
@@ -256,7 +251,7 @@ export default function AdminArticlesPage() {
               ))}
               {sortedArticles.length === 0 && (
                 <tr>
-                  <td colSpan={4} style={{ textAlign: "center", color: "var(--ink-4)", fontFamily: "var(--font-sans)", fontSize: 13, padding: "24px 0" }}>
+                  <td colSpan={user?.is_superuser ? 5 : 4} style={{ textAlign: "center", color: "var(--ink-4)", fontFamily: "var(--font-sans)", fontSize: 13, padding: "24px 0" }}>
                     {isSearchMode ? `No articles match "${debouncedQuery}".` : "No articles found."}
                   </td>
                 </tr>
@@ -264,8 +259,7 @@ export default function AdminArticlesPage() {
             </tbody>
           </table>
 
-          {/* Pagination — hidden in search mode */}
-          {!isSearchMode && totalPages > 1 && (
+          {totalPages > 1 && (
             <div style={{
               display: "flex", alignItems: "center", justifyContent: "space-between",
               marginTop: 20, paddingTop: 16, borderTop: "1px solid var(--rule-soft)",

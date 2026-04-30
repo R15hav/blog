@@ -16,8 +16,10 @@ export async function verifyToken(token) {
 
 // ── Articles ───────────────────────────────────────────────────────────────────
 
-export async function getArticles({ skip = 0, limit = 10 } = {}) {
-    const res = await fetch(`${API}/api/v1/get-articles?skip=${skip}&limit=${limit}`);
+export async function getArticles({ skip = 0, limit = 10, search = "" } = {}) {
+    const params = new URLSearchParams({ skip, limit });
+    if (search) params.set("q", search);
+    const res = await fetch(`${API}/api/v1/get-articles?${params}`);
     const data = await res.json().catch(() => null);
     return res.ok ? { success: true, detail: data } : { success: false, detail: data };
 }
@@ -243,6 +245,55 @@ export async function addComment(articleId, body, token) {
 export async function deleteComment(articleId, commentId, token) {
     const res = await fetch(`${API}/api/v1/articles/${articleId}/comments/${commentId}`, {
         method: "DELETE",
+        headers: { Authorization: `Bearer ${token}` },
+    });
+    const data = await res.json().catch(() => null);
+    return res.ok ? { success: true, detail: data } : { success: false, detail: data };
+}
+
+// ── Author dashboard ───────────────────────────────────────────────────────────
+
+export async function getAuthorStats(token) {
+    const res = await fetch(`${API}/api/v1/author/stats`, {
+        headers: { Authorization: `Bearer ${token}` },
+    });
+    const data = await res.json().catch(() => null);
+    return res.ok ? { success: true, detail: data } : { success: false, detail: data };
+}
+
+export async function getAuthorArticles(token, { skip = 0, limit = 20, search = "" } = {}) {
+    const params = new URLSearchParams({ skip, limit });
+    if (search) params.set("q", search);
+    const res = await fetch(`${API}/api/v1/author/articles?${params}`, {
+        headers: { Authorization: `Bearer ${token}` },
+    });
+    const data = await res.json().catch(() => null);
+    return res.ok ? { success: true, detail: data } : { success: false, detail: data };
+}
+
+export async function getAuthorComments(token, { skip = 0, limit = 50 } = {}) {
+    const params = new URLSearchParams({ skip, limit });
+    const res = await fetch(`${API}/api/v1/author/comments?${params}`, {
+        headers: { Authorization: `Bearer ${token}` },
+    });
+    const data = await res.json().catch(() => null);
+    return res.ok ? { success: true, detail: data } : { success: false, detail: data };
+}
+
+export async function getAdminArticles(token, { skip = 0, limit = 20, search = "" } = {}) {
+    const params = new URLSearchParams({ skip, limit });
+    if (search) params.set("q", search);
+    const res = await fetch(`${API}/api/v1/admin/articles?${params}`, {
+        headers: { Authorization: `Bearer ${token}` },
+    });
+    const data = await res.json().catch(() => null);
+    return res.ok ? { success: true, detail: data } : { success: false, detail: data };
+}
+
+export async function getAdminComments(token, { skip = 0, limit = 50, search = "" } = {}) {
+    const params = new URLSearchParams({ skip, limit });
+    if (search) params.set("q", search);
+    const res = await fetch(`${API}/api/v1/admin/comments?${params}`, {
         headers: { Authorization: `Bearer ${token}` },
     });
     const data = await res.json().catch(() => null);
