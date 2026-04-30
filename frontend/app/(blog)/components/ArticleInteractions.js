@@ -30,7 +30,7 @@ function countWords(blocks) {
     return n;
 }
 
-export default function ArticleInteractions({ articleId, authorEmail, blocks, createdDate }) {
+export default function ArticleInteractions({ articleId, authorEmail, blocks, createdDate, hideByline = false }) {
     const { user, token } = useAuth();
 
     const [likeCount, setLikeCount] = useState(0);
@@ -105,13 +105,15 @@ export default function ArticleInteractions({ articleId, authorEmail, blocks, cr
     return (
         <div className="article-interactions">
             {/* Author byline */}
-            <div className="article-author">
-                <div className="article-author__avatar">{initials(authorEmail)}</div>
-                <div>
-                    <div className="article-author__name">{authorEmail ?? "Unknown"}</div>
-                    <div className="article-author__meta">{readTime} min read · {dateStr}</div>
+            {!hideByline && (
+                <div className="article-author">
+                    <div className="article-author__avatar">{initials(authorEmail)}</div>
+                    <div>
+                        <div className="article-author__name">{authorEmail ?? "Unknown"}</div>
+                        <div className="article-author__meta">{readTime} min read · {dateStr}</div>
+                    </div>
                 </div>
-            </div>
+            )}
 
             {/* Reactions bar */}
             <div className="article-reactions">

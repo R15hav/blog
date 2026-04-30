@@ -44,6 +44,7 @@ function Editorjs({ id, initialData = null, initialTitle = "", initialPublished 
     const [title, setTitle] = useState(initialTitle);
     const [published, setPublished] = useState(initialPublished);
     const [statusMsg, setStatusMsg] = useState(null);
+    const [statusType, setStatusType] = useState(null);
 
     useEffect(() => {
         if (editorRef.current) return;
@@ -55,7 +56,6 @@ function Editorjs({ id, initialData = null, initialTitle = "", initialPublished 
         });
 
         return () => {
-            // Null synchronously so a re-mount correctly reinitialises
             const editor = editorRef.current;
             editorRef.current = null;
             editor?.isReady.then(() => editor.destroy()).catch(() => {});
@@ -64,14 +64,15 @@ function Editorjs({ id, initialData = null, initialTitle = "", initialPublished 
 
     const save = async () => {
         setStatusMsg(null);
+        setStatusType(null);
         try {
-            if (!editorRef.current) { setStatusMsg("Editor not ready. Please wait."); return; }
+            if (!editorRef.current) { setStatusMsg("Editor not ready. Please wait."); setStatusType("err"); return; }
 
             const token = localStorage.getItem("access_token");
-            if (!token) { setStatusMsg("Not logged in."); return; }
+            if (!token) { setStatusMsg("Not logged in."); setStatusType("err"); return; }
 
             const { valid } = await verifyToken(token);
-            if (!valid) { setStatusMsg("Session expired. Please login again."); return; }
+            if (!valid) { setStatusMsg("Session expired. Please login again."); setStatusType("err"); return; }
 
             await editorRef.current.isReady;
             const outputData = await editorRef.current.save();
@@ -89,17 +90,43 @@ function Editorjs({ id, initialData = null, initialTitle = "", initialPublished 
 
             if (!res.success) {
                 setStatusMsg(`Save failed: ${JSON.stringify(res.detail)}`);
+                setStatusType("err");
                 return;
             }
             setStatusMsg(id ? "Article updated." : "Article created.");
+            setStatusType("ok");
             if (!id) router.push("/");
         } catch (err) {
             setStatusMsg("Save error: " + (err?.message ?? String(err)));
+            setStatusType("err");
         }
     };
 
     return (
-        <div className="editor-container">
+        <div className="editor-shell">
+            <div className="editor-toolbar">
+                <a className="nav-link" href="/">← Back</a>
+                <div className="editor-toolbar-right">
+                    <label className="editor-publish-toggle">
+                        <input
+                            type="checkbox"
+                            checked={published}
+                            onChange={(e) => setPublished(e.target.checked)}
+                        />
+                        Published
+                    </label>
+                    <button className="btn btn-primary btn-sm" onClick={save}>
+                        Save
+                    </button>
+                </div>
+            </div>
+
+            {statusMsg && (
+                <p className={`editor-status${statusType ? ` ${statusType}` : ""}`}>
+                    {statusMsg}
+                </p>
+            )}
+
             <input
                 type="text"
                 className="editor-title"
@@ -107,17 +134,8 @@ function Editorjs({ id, initialData = null, initialTitle = "", initialPublished 
                 value={title}
                 onChange={(e) => setTitle(e.target.value)}
             />
-            <label className="editor-publish-label">
-                <input
-                    type="checkbox"
-                    checked={published}
-                    onChange={(e) => setPublished(e.target.checked)}
-                />
-                {" Published"}
-            </label>
+
             <div id="editorjs" className="editor-body" />
-            <button onClick={save}>Save</button>
-            {statusMsg && <p>{statusMsg}</p>}
         </div>
     );
 }

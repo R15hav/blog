@@ -4,11 +4,9 @@ import { useRouter } from "next/navigation";
 import dynamic from "next/dynamic";
 import { useAuth } from "../../context/AuthContext";
 
-const DynamicEditorjs = dynamic(() => import("../../components/Editorjs"), {
-  ssr: false,
-});
+const DynamicEditorjs = dynamic(() => import("../../components/Editorjs"), { ssr: false });
 
-function page() {
+export default function CreateArticlePage() {
   const { user, loading } = useAuth();
   const router = useRouter();
 
@@ -21,12 +19,5 @@ function page() {
 
   if (loading || !user || !allowed) return null;
 
-  return (
-    <div>
-      Editor Page
-      <DynamicEditorjs />
-    </div>
-  );
+  return <DynamicEditorjs />;
 }
-
-export default page;

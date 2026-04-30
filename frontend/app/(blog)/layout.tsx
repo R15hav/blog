@@ -17,19 +17,18 @@ export default async function BlogLayout({
   return (
     <html lang="en">
       <head>
-        {themeUrl && (
-          <link rel="stylesheet" href={themeUrl} />
-        )}
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
+        <link
+          href="https://fonts.googleapis.com/css2?family=Source+Serif+4:ital,opsz,wght@0,8..60,300..700;1,8..60,300..700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap"
+          rel="stylesheet"
+        />
+        {themeUrl && <link rel="stylesheet" href={themeUrl} />}
       </head>
       <body>
         <AuthProvider>
-          <header>
-            <NavLinks siteName={siteName} />
-          </header>
-          <main className="blog-main">{children}</main>
-          <footer>
-            <p>Powered by open-source blog platform</p>
-          </footer>
+          <NavLinks siteName={siteName} />
+          {children}
         </AuthProvider>
       </body>
     </html>
