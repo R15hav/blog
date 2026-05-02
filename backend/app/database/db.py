@@ -11,12 +11,22 @@ from fastapi_users.db import SQLAlchemyUserDatabase, SQLAlchemyBaseUserTableUUID
 from fastapi_users_db_sqlalchemy.generics import GUID
 
 def _async_db_url(url: str) -> str:
-    # Render (and many PaaS) inject postgres:// or postgresql:// — neither works
-    # with SQLAlchemy's async engine, which requires the +asyncpg driver prefix.
+    # Render injects postgres:// or postgresql:// — SQLAlchemy async needs +asyncpg.
     if url.startswith("postgres://"):
-        return url.replace("postgres://", "postgresql+asyncpg://", 1)
-    if url.startswith("postgresql://"):
-        return url.replace("postgresql://", "postgresql+asyncpg://", 1)
+        url = url.replace("postgres://", "postgresql+asyncpg://", 1)
+    elif url.startswith("postgresql://"):
+        url = url.replace("postgresql://", "postgresql+asyncpg://", 1)
+    else:
+        return url  # SQLite or already normalised — leave untouched
+
+    # Render passes sslmode=require (libpq style); asyncpg uses ssl=require.
+    url = url.replace("sslmode=require", "ssl=require")
+    url = url.replace("sslmode=verify-full", "ssl=verify-full")
+
+    # If no ssl param at all and we're on Render, add it.
+    if "ssl=" not in url and os.getenv("RENDER"):
+        url += ("&" if "?" in url else "?") + "ssl=require"
+
     return url
 
 DATABASE_URL = _async_db_url(os.getenv("DATABASE_URL", "sqlite+aiosqlite:///./test.db"))

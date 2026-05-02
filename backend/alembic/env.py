@@ -23,9 +23,18 @@ target_metadata = Base.metadata
 # so the async engine can connect. SQLite URLs are left unchanged.
 def _async_db_url(url: str) -> str:
     if url.startswith("postgres://"):
-        return url.replace("postgres://", "postgresql+asyncpg://", 1)
-    if url.startswith("postgresql://"):
-        return url.replace("postgresql://", "postgresql+asyncpg://", 1)
+        url = url.replace("postgres://", "postgresql+asyncpg://", 1)
+    elif url.startswith("postgresql://"):
+        url = url.replace("postgresql://", "postgresql+asyncpg://", 1)
+    else:
+        return url
+
+    url = url.replace("sslmode=require", "ssl=require")
+    url = url.replace("sslmode=verify-full", "ssl=verify-full")
+
+    if "ssl=" not in url and os.getenv("RENDER"):
+        url += ("&" if "?" in url else "?") + "ssl=require"
+
     return url
 
 DATABASE_URL = _async_db_url(os.getenv("DATABASE_URL", "sqlite+aiosqlite:///./test.db"))
