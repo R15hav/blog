@@ -311,3 +311,64 @@ table.dataset { width: 100%; border-collapse: collapse; font-family: var(--font-
 
 .msg-success { color: oklch(0.45 0.10 145); font-family: var(--font-sans); font-size: 13.5px; }
 .msg-error   { color: oklch(0.46 0.13 70);  font-family: var(--font-sans); font-size: 13.5px; }
+
+/* ── Open Graph section ──────────────────── */
+/* Desktop layout comes from inline styles; classes exist only for responsive overrides. */
+
+/* ── Responsive ──────────────────────────── */
+
+@media (max-width: 1024px) {
+  .admin-shell { grid-template-columns: 190px 1fr; }
+}
+
+@media (max-width: 768px) {
+  .admin-shell { grid-template-columns: 1fr; min-height: 0; }
+
+  /* Sidebar: compact vertical strip, nav rows become horizontal scroll */
+  .admin-side {
+    position: static; height: auto; overflow-y: visible; align-self: start;
+    border-right: none; border-bottom: 1px solid var(--rule);
+    padding: 14px 0 0;
+  }
+  .admin-side-brand { padding: 0 16px 12px; border-bottom: none; margin-bottom: 0; }
+  .admin-side-spacer { display: none; }
+  .admin-side h6 { display: none; }
+  .admin-nav {
+    flex-direction: row; flex-wrap: nowrap; overflow-x: auto;
+    -webkit-overflow-scrolling: touch; margin-bottom: 0;
+  }
+  .admin-nav a,
+  .admin-nav-btn {
+    padding: 8px 16px 10px; border-left: none;
+    border-bottom: 2px solid transparent;
+    width: auto; white-space: nowrap; flex-shrink: 0;
+  }
+  .admin-nav a:hover,
+  .admin-nav-btn:hover { background: none; }
+  .admin-nav a.active {
+    border-left-color: transparent;
+    border-bottom-color: var(--accent);
+    background: none;
+  }
+
+  .admin-main { padding: 20px 16px; }
+  .kpi-row { grid-template-columns: 1fr 1fr; }
+  .admin-header { flex-direction: column; align-items: flex-start; gap: 10px; }
+  .admin-header h1 { font-size: 24px; }
+  table.dataset { display: block; overflow-x: auto; -webkit-overflow-scrolling: touch; }
+
+  /* OG section: stack form above preview */
+
+  /* OG section: stack form and preview vertically */
+  .og-section { flex-direction: column !important; gap: 20px !important; }
+  .og-preview { min-width: 0 !important; max-width: 100% !important; }
+
+  /* Add-theme form: stack all 4 items vertically */
+  .add-theme { grid-template-columns: 1fr; gap: 8px; }
+  .theme-card { grid-template-columns: 1fr; gap: 12px; }
+}
+
+@media (max-width: 480px) {
+  .kpi-row { grid-template-columns: 1fr; }
+  .admin-main { padding: 16px 12px; }
+}
