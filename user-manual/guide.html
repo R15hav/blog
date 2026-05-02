@@ -1,0 +1,590 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>User Manual — Paper Blog</title>
+  <meta name="description" content="Complete user manual for Paper Blog: installation, writing articles, admin panel, themes, and deployment." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Source+Serif+4:ital,opsz,wght@0,8..60,300..700;1,8..60,300..700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+<div class="read-progress"><div class="read-progress-fill" id="readProgress"></div></div>
+<div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+<!-- ── Nav ─────────────────────────────────────────────────── -->
+<nav class="site-nav">
+  <a class="nav-brand" href="index.html">Paper<span class="dot"></span></a>
+  <ul class="nav-links">
+    <li><a href="index.html">Home</a></li>
+    <li><a href="guide.html" class="active">Docs</a></li>
+  </ul>
+  <div class="nav-actions">
+    <button class="theme-toggle" id="themeToggle" aria-label="Toggle dark mode">
+      <svg id="iconSun" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:none"><circle cx="12" cy="12" r="5"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg>
+      <svg id="iconMoon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+    </button>
+    <button class="nav-hamburger" id="navHamburger" aria-label="Open menu">
+      <span></span><span></span><span></span>
+    </button>
+  </div>
+</nav>
+
+<!-- ── Docs layout ──────────────────────────────────────────── -->
+<div class="docs-layout">
+
+  <!-- Sidebar -->
+  <aside class="docs-sidebar" id="docsSidebar">
+    <div class="sidebar-search">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg>
+      <input type="text" id="sidebarSearch" placeholder="Search docs…" aria-label="Search docs" />
+    </div>
+
+    <nav id="sidebarNav">
+      <div class="sidebar-group open" data-group="start">
+        <div class="sidebar-group-label" role="button">
+          Getting Started
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg>
+        </div>
+        <div class="sidebar-items">
+          <a class="sidebar-link" href="#overview">Overview</a>
+          <a class="sidebar-link" href="#prerequisites">Prerequisites</a>
+          <a class="sidebar-link sub" href="#backend-prereq">Backend (uv)</a>
+          <a class="sidebar-link sub" href="#frontend-prereq">Frontend (Node ≥ 20)</a>
+          <a class="sidebar-link" href="#getting-started">Quick Start</a>
+          <a class="sidebar-link sub" href="#start-backend">Start the backend</a>
+          <a class="sidebar-link sub" href="#start-frontend">Start the frontend</a>
+        </div>
+      </div>
+
+      <div class="sidebar-divider"></div>
+
+      <div class="sidebar-group open" data-group="readers">
+        <div class="sidebar-group-label" role="button">
+          For Visitors
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg>
+        </div>
+        <div class="sidebar-items">
+          <a class="sidebar-link" href="#reading-articles">Reading Articles</a>
+          <a class="sidebar-link" href="#search">Searching Articles</a>
+          <a class="sidebar-link" href="#registration">Registration &amp; Login</a>
+        </div>
+      </div>
+
+      <div class="sidebar-divider"></div>
+
+      <div class="sidebar-group open" data-group="authors">
+        <div class="sidebar-group-label" role="button">
+          For Authors
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg>
+        </div>
+        <div class="sidebar-items">
+          <a class="sidebar-link" href="#author-approval">Getting Approved</a>
+          <a class="sidebar-link" href="#writing-articles">Writing Articles</a>
+          <a class="sidebar-link sub" href="#editor-blocks">Editor.js Blocks</a>
+          <a class="sidebar-link sub" href="#publish-toggle">Draft vs Published</a>
+          <a class="sidebar-link" href="#managing-articles">Managing Articles</a>
+          <a class="sidebar-link" href="#user-profile">Your Profile</a>
+        </div>
+      </div>
+
+      <div class="sidebar-divider"></div>
+
+      <div class="sidebar-group open" data-group="admin">
+        <div class="sidebar-group-label" role="button">
+          For Admins
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg>
+        </div>
+        <div class="sidebar-items">
+          <a class="sidebar-link" href="#admin-panel">Admin Panel</a>
+          <a class="sidebar-link" href="#user-management">User Management</a>
+          <a class="sidebar-link" href="#article-management">Article Management</a>
+          <a class="sidebar-link" href="#theme-management">Theme Management</a>
+          <a class="sidebar-link" href="#site-settings">Site Settings</a>
+          <a class="sidebar-link" href="#comment-moderation">Comment Moderation</a>
+        </div>
+      </div>
+
+      <div class="sidebar-divider"></div>
+
+      <div class="sidebar-group open" data-group="deploy">
+        <div class="sidebar-group-label" role="button">
+          Deployment
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg>
+        </div>
+        <div class="sidebar-items">
+          <a class="sidebar-link" href="#deployment">Overview</a>
+          <a class="sidebar-link" href="#docker-compose">Docker Compose</a>
+          <a class="sidebar-link" href="#render-deploy">Render (single container)</a>
+          <a class="sidebar-link" href="#configuration">Environment Variables</a>
+        </div>
+      </div>
+
+      <div class="sidebar-divider"></div>
+
+      <div class="sidebar-group open" data-group="ref">
+        <div class="sidebar-group-label" role="button">
+          Reference
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg>
+        </div>
+        <div class="sidebar-items">
+          <a class="sidebar-link" href="#user-roles">User Role Matrix</a>
+          <a class="sidebar-link" href="#api-overview">API Overview</a>
+          <a class="sidebar-link" href="#troubleshooting">Troubleshooting</a>
+        </div>
+      </div>
+    </nav>
+  </aside>
+
+  <!-- Content -->
+  <main class="docs-content" id="docsContent">
+
+    <!-- GETTING STARTED ──────────────────────────────────── -->
+    <section id="overview">
+      <h1>User Manual</h1>
+      <p>Paper Blog is an open-source, full-stack blog platform built with <strong>FastAPI</strong> (backend) and <strong>Next.js 16</strong> (frontend). Its defining feature is <strong>live theme switching</strong>: an admin pastes any external CSS URL and the site's appearance changes instantly for all visitors — no redeploy required.</p>
+      <p>This manual covers everything from first run to production deployment.</p>
+
+      <div class="callout callout-info">
+        <span class="callout-icon">ℹ️</span>
+        <div class="callout-body">
+          <strong>API documentation</strong>
+          The backend exposes interactive API docs at <code>http://localhost:8000/docs</code> (Swagger UI) and <code>http://localhost:8000/redoc</code> (ReDoc) when running locally.
+        </div>
+      </div>
+    </section>
+
+    <section id="prerequisites">
+      <h2>Prerequisites</h2>
+      <p>You need two tools installed before running the project: <code>uv</code> for the Python backend and Node.js ≥ 20.9.0 for the frontend.</p>
+    </section>
+
+    <section id="backend-prereq">
+      <h3>Backend — uv</h3>
+      <p>The backend uses <a href="https://github.com/astral-sh/uv" target="_blank" rel="noopener"><code>uv</code></a> to manage the Python environment. Install it with:</p>
+      <div class="code-block">
+        <div class="code-block-header"><span class="code-lang">bash</span><button class="copy-btn" data-copy="curl -LsSf https://astral.sh/uv/install.sh | sh"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg> Copy</button></div>
+        <pre>curl -LsSf https://astral.sh/uv/install.sh | sh</pre>
+      </div>
+      <p>Verify with <code>uv --version</code>. Python 3.12+ is required (managed automatically by uv).</p>
+    </section>
+
+    <section id="frontend-prereq">
+      <h3>Frontend — Node.js ≥ 20.9.0</h3>
+      <p>Next.js 16 requires Node.js 20.9.0 or higher. Use <a href="https://github.com/nvm-sh/nvm" target="_blank" rel="noopener">nvm</a> to manage versions — the system Node from apt is often v18 which won't work.</p>
+      <div class="code-block">
+        <div class="code-block-header"><span class="code-lang">bash</span><button class="copy-btn" data-copy="curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.40.0/install.sh | bash&#10;source ~/.bashrc&#10;nvm install 24&#10;nvm use 24"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2 2v1"/></svg> Copy</button></div>
+        <pre><span style="color: var(--ink-4)"># Install nvm</span>
+curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.40.0/install.sh | bash
+source ~/.bashrc
+
+<span style="color: var(--ink-4)"># Install and use Node 24 LTS</span>
+nvm install 24
+nvm use 24</pre>
+      </div>
+      <div class="callout callout-warning">
+        <span class="callout-icon">⚠️</span>
+        <div class="callout-body">
+          <strong>nvm in non-interactive shells</strong>
+          nvm is sourced via your shell profile (<code>.bashrc</code> / <code>.zshrc</code>). It is not available in non-interactive shells unless you explicitly run <code>source ~/.nvm/nvm.sh</code> first.
+        </div>
+      </div>
+    </section>
+
+    <section id="getting-started">
+      <h2>Quick Start</h2>
+      <p>Clone the repository, then start the backend and frontend in two terminal tabs.</p>
+    </section>
+
+    <section id="start-backend">
+      <h3>Start the backend</h3>
+      <p>The <code>uv</code> project root is <code>backend/</code>, so you <strong>must run from that directory</strong>.</p>
+      <div class="code-block">
+        <div class="code-block-header"><span class="code-lang">bash</span><button class="copy-btn" data-copy="cd backend&#10;uv run python main.py"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2 2v1"/></svg> Copy</button></div>
+        <pre>cd backend
+uv run python main.py</pre>
+      </div>
+      <p>On first run, <code>backend/test.db</code> (SQLite) is created automatically. The server runs on <code>http://localhost:8000</code>. To reset the database, delete <code>test.db</code> and restart.</p>
+    </section>
+
+    <section id="start-frontend">
+      <h3>Start the frontend</h3>
+      <div class="code-block">
+        <div class="code-block-header"><span class="code-lang">bash</span><button class="copy-btn" data-copy="source ~/.nvm/nvm.sh&#10;nvm use 24&#10;cd frontend&#10;npm install  # first time only&#10;npm run dev"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2 2v1"/></svg> Copy</button></div>
+        <pre>source ~/.nvm/nvm.sh
+nvm use 24
+cd frontend
+npm install   <span style="color: var(--ink-4)"># first time only</span>
+npm run dev</pre>
+      </div>
+      <p>The frontend runs on <code>http://localhost:3000</code>. Both services must be running simultaneously.</p>
+
+      <table>
+        <thead><tr><th>Service</th><th>URL</th></tr></thead>
+        <tbody>
+          <tr><td>Frontend</td><td><code>http://localhost:3000</code></td></tr>
+          <tr><td>Backend API</td><td><code>http://localhost:8000</code></td></tr>
+          <tr><td>API Docs (Swagger)</td><td><code>http://localhost:8000/docs</code></td></tr>
+        </tbody>
+      </table>
+    </section>
+
+    <!-- FOR VISITORS ─────────────────────────────────────── -->
+    <section id="reading-articles">
+      <h2>Reading Articles</h2>
+      <p>No account is needed to read. The home page (<code>/</code>) shows all published articles ordered by date with title, author, and publication date. Click any article to open the full view.</p>
+      <p>Each article page includes:</p>
+      <ul>
+        <li>A <strong>table of contents</strong> (hover the tab on the left to expand)</li>
+        <li>A <strong>reading progress bar</strong> at the top of the page</li>
+        <li><strong>Like</strong> and <strong>share</strong> buttons in the right rail</li>
+        <li>A <strong>comments section</strong> at the bottom (reading login-free; posting requires an account)</li>
+      </ul>
+    </section>
+
+    <section id="search">
+      <h2>Searching Articles</h2>
+      <p>Use the search bar in the top navigation or go to <code>/search-article</code>. Search is partial and case-insensitive — typing <code>fast</code> will match articles titled "FastAPI Tips". Only published articles appear in results.</p>
+    </section>
+
+    <section id="registration">
+      <h2>Registration &amp; Login</h2>
+      <p>Go to <code>/register</code> and fill in your email and password. After submitting you'll see a <em>"Pending approval"</em> message — your account is inactive until an admin activates it.</p>
+      <p>Once approved, log in at <code>/login</code>. The JWT token is stored in <code>localStorage</code> and expires after 1 hour. Log out via the navigation bar.</p>
+      <div class="callout callout-tip">
+        <span class="callout-icon">💡</span>
+        <div class="callout-body">
+          <strong>Password reset</strong>
+          Use the "Forgot password?" link on the login page. In development the reset token is returned in the API response (no email sent). Hook up SMTP to send real reset emails.
+        </div>
+      </div>
+    </section>
+
+    <!-- FOR AUTHORS ──────────────────────────────────────── -->
+    <section id="author-approval">
+      <h2>Getting Approved</h2>
+      <p>After registering, your account has the <code>guest</code> role and is inactive. An admin must activate your account from the <strong>Admin → Users</strong> panel before you can log in and write. You'll also need the <code>author</code> role (or <code>admin</code>) to access the dashboard and create articles.</p>
+      <div class="doc-steps">
+        <div class="doc-step">
+          <div class="doc-step-body">
+            <h4>Register at /register</h4>
+            <p>Submit your email and password. You'll see a pending message — you cannot log in yet.</p>
+          </div>
+        </div>
+        <div class="doc-step">
+          <div class="doc-step-body">
+            <h4>Admin activates your account</h4>
+            <p>An admin visits <strong>Admin → Users</strong>, finds your email, and clicks "Activate". Your role is updated to <code>author</code>.</p>
+          </div>
+        </div>
+        <div class="doc-step">
+          <div class="doc-step-body">
+            <h4>Log in and start writing</h4>
+            <p>Go to <code>/login</code>. You now have access to <code>/dashboard</code> and <code>/create-article</code>.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="writing-articles">
+      <h2>Writing Articles</h2>
+      <p>Navigate to <strong>/create-article</strong> (or click "Write" in the navigation). The editor has two parts: a plain text title field at the top and the Editor.js block editor below.</p>
+    </section>
+
+    <section id="editor-blocks">
+      <h3>Editor.js Blocks</h3>
+      <p>Click the <strong>+</strong> icon to the left of any empty block, or type <code>/</code> to open the block menu. Available block types:</p>
+      <table>
+        <thead><tr><th>Block</th><th>How to insert</th><th>Notes</th></tr></thead>
+        <tbody>
+          <tr><td><strong>Paragraph</strong></td><td>Default when you type</td><td>Standard text with inline formatting</td></tr>
+          <tr><td><strong>Heading</strong></td><td><code>/heading</code> or H1–H6 buttons</td><td>Rendered in the TOC</td></tr>
+          <tr><td><strong>List</strong></td><td><code>/list</code></td><td>Ordered or unordered</td></tr>
+          <tr><td><strong>Checklist</strong></td><td><code>/checklist</code></td><td>Interactive checkboxes in the article view</td></tr>
+          <tr><td><strong>Code</strong></td><td><code>/code</code></td><td>Fenced code block with monospace font</td></tr>
+          <tr><td><strong>Image</strong></td><td><code>/image</code></td><td>URL-based (no file upload in v1)</td></tr>
+          <tr><td><strong>Embed</strong></td><td><code>/embed</code></td><td>YouTube, Twitter, CodePen, etc.</td></tr>
+          <tr><td><strong>Quote</strong></td><td><code>/quote</code></td><td>Pull quote with styled left border</td></tr>
+          <tr><td><strong>Delimiter</strong></td><td><code>/delimiter</code></td><td>Horizontal rule / section break</td></tr>
+        </tbody>
+      </table>
+      <p>Content is saved as JSON internally — the frontend renders each block type to HTML when an article is displayed.</p>
+    </section>
+
+    <section id="publish-toggle">
+      <h3>Draft vs Published</h3>
+      <p>The <strong>Published</strong> toggle in the editor toolbar controls visibility. Drafts are only visible to the article's author and admins. Toggle it on to make an article public, off to revert to draft.</p>
+      <div class="callout callout-info">
+        <span class="callout-icon">ℹ️</span>
+        <div class="callout-body">Only <code>published = true</code> articles appear on the public home page and in search results.</div>
+      </div>
+    </section>
+
+    <section id="managing-articles">
+      <h2>Managing Articles</h2>
+      <p>Your <strong>dashboard</strong> at <code>/dashboard</code> lists all your articles with their publish status, like count, and comment count. From here you can:</p>
+      <ul>
+        <li>Click the title to open the article</li>
+        <li>Click <strong>Edit</strong> to open it in the editor</li>
+        <li>Click <strong>Delete</strong> to permanently remove it</li>
+      </ul>
+      <p>You can only manage your own articles. Admins can manage all articles from the admin panel.</p>
+    </section>
+
+    <section id="user-profile">
+      <h2>Your Profile</h2>
+      <p>Visit <code>/profile</code> to manage your personal information. The profile is divided into sections — click any row to open its edit modal:</p>
+      <ul>
+        <li><strong>Basic info</strong> — first name, last name, headline, bio</li>
+        <li><strong>Work experience</strong> — job title, company, dates, description</li>
+        <li><strong>Qualifications</strong> — certifications and credentials</li>
+        <li><strong>Education</strong> — schools by grade level (Primary → University)</li>
+      </ul>
+    </section>
+
+    <!-- FOR ADMINS ───────────────────────────────────────── -->
+    <section id="admin-panel">
+      <h2>Admin Panel</h2>
+      <p>The admin panel is at <code>/admin</code> and is only accessible to users with <code>is_superuser = true</code>. From the dashboard you can see a summary of total users, articles, and comments, then navigate to each management section.</p>
+      <div class="callout callout-warning">
+        <span class="callout-icon">⚠️</span>
+        <div class="callout-body">
+          <strong>First admin</strong>
+          The first user to register does not automatically become admin. You must set <code>is_superuser = true</code> directly in the database (or use an admin seed script) for the first superuser.
+        </div>
+      </div>
+    </section>
+
+    <section id="user-management">
+      <h2>User Management</h2>
+      <p>Navigate to <strong>Admin → Users</strong>. You'll see a table of all registered users with email, role, and active status.</p>
+      <ul>
+        <li><strong>Activate</strong> — enables the user to log in; sets their role to <code>author</code></li>
+        <li><strong>Deactivate</strong> — blocks the user from logging in without deleting their data</li>
+      </ul>
+      <p>Role values: <code>guest</code> (default after registration), <code>author</code> (can write), <code>admin</code> (full access).</p>
+    </section>
+
+    <section id="article-management">
+      <h2>Article Management</h2>
+      <p>Navigate to <strong>Admin → Articles</strong> to see all articles across all authors. Admins can edit or delete any article regardless of ownership. The table supports sorting and pagination.</p>
+    </section>
+
+    <section id="theme-management">
+      <h2>Theme Management</h2>
+      <p>This is the platform's signature feature. Navigate to <strong>Admin → Themes</strong>.</p>
+      <div class="doc-steps">
+        <div class="doc-step">
+          <div class="doc-step-body">
+            <h4>Add a theme</h4>
+            <p>Enter a name and paste a publicly accessible CSS URL. Click <strong>Add Theme</strong>. The theme is saved but not yet active.</p>
+          </div>
+        </div>
+        <div class="doc-step">
+          <div class="doc-step-body">
+            <h4>Activate a theme</h4>
+            <p>Click <strong>Activate</strong> next to any saved theme. This deactivates all other themes and marks this one active. The change takes effect immediately — no redeploy needed.</p>
+          </div>
+        </div>
+        <div class="doc-step">
+          <div class="doc-step-body">
+            <h4>Verify the change</h4>
+            <p>Open the blog in a new tab. The new CSS is injected server-side on every page load via a <code>&lt;link&gt;</code> tag, so every visitor sees the updated look immediately.</p>
+          </div>
+        </div>
+      </div>
+      <div class="callout callout-tip">
+        <span class="callout-icon">💡</span>
+        <div class="callout-body">
+          <strong>How it works technically</strong>
+          The Next.js <code>(blog)/layout.tsx</code> server component calls <code>GET /api/v1/theme/active</code> on every request and injects <code>&lt;link rel="stylesheet" href="{url}" /&gt;</code> into <code>&lt;head&gt;</code>. No CDN or cache layer is involved — the URL is fetched fresh each time.
+        </div>
+      </div>
+    </section>
+
+    <section id="site-settings">
+      <h2>Site Settings</h2>
+      <p>Navigate to <strong>Admin → Settings</strong>. Available options:</p>
+      <table>
+        <thead><tr><th>Setting</th><th>Description</th></tr></thead>
+        <tbody>
+          <tr><td><strong>Site Name</strong></td><td>Appears in the navigation wordmark and page titles</td></tr>
+          <tr><td><strong>Logo URL</strong></td><td>URL of an image to show instead of the text wordmark (optional)</td></tr>
+          <tr><td><strong>Allow Registration</strong></td><td>Toggle off to hide the "Get started" / Register links for new users</td></tr>
+        </tbody>
+      </table>
+      <p>Settings are fetched via the public <code>GET /api/v1/settings</code> endpoint — changes take effect immediately.</p>
+    </section>
+
+    <section id="comment-moderation">
+      <h2>Comment Moderation</h2>
+      <p>Navigate to <strong>Admin → Comments</strong> to view all comments across the platform. You can search by author or article and delete any comment. The comment list is paginated and sorted by newest first.</p>
+    </section>
+
+    <!-- DEPLOYMENT ───────────────────────────────────────── -->
+    <section id="deployment">
+      <h2>Deployment</h2>
+      <p>Two deployment paths are supported: a <strong>three-service Docker Compose</strong> setup for self-hosting, and a <strong>single-container Dockerfile</strong> for PaaS providers like Render.</p>
+    </section>
+
+    <section id="docker-compose">
+      <h2>Docker Compose</h2>
+      <p>The <code>docker-compose.yml</code> at the repo root runs three services: PostgreSQL 16, the FastAPI backend, and the Next.js frontend.</p>
+      <div class="code-block">
+        <div class="code-block-header"><span class="code-lang">bash</span><button class="copy-btn" data-copy="# Copy the example env file and fill in your secrets&#10;cp backend/.env.example backend/.env&#10;&#10;# Start all services&#10;docker compose up --build"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2 2v1"/></svg> Copy</button></div>
+        <pre><span style="color: var(--ink-4)"># Copy the example env file and fill in your secrets</span>
+cp backend/.env.example backend/.env
+
+<span style="color: var(--ink-4)"># Start all services</span>
+docker compose up --build</pre>
+      </div>
+      <table>
+        <thead><tr><th>Service</th><th>Image</th><th>Port</th></tr></thead>
+        <tbody>
+          <tr><td><code>db</code></td><td>postgres:16-alpine</td><td>5432 (internal)</td></tr>
+          <tr><td><code>backend</code></td><td>Python 3.12 + uv</td><td>8000</td></tr>
+          <tr><td><code>frontend</code></td><td>Node 20 Alpine (standalone)</td><td>3000</td></tr>
+        </tbody>
+      </table>
+    </section>
+
+    <section id="render-deploy">
+      <h2>Render — Single Container</h2>
+      <p>The repo includes a multi-stage <code>Dockerfile</code> that bundles the frontend, backend, Nginx, and Supervisor into a single container that exposes port <code>10000</code>. This is what Render expects.</p>
+      <div class="doc-steps">
+        <div class="doc-step">
+          <div class="doc-step-body">
+            <h4>Create a new Web Service on Render</h4>
+            <p>Connect your GitHub repository. Set the environment to <strong>Docker</strong>. Render will detect the <code>Dockerfile</code> automatically.</p>
+          </div>
+        </div>
+        <div class="doc-step">
+          <div class="doc-step-body">
+            <h4>Set environment variables</h4>
+            <p>Add <code>DATABASE_URL</code>, <code>SECRET</code>, and <code>FRONTEND_URL</code> in the Render dashboard. See the <a href="#configuration">Configuration</a> table below.</p>
+          </div>
+        </div>
+        <div class="doc-step">
+          <div class="doc-step-body">
+            <h4>Deploy</h4>
+            <p>Click <strong>Deploy</strong>. Render builds the container and exposes it on a <code>.onrender.com</code> subdomain. The Nginx config inside the container handles routing between frontend and API.</p>
+          </div>
+        </div>
+      </div>
+      <div class="callout callout-info">
+        <span class="callout-icon">ℹ️</span>
+        <div class="callout-body">Full step-by-step instructions are in <a href="../render-deploy.md"><code>render-deploy.md</code></a> in the repo root.</div>
+      </div>
+    </section>
+
+    <section id="configuration">
+      <h2>Environment Variables</h2>
+      <p>All secrets and deployment-specific values are configured through environment variables. Create a <code>backend/.env</code> file for local development (loaded automatically by <code>python-dotenv</code>).</p>
+      <table>
+        <thead><tr><th>Variable</th><th>Default</th><th>Description</th></tr></thead>
+        <tbody>
+          <tr><td><code>DATABASE_URL</code></td><td><code>sqlite+aiosqlite:///./test.db</code></td><td>SQLite locally; set to a PostgreSQL URL in production</td></tr>
+          <tr><td><code>SECRET</code></td><td><code>dev-secret-change-me</code></td><td>JWT signing secret — <strong>must be changed in production</strong></td></tr>
+          <tr><td><code>FRONTEND_URL</code></td><td><code>http://localhost:3000</code></td><td>Allowed CORS origin — set to your production domain</td></tr>
+        </tbody>
+      </table>
+      <div class="callout callout-danger">
+        <span class="callout-icon">🔴</span>
+        <div class="callout-body">
+          <strong>Never commit secrets</strong>
+          Do not commit <code>.env</code> files or change the default <code>SECRET</code> value without replacing it. Use Render's environment variable panel or a secrets manager in production.
+        </div>
+      </div>
+    </section>
+
+    <!-- REFERENCE ────────────────────────────────────────── -->
+    <section id="user-roles">
+      <h2>User Role Matrix</h2>
+      <table>
+        <thead><tr><th>Capability</th><th>Visitor</th><th>Author</th><th>Admin</th></tr></thead>
+        <tbody>
+          <tr><td>Read published articles</td><td>✓</td><td>✓</td><td>✓</td></tr>
+          <tr><td>Search articles</td><td>✓</td><td>✓</td><td>✓</td></tr>
+          <tr><td>Like &amp; comment</td><td>✓ (logged in)</td><td>✓</td><td>✓</td></tr>
+          <tr><td>Create articles</td><td>—</td><td>✓</td><td>✓</td></tr>
+          <tr><td>Edit own articles</td><td>—</td><td>✓</td><td>✓</td></tr>
+          <tr><td>Delete own articles</td><td>—</td><td>✓</td><td>✓</td></tr>
+          <tr><td>Edit any article</td><td>—</td><td>—</td><td>✓</td></tr>
+          <tr><td>Delete any article</td><td>—</td><td>—</td><td>✓</td></tr>
+          <tr><td>Manage users</td><td>—</td><td>—</td><td>✓</td></tr>
+          <tr><td>Manage themes</td><td>—</td><td>—</td><td>✓</td></tr>
+          <tr><td>Site settings</td><td>—</td><td>—</td><td>✓</td></tr>
+          <tr><td>Moderate comments</td><td>—</td><td>—</td><td>✓</td></tr>
+        </tbody>
+      </table>
+    </section>
+
+    <section id="api-overview">
+      <h2>API Overview</h2>
+      <p>All routes are documented interactively at <code>/docs</code>. Key route groups:</p>
+      <table>
+        <thead><tr><th>Prefix</th><th>Description</th></tr></thead>
+        <tbody>
+          <tr><td><code>POST /auth/jwt/login</code></td><td>Exchange email + password for a JWT token</td></tr>
+          <tr><td><code>POST /auth/register</code></td><td>Create a new (inactive) account</td></tr>
+          <tr><td><code>GET /users/me</code></td><td>Get the currently authenticated user</td></tr>
+          <tr><td><code>/api/v1/</code> (articles)</td><td>CRUD for articles, likes, comments</td></tr>
+          <tr><td><code>/api/v1/admin/</code></td><td>User management, theme CRUD, stats, site settings</td></tr>
+          <tr><td><code>/api/v1/profile/</code></td><td>Extended user profile (bio, experience, education)</td></tr>
+          <tr><td><code>GET /api/v1/theme/active</code></td><td>Public endpoint returning the active CSS URL</td></tr>
+          <tr><td><code>GET /api/v1/settings</code></td><td>Public site config (name, logo, allow_registration)</td></tr>
+          <tr><td><code>/uploads/</code></td><td>Static files for uploaded logos</td></tr>
+        </tbody>
+      </table>
+      <p>All protected endpoints require the header <code>Authorization: Bearer &lt;token&gt;</code>.</p>
+    </section>
+
+    <section id="troubleshooting">
+      <h2>Troubleshooting</h2>
+
+      <h3>ModuleNotFoundError: No module named 'uvicorn'</h3>
+      <p><strong>Cause:</strong> You ran <code>uv run</code> from the repo root instead of <code>backend/</code>.<br><strong>Fix:</strong> <code>cd backend</code> first, then <code>uv run python main.py</code>.</p>
+
+      <h3>Node.js version error on frontend start</h3>
+      <p><strong>Cause:</strong> System Node is v18 (below the required ≥ 20.9.0).<br><strong>Fix:</strong></p>
+      <div class="code-block">
+        <div class="code-block-header"><span class="code-lang">bash</span><button class="copy-btn" data-copy="source ~/.nvm/nvm.sh && nvm use 24"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2 2v1"/></svg> Copy</button></div>
+        <pre>source ~/.nvm/nvm.sh &amp;&amp; nvm use 24</pre>
+      </div>
+
+      <h3>CORS errors in the browser</h3>
+      <p><strong>Cause:</strong> The backend's <code>FRONTEND_URL</code> doesn't match the origin the browser is sending.<br><strong>Fix:</strong> Set <code>FRONTEND_URL</code> to your exact frontend origin (e.g. <code>https://yourblog.onrender.com</code>) in the backend environment.</p>
+
+      <h3>Login succeeds but I'm redirected back to login</h3>
+      <p><strong>Cause:</strong> The JWT token isn't being saved to <code>localStorage</code> — this can happen if <code>CORS</code> credentials are misconfigured or the token response format changed.<br><strong>Fix:</strong> Open browser DevTools → Network → check the <code>/auth/jwt/login</code> response. Ensure <code>access_token</code> is present in the JSON.</p>
+
+      <h3>Theme change not visible to visitors</h3>
+      <p><strong>Cause:</strong> The CSS URL is not publicly accessible or returned a non-200 status.<br><strong>Fix:</strong> Open the URL directly in a browser and confirm it returns valid CSS. Also ensure the URL is HTTPS in production.</p>
+    </section>
+
+    <!-- Page nav -->
+    <div class="docs-nav-pages">
+      <a href="index.html" class="docs-nav-page">
+        <span>← Back to</span>
+        <strong>Marketing page</strong>
+      </a>
+      <a href="#overview" class="docs-nav-page next">
+        <span>Jump to top</span>
+        <strong>Overview ↑</strong>
+      </a>
+    </div>
+
+  </main>
+</div><!-- /docs-layout -->
+
+<!-- Back to top -->
+<button class="back-top" id="backTop" aria-label="Back to top">
+  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="18 15 12 9 6 15"/></svg>
+</button>
+
+<script src="script.js"></script>
+</body>
+</html>

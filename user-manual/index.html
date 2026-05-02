@@ -1,0 +1,427 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Paper Blog — Open-Source Blog Platform with Live Theme Switching</title>
+  <meta name="description" content="FastAPI + Next.js blog platform with live theme switching, Editor.js rich content, role-based access, and one-command deployment." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Source+Serif+4:ital,opsz,wght@0,8..60,300..700;1,8..60,300..700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+<!-- Reading progress (marketing page) -->
+<div class="read-progress"><div class="read-progress-fill" id="readProgress"></div></div>
+
+<!-- ── Nav ─────────────────────────────────────────────────── -->
+<nav class="site-nav">
+  <a class="nav-brand" href="index.html">
+    Paper<span class="dot"></span>
+  </a>
+  <ul class="nav-links">
+    <li><a href="#features">Features</a></li>
+    <li><a href="#how-it-works">How it works</a></li>
+    <li><a href="#roles">Who's it for</a></li>
+    <li><a href="guide.html">Docs</a></li>
+  </ul>
+  <div class="nav-actions">
+    <button class="theme-toggle" id="themeToggle" aria-label="Toggle dark mode">
+      <svg id="iconSun" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:none"><circle cx="12" cy="12" r="5"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg>
+      <svg id="iconMoon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+    </button>
+    <a href="guide.html" class="btn btn-primary btn-sm">Read the docs</a>
+  </div>
+</nav>
+
+<!-- ── Hero ────────────────────────────────────────────────── -->
+<section class="hero">
+  <div class="hero-text">
+    <p class="hero-eyebrow">Open-source · MIT License</p>
+    <h1 class="hero-headline">
+      The blog platform<br>that wears<br><em>any coat.</em>
+    </h1>
+    <p class="hero-sub">
+      FastAPI + Next.js. Live theme switching via a URL paste.
+      Rich Editor.js content. Role-based workflow. Deploy with one command.
+    </p>
+    <div class="hero-ctas">
+      <a href="guide.html#getting-started" class="btn btn-primary btn-lg">Get started</a>
+      <a href="guide.html" class="btn btn-ghost btn-lg">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+        User manual
+      </a>
+    </div>
+    <div class="hero-social">
+      <div class="hero-social-item">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.44 9.80 8.21 11.39.6.11.82-.26.82-.58v-2.03c-3.34.73-4.04-1.61-4.04-1.61-.55-1.39-1.34-1.76-1.34-1.76-1.09-.75.08-.73.08-.73 1.21.09 1.84 1.24 1.84 1.24 1.07 1.84 2.81 1.31 3.50.99.11-.78.42-1.31.76-1.61-2.67-.30-5.47-1.33-5.47-5.93 0-1.31.47-2.38 1.24-3.22-.13-.30-.54-1.52.12-3.18 0 0 1.01-.32 3.30 1.23a11.5 11.5 0 0 1 3.0-.40c1.02.00 2.05.14 3.0.40 2.28-1.55 3.29-1.23 3.29-1.23.66 1.65.25 2.88.12 3.18.77.84 1.23 1.91 1.23 3.22 0 4.61-2.81 5.63-5.48 5.92.43.37.81 1.10.81 2.22v3.29c0 .32.22.69.82.57C20.56 21.80 24 17.31 24 12c0-6.63-5.37-12-12-12z"/></svg>
+        <strong>GitHub</strong>
+      </div>
+      <div class="hero-social-item">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M9 21V9"/></svg>
+        FastAPI + Next.js 16
+      </div>
+      <div class="hero-social-item">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 7H4a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2z"/><path d="M12 12h.01"/></svg>
+        Docker · Render ready
+      </div>
+    </div>
+  </div>
+
+  <div class="hero-visual">
+    <div class="terminal">
+      <div class="terminal-bar">
+        <span class="terminal-dot"></span>
+        <span class="terminal-dot"></span>
+        <span class="terminal-dot"></span>
+        <span class="terminal-title">admin — theme panel</span>
+      </div>
+      <div class="terminal-body">
+        <pre><span class="t-prompt">$</span> <span class="t-cmd">docker compose up</span>
+<span class="t-out">✔ backend    healthy  :8000</span>
+<span class="t-out">✔ frontend   healthy  :3000</span>
+<span class="t-ok">✔ All services running.</span>
+
+<span class="t-prompt">admin &gt;</span> <span class="t-cmd">paste CSS URL…</span>
+<span class="t-accent">→ https://cdn.example.com/dark.css</span>
+<span class="t-ok">✔ Theme activated instantly.</span>
+<span class="t-out">  All visitors see the new look.</span>
+<span class="t-out">  Zero redeploy. Zero CDN flush.</span>
+<span class="t-prompt">_</span><span class="t-cursor"></span></pre>
+      </div>
+      <div class="theme-pills">
+        <p class="theme-pills-label">Saved themes</p>
+        <div class="theme-pill active">
+          <span class="theme-pill-dot" style="background: oklch(0.22 0.015 60)"></span>
+          Dark Ink
+          <span class="check">✓ active</span>
+        </div>
+        <div class="theme-pill">
+          <span class="theme-pill-dot" style="background: oklch(0.55 0.12 220)"></span>
+          Ocean Blue
+        </div>
+        <div class="theme-pill">
+          <span class="theme-pill-dot" style="background: oklch(0.55 0.12 145)"></span>
+          Forest Green
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ── Features ─────────────────────────────────────────────── -->
+<section class="section section-alt" id="features">
+  <div class="section-inner">
+    <div class="section-header centered reveal">
+      <p class="section-eyebrow">Built to be customized</p>
+      <h2 class="section-heading">Everything a blog needs. Nothing it doesn't.</h2>
+      <p class="section-sub">Minimal by design — a clean skeleton you dress up however you like.</p>
+    </div>
+
+    <div class="feature-grid reveal">
+      <div class="feature-card">
+        <div class="feature-icon accent">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14M4.93 4.93a10 10 0 0 0 0 14.14M12 2v2M12 20v2M2 12H4M20 12h2"/></svg>
+        </div>
+        <h3 class="feature-title">Live Theme Switching</h3>
+        <p class="feature-desc">Paste any external CSS URL in the admin panel. Every visitor instantly sees the new look. No redeploy, no CDN flush — server-side injection on every page load.</p>
+        <a href="guide.html#theme-management" class="feature-learn">Learn how it works →</a>
+      </div>
+
+      <div class="feature-card">
+        <div class="feature-icon blue">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+        </div>
+        <h3 class="feature-title">Editor.js Rich Content</h3>
+        <p class="feature-desc">Block-structured editing with headers, ordered &amp; unordered lists, inline code, fenced code blocks, images, embeds, and checklists. Content stored as portable JSON.</p>
+        <a href="guide.html#writing-articles" class="feature-learn">See the editor →</a>
+      </div>
+
+      <div class="feature-card">
+        <div class="feature-icon green">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+        </div>
+        <h3 class="feature-title">Role-Based Workflow</h3>
+        <p class="feature-desc">Three roles: <strong>Admin</strong> controls everything, <strong>Author</strong> writes after approval, <strong>Visitor</strong> reads without an account. Registration flows through admin approval.</p>
+        <a href="guide.html#user-roles" class="feature-learn">See role matrix →</a>
+      </div>
+
+      <div class="feature-card">
+        <div class="feature-icon neutral">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M9 9h.01M15 9h.01M9 15h.01M15 15h.01M12 12h.01"/></svg>
+        </div>
+        <h3 class="feature-title">Admin Panel</h3>
+        <p class="feature-desc">Manage users, moderate all articles, review comments, switch themes, and configure site settings (name, logo, open/closed registration) — all from one dashboard.</p>
+        <a href="guide.html#admin-panel" class="feature-learn">Explore admin →</a>
+      </div>
+
+      <div class="feature-card">
+        <div class="feature-icon accent">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M21 12c0 1.66-4.03 3-9 3S3 13.66 3 12"/><path d="M3 5v14c0 1.66 4.03 3 9 3s9-1.34 9-3V5"/></svg>
+        </div>
+        <h3 class="feature-title">SQLite → PostgreSQL</h3>
+        <p class="feature-desc">SQLite with auto-schema creation for local development. Switch to PostgreSQL in production with a single <code>DATABASE_URL</code> env var. Alembic handles schema migrations.</p>
+        <a href="guide.html#configuration" class="feature-learn">Configure the DB →</a>
+      </div>
+
+      <div class="feature-card">
+        <div class="feature-icon blue">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/></svg>
+        </div>
+        <h3 class="feature-title">Deploy Anywhere</h3>
+        <p class="feature-desc">Docker Compose (three services) for self-hosted setups. Or use the single-container Dockerfile — Nginx + FastAPI + Next.js + Supervisor — for Render and other PaaS providers.</p>
+        <a href="guide.html#deployment" class="feature-learn">Deployment guide →</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ── How it works ─────────────────────────────────────────── -->
+<section class="section" id="how-it-works">
+  <div class="section-inner">
+    <div class="section-header centered reveal">
+      <p class="section-eyebrow">Get up and running</p>
+      <h2 class="section-heading">From zero to published in minutes.</h2>
+      <p class="section-sub">Three steps whether you're deploying locally or to the cloud.</p>
+    </div>
+
+    <div class="steps reveal">
+      <div class="step">
+        <div class="step-num">01</div>
+        <h3 class="step-title">Deploy</h3>
+        <p class="step-desc">Run <code>docker compose up</code> locally or push to Render with the included single-container <code>Dockerfile</code>. The database schema is created automatically on first start.</p>
+      </div>
+      <div class="step">
+        <div class="step-num">02</div>
+        <h3 class="step-title">Write</h3>
+        <p class="step-desc">Register an account, get approved by the admin, then create rich articles using the Editor.js block editor. Toggle between draft and published with one click.</p>
+      </div>
+      <div class="step">
+        <div class="step-num">03</div>
+        <h3 class="step-title">Style</h3>
+        <p class="step-desc">Paste any CSS URL into the admin theme panel. Click "Activate". Every visitor instantly sees the new design — no redeploy, no cache invalidation needed.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ── Role showcase ─────────────────────────────────────────── -->
+<section class="section section-alt" id="roles">
+  <div class="section-inner">
+    <div class="section-header reveal">
+      <p class="section-eyebrow">Three roles, one platform</p>
+      <h2 class="section-heading">Built for every person on your team.</h2>
+      <p class="section-sub">Each role has exactly the permissions it needs and nothing more.</p>
+    </div>
+
+    <div class="reveal">
+      <div class="role-tabs">
+        <button class="role-tab active" data-role="admin">Admin</button>
+        <button class="role-tab" data-role="author">Author</button>
+        <button class="role-tab" data-role="visitor">Visitor</button>
+      </div>
+
+      <!-- Admin panel -->
+      <div class="role-panel active" id="role-admin">
+        <div>
+          <span class="tag tag-accent" style="margin-bottom: 16px">Full control</span>
+          <p class="role-panel-desc">The first user to register automatically becomes the admin, or you can set <code>is_superuser = true</code> in the database. Admins have complete control over the platform.</p>
+          <ul class="role-capabilities">
+            <li>Approve or deactivate any user account</li>
+            <li>Edit or delete any article (not just own)</li>
+            <li>Manage and activate CSS themes from a URL</li>
+            <li>Configure site name, logo, and registration toggle</li>
+            <li>Moderate comments across all articles</li>
+            <li>View stats: total users, articles, and comments</li>
+          </ul>
+        </div>
+        <div class="role-mockup">
+          <div class="mockup-bar">
+            <div class="mockup-bar-dots">
+              <div class="mockup-bar-dot"></div>
+              <div class="mockup-bar-dot"></div>
+              <div class="mockup-bar-dot"></div>
+            </div>
+            <div class="mockup-url">localhost:3000/admin</div>
+          </div>
+          <div class="mockup-body">
+            <div class="mockup-row">
+              <div class="mockup-row-icon">👥</div>
+              <span class="mockup-row-label">User Management</span>
+              <span class="mockup-row-badge badge-accent">3 pending</span>
+            </div>
+            <div class="mockup-row">
+              <div class="mockup-row-icon">📝</div>
+              <span class="mockup-row-label">All Articles</span>
+              <span class="mockup-row-badge badge-muted">24 total</span>
+            </div>
+            <div class="mockup-row">
+              <div class="mockup-row-icon">🎨</div>
+              <span class="mockup-row-label">Themes</span>
+              <span class="mockup-row-badge badge-green">1 active</span>
+            </div>
+            <div class="mockup-row">
+              <div class="mockup-row-icon">⚙️</div>
+              <span class="mockup-row-label">Site Settings</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Author panel -->
+      <div class="role-panel" id="role-author">
+        <div>
+          <span class="tag tag-blue" style="margin-bottom: 16px">Write &amp; publish</span>
+          <p class="role-panel-desc">Authors register via the public form and are activated by an admin. Once approved they can create and manage their own articles from a personal dashboard.</p>
+          <ul class="role-capabilities">
+            <li>Create articles with the Editor.js block editor</li>
+            <li>Toggle articles between draft and published</li>
+            <li>Edit or delete their own articles</li>
+            <li>View per-article like and comment counts</li>
+            <li>Manage personal profile and biography</li>
+            <li>Cannot access other authors' articles</li>
+          </ul>
+        </div>
+        <div class="role-mockup">
+          <div class="mockup-bar">
+            <div class="mockup-bar-dots">
+              <div class="mockup-bar-dot"></div>
+              <div class="mockup-bar-dot"></div>
+              <div class="mockup-bar-dot"></div>
+            </div>
+            <div class="mockup-url">localhost:3000/dashboard</div>
+          </div>
+          <div class="mockup-body">
+            <div class="mockup-row">
+              <div class="mockup-row-icon">✅</div>
+              <span class="mockup-row-label">How I built this thing</span>
+              <span class="mockup-row-badge badge-green">published</span>
+            </div>
+            <div class="mockup-row">
+              <div class="mockup-row-icon">📄</div>
+              <span class="mockup-row-label">Draft: Next steps</span>
+              <span class="mockup-row-badge badge-muted">draft</span>
+            </div>
+            <div class="mockup-row">
+              <div class="mockup-row-icon">✏️</div>
+              <span class="mockup-row-label" style="color: var(--accent-ink)">+ Write new article</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Visitor panel -->
+      <div class="role-panel" id="role-visitor">
+        <div>
+          <span class="tag tag-green" style="margin-bottom: 16px">No account needed</span>
+          <p class="role-panel-desc">Visitors can browse, search, read, and interact with published articles without an account. The reading experience is clean and distraction-free.</p>
+          <ul class="role-capabilities">
+            <li>Browse all published articles on the home feed</li>
+            <li>Search articles by title (partial, case-insensitive)</li>
+            <li>Read articles with table of contents navigation</li>
+            <li>Like articles and leave comments (when logged in)</li>
+            <li>Register to become an author</li>
+            <li>Site look changes in real-time with active theme</li>
+          </ul>
+        </div>
+        <div class="role-mockup">
+          <div class="mockup-bar">
+            <div class="mockup-bar-dots">
+              <div class="mockup-bar-dot"></div>
+              <div class="mockup-bar-dot"></div>
+              <div class="mockup-bar-dot"></div>
+            </div>
+            <div class="mockup-url">localhost:3000</div>
+          </div>
+          <div class="mockup-body">
+            <div class="mockup-row">
+              <div class="mockup-row-icon">📰</div>
+              <span class="mockup-row-label">How I built this thing</span>
+              <span class="mockup-row-badge badge-muted">5 min read</span>
+            </div>
+            <div class="mockup-row">
+              <div class="mockup-row-icon">📰</div>
+              <span class="mockup-row-label">FastAPI tips &amp; patterns</span>
+              <span class="mockup-row-badge badge-muted">8 min read</span>
+            </div>
+            <div class="mockup-row">
+              <div class="mockup-row-icon">🔍</div>
+              <span class="mockup-row-label" style="color: var(--ink-4); font-style: italic">Search articles…</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ── CTA banner ────────────────────────────────────────────── -->
+<section class="section">
+  <div class="section-inner">
+    <div class="cta-banner reveal">
+      <div class="cta-banner-text">
+        <h2>Ready to launch your blog?</h2>
+        <p>One <code style="background: oklch(0.30 0.015 60); padding: 2px 6px; border-radius: 4px; font-family: var(--font-mono); font-size: 0.9em;">docker compose up</code> and you're running. Full docs in under 10 minutes.</p>
+      </div>
+      <div style="display: flex; gap: 12px; flex-wrap: wrap;">
+        <a href="guide.html#getting-started" class="btn btn-primary btn-lg">Read the docs</a>
+        <a href="guide.html#deployment" class="btn btn-ghost btn-lg">Deployment guide</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ── Footer ───────────────────────────────────────────────── -->
+<footer>
+  <div class="site-footer footer-inner" style="display: grid; grid-template-columns: 1.5fr 1fr 1fr 1fr; gap: 40px; max-width: 1080px; margin: 0 auto; padding: 56px 48px 40px;">
+    <div class="footer-brand">
+      <a class="nav-brand" href="index.html">Paper<span class="dot"></span></a>
+      <p>An open-source, minimal blog platform built to be themed. FastAPI backend, Next.js 16 frontend.</p>
+    </div>
+    <div>
+      <p class="footer-col-label">Documentation</p>
+      <ul class="footer-links">
+        <li><a href="guide.html#getting-started">Getting Started</a></li>
+        <li><a href="guide.html#writing-articles">Writing Articles</a></li>
+        <li><a href="guide.html#admin-panel">Admin Panel</a></li>
+        <li><a href="guide.html#theme-management">Theme Management</a></li>
+        <li><a href="guide.html#deployment">Deployment</a></li>
+      </ul>
+    </div>
+    <div>
+      <p class="footer-col-label">Platform</p>
+      <ul class="footer-links">
+        <li><a href="guide.html#user-roles">User Roles</a></li>
+        <li><a href="guide.html#registration">Registration</a></li>
+        <li><a href="guide.html#configuration">Configuration</a></li>
+        <li><a href="guide.html#api-overview">API Reference</a></li>
+      </ul>
+    </div>
+    <div>
+      <p class="footer-col-label">Stack</p>
+      <ul class="footer-links">
+        <li><a href="https://fastapi.tiangolo.com" target="_blank" rel="noopener">FastAPI</a></li>
+        <li><a href="https://nextjs.org" target="_blank" rel="noopener">Next.js 16</a></li>
+        <li><a href="https://editorjs.io" target="_blank" rel="noopener">Editor.js</a></li>
+        <li><a href="https://fastapi-users.github.io" target="_blank" rel="noopener">FastAPI Users</a></li>
+      </ul>
+    </div>
+  </div>
+  <div class="footer-bottom">
+    <div class="footer-bottom-inner">
+      <p class="footer-copy">© 2025 Paper Blog — MIT License</p>
+      <div class="footer-tech">
+        <span>FastAPI 0.124</span>
+        <span>·</span>
+        <span>Next.js 16.1</span>
+        <span>·</span>
+        <span>React 19</span>
+      </div>
+    </div>
+  </div>
+</footer>
+
+<script src="script.js"></script>
+</body>
+</html>
