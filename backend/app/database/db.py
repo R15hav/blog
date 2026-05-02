@@ -144,8 +144,13 @@ class SiteConfig(Base):
 
     id = Column(Integer, primary_key=True, default=1)
     site_name = Column(String, nullable=False, default="My Blog")
+    site_description = Column(String, nullable=True)
+    site_url = Column(String, nullable=True)
     logo_url = Column(String, nullable=True)
     allow_registration = Column(Boolean, nullable=False, default=True, server_default="1")
+    og_title = Column(String, nullable=True)
+    og_description = Column(String, nullable=True)
+    og_image_url = Column(String, nullable=True)
 
 
 engine = create_async_engine(DATABASE_URL, connect_args=_pg_connect_args)

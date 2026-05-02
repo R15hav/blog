@@ -1,13 +1,68 @@
 import type { Metadata } from "next";
 import "./globals.css";
 import { AuthProvider } from "../context/AuthContext";
-import { getActiveThemeUrl, getSiteName, getAllowRegistration } from "../_lib/theme";
+import {
+  getActiveThemeUrl,
+  getSiteName,
+  getSiteDescription,
+  getSiteUrl,
+  getLogoUrl,
+  getOgSettings,
+  getAllowRegistration,
+} from "../_lib/theme";
 import NavLinks from "./components/NavLinks";
 
-export const metadata: Metadata = {
-  title: "Blog",
-  description: "An open-source configurable blog platform",
-};
+const API = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
+const APP_URL = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
+
+export async function generateMetadata(): Promise<Metadata> {
+  const [siteName, siteDescription, siteUrl, logoUrl, ogSettings] = await Promise.all([
+    getSiteName(),
+    getSiteDescription(),
+    getSiteUrl(),
+    getLogoUrl(),
+    getOgSettings(),
+  ]);
+
+  const baseUrl = siteUrl || APP_URL;
+
+  let metadataBase: URL;
+  try {
+    metadataBase = new URL(baseUrl);
+  } catch {
+    metadataBase = new URL(APP_URL);
+  }
+
+  // og:title always equals the site name; og:description uses the OG-specific override or falls back
+  const ogTitle = siteName;
+  const ogDescription = ogSettings.ogDescription || siteDescription || "An open-source configurable blog platform";
+  const rawOgImage = ogSettings.ogImageUrl || logoUrl;
+  const absoluteOgImage = rawOgImage
+    ? rawOgImage.startsWith("http") ? rawOgImage : `${API}${rawOgImage}`
+    : null;
+
+  const metaDescription = siteDescription || "An open-source configurable blog platform";
+
+  return {
+    metadataBase,
+    title: { default: siteName, template: `%s | ${siteName}` },
+    description: metaDescription,
+    openGraph: {
+      siteName,
+      type: "website",
+      url: baseUrl,
+      title: ogTitle,
+      description: ogDescription,
+      ...(absoluteOgImage ? { images: [{ url: absoluteOgImage }] } : {}),
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: ogTitle,
+      description: ogDescription,
+      ...(absoluteOgImage ? { images: [absoluteOgImage] } : {}),
+    },
+  };
+}
 
 export default async function BlogLayout({
   children,

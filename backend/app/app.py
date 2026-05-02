@@ -101,6 +101,11 @@ async def public_settings(session: AsyncSession = Depends(get_async_session)):
     config = await get_site_config(session)
     return {
         "site_name": config.site_name,
+        "site_description": config.site_description,
+        "site_url": config.site_url,
         "logo_url": config.logo_url,
         "allow_registration": config.allow_registration,
+        "og_title": config.og_title,
+        "og_description": config.og_description,
+        "og_image_url": config.og_image_url,
     }

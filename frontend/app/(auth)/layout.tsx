@@ -1,11 +1,14 @@
 import type { Metadata } from "next";
 import "./globals.css";
-import { getActiveThemeUrl } from "../_lib/theme";
+import { getActiveThemeUrl, getSiteName, getSiteDescription } from "../_lib/theme";
 
-export const metadata: Metadata = {
-  title: "Blog",
-  description: "An open-source configurable blog platform",
-};
+export async function generateMetadata(): Promise<Metadata> {
+  const [siteName, siteDescription] = await Promise.all([getSiteName(), getSiteDescription()]);
+  return {
+    title: { default: siteName, template: `%s | ${siteName}` },
+    description: siteDescription || "An open-source configurable blog platform",
+  };
+}
 
 export default async function AuthLayout({
   children,

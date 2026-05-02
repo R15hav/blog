@@ -53,7 +53,7 @@ export default function AdminGuard({ children }) {
           ))}
         </nav>
 
-        <div style={{ flexGrow: 1 }} />
+        <div className="admin-side-spacer" style={{ flexGrow: 1 }} />
 
         <h6>Site</h6>
         <nav className="admin-nav">

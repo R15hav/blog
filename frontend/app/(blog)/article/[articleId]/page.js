@@ -4,6 +4,84 @@ import ArticleInteractions from "../../components/ArticleInteractions";
 import BookmarkRailButton from "../../components/BookmarkRailButton";
 import ShareRailButton from "../../components/ShareRailButton";
 
+const _API = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
+const _APP_URL = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
+
+async function _fetchArticleForMeta(articleId) {
+  try {
+    const res = await fetch(`${_API}/api/v1/get-article/${articleId}`, { next: { revalidate: 30 } });
+    const data = await res.json().catch(() => null);
+    return res.ok ? (data?.article?.[0] ?? null) : null;
+  } catch {
+    return null;
+  }
+}
+
+async function _fetchSiteSettings() {
+  try {
+    const res = await fetch(`${_API}/api/v1/settings`, { next: { revalidate: 60 } });
+    return res.ok ? await res.json() : null;
+  } catch {
+    return null;
+  }
+}
+
+function _firstParagraphText(blocks) {
+  if (!blocks) return "";
+  const b = blocks.find((b) => b.type === "paragraph");
+  return (b?.data?.text ?? "").replace(/<[^>]+>/g, "").slice(0, 160);
+}
+
+function _firstImageUrl(blocks) {
+  if (!blocks) return null;
+  return blocks.find((b) => b.type === "simpleImage")?.data?.url ?? null;
+}
+
+export async function generateMetadata({ params }) {
+  const { articleId } = await params;
+  const [article, settings] = await Promise.all([
+    _fetchArticleForMeta(articleId),
+    _fetchSiteSettings(),
+  ]);
+
+  if (!article) return { title: "Article Not Found" };
+
+  let blocks = null;
+  try { blocks = JSON.parse(article.content)?.blocks ?? []; } catch {}
+
+  const title = article.title || "Untitled";
+  const description = _firstParagraphText(blocks);
+  const siteUrl = settings?.site_url || _APP_URL;
+  const logoUrl = settings?.logo_url ?? null;
+  const absoluteLogoUrl = logoUrl
+    ? (logoUrl.startsWith("http") ? logoUrl : `${_API}${logoUrl}`)
+    : null;
+  const ogImage = _firstImageUrl(blocks) ?? absoluteLogoUrl;
+  const canonicalUrl = `${siteUrl}/article/${articleId}`;
+  const authorDisplay = article.author_name ?? article.author_email ?? null;
+
+  return {
+    title,
+    description,
+    alternates: { canonical: canonicalUrl },
+    openGraph: {
+      type: "article",
+      url: canonicalUrl,
+      title,
+      description,
+      ...(article.created_date ? { publishedTime: article.created_date } : {}),
+      ...(authorDisplay ? { authors: [authorDisplay] } : {}),
+      ...(ogImage ? { images: [{ url: ogImage }] } : {}),
+    },
+    twitter: {
+      card: "summary_large_image",
+      title,
+      description,
+      ...(ogImage ? { images: [ogImage] } : {}),
+    },
+  };
+}
+
 /* ── Helpers ──────────────────────────────────────── */
 
 function slugify(text) {
@@ -155,7 +233,7 @@ function renderBlock(block, i) {
 
 export default async function ArticlePage({ params }) {
   const { articleId } = await params;
-  const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
+  const apiUrl = _API;
 
   let article = null;
   let fetchError = null;
@@ -189,8 +267,27 @@ export default async function ArticlePage({ params }) {
   const authorDisplay = article.author_name ?? article.author_email ?? "Unknown";
   const authorInitials = authorDisplay.split(" ").map((w) => w[0]).join("").slice(0, 2).toUpperCase() || "?";
 
+  const settings = await _fetchSiteSettings();
+  const siteUrl = settings?.site_url || _APP_URL;
+  const canonicalUrl = `${siteUrl}/article/${articleId}`;
+  const firstParaText = _firstParagraphText(blocks);
+
+  const jsonLd = {
+    "@context": "https://schema.org",
+    "@type": "Article",
+    headline: article.title || "Untitled",
+    description: firstParaText,
+    author: { "@type": "Person", name: authorDisplay },
+    datePublished: article.created_date ?? undefined,
+    url: canonicalUrl,
+  };
+
   return (
     <>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+      />
       <ReadingProgress />
 
       <div className="article-shell">
