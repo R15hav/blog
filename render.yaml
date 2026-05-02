@@ -62,3 +62,5 @@ services:
         value: https://blog-backend-2xzu.onrender.com
       - key: NODE_ENV
         value: production
+      - key: HOSTNAME
+        value: 0.0.0.0
