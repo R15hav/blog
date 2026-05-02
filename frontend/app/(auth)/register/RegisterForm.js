@@ -4,7 +4,7 @@ import { useState } from "react";
 
 const API = process.env.NEXT_PUBLIC_API_URL || "";
 
-export default function RegisterForm() {
+export default function RegisterForm({ siteName = "Blog" }) {
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
   const [email, setEmail] = useState("");
@@ -49,7 +49,7 @@ export default function RegisterForm() {
       {/* Left — marketing panel */}
       <div className="auth-marketing">
         <a className="wordmark" href="/">
-          Blog<span className="dot" />
+          {siteName}<span className="dot" />
         </a>
         <blockquote style={{ margin: 0 }}>
           <p className="auth-quote">
@@ -65,6 +65,9 @@ export default function RegisterForm() {
 
       {/* Right — form panel */}
       <div className="auth-form">
+        <div className="auth-mobile-brand">
+          <a className="wordmark" href="/">{siteName}<span className="dot" /></a>
+        </div>
         {done ? (
           <>
             <h1>You&rsquo;re on the list</h1>
@@ -83,7 +86,7 @@ export default function RegisterForm() {
             <p className="lede">Join and start writing.</p>
 
             <form onSubmit={handleSubmit}>
-              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "12px" }}>
+              <div className="register-name-row" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "12px" }}>
                 <div className="field">
                   <label htmlFor="firstName">First name</label>
                   <input

@@ -30,6 +30,34 @@ export async function getSiteName(): Promise<string> {
   return data?.site_name ?? "Blog";
 }
 
+export async function getSiteDescription(): Promise<string> {
+  const data = await fetchPublicSettings();
+  return data?.site_description ?? "";
+}
+
+export async function getSiteUrl(): Promise<string> {
+  const data = await fetchPublicSettings();
+  return data?.site_url ?? "";
+}
+
+export async function getLogoUrl(): Promise<string | null> {
+  const data = await fetchPublicSettings();
+  return data?.logo_url ?? null;
+}
+
+export async function getOgSettings(): Promise<{
+  ogTitle: string | null;
+  ogDescription: string | null;
+  ogImageUrl: string | null;
+}> {
+  const data = await fetchPublicSettings();
+  return {
+    ogTitle: data?.og_title ?? null,
+    ogDescription: data?.og_description ?? null,
+    ogImageUrl: data?.og_image_url ?? null,
+  };
+}
+
 export async function getAllowRegistration(): Promise<boolean> {
   const data = await fetchPublicSettings();
   return data?.allow_registration ?? true;

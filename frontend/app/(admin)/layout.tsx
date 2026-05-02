@@ -1,7 +1,15 @@
+import type { Metadata } from "next";
 import "./globals.css";
 import { AuthProvider } from "../context/AuthContext";
 import AdminGuard from "./AdminGuard";
-import { getActiveThemeUrl } from "../_lib/theme";
+import { getActiveThemeUrl, getSiteName } from "../_lib/theme";
+
+export async function generateMetadata(): Promise<Metadata> {
+  const siteName = await getSiteName();
+  return {
+    title: { default: `Admin — ${siteName}`, template: `%s | ${siteName} Admin` },
+  };
+}
 
 export default async function AdminLayout({ children }: { children: React.ReactNode }) {
   const themeUrl = await getActiveThemeUrl();

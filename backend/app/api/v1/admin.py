@@ -143,8 +143,26 @@ async def get_stats(
 
 class SiteConfigUpdate(BaseModel):
     site_name: str | None = None
+    site_description: str | None = None
+    site_url: str | None = None
     logo_url: str | None = None
     allow_registration: bool | None = None
+    og_title: str | None = None
+    og_description: str | None = None
+    og_image_url: str | None = None
+
+
+def _config_response(config):
+    return {
+        "site_name": config.site_name,
+        "site_description": config.site_description,
+        "site_url": config.site_url,
+        "logo_url": config.logo_url,
+        "allow_registration": config.allow_registration,
+        "og_title": config.og_title,
+        "og_description": config.og_description,
+        "og_image_url": config.og_image_url,
+    }
 
 
 @router.get("/settings")
@@ -153,11 +171,7 @@ async def get_settings(
     _=Depends(current_superuser),
 ):
     config = await get_site_config(session)
-    return {
-        "site_name": config.site_name,
-        "logo_url": config.logo_url,
-        "allow_registration": config.allow_registration,
-    }
+    return _config_response(config)
 
 
 @router.put("/settings")
@@ -167,13 +181,17 @@ async def put_settings(
     _=Depends(current_superuser),
 ):
     config = await update_site_config(
-        session, data.site_name, data.logo_url, data.allow_registration
+        session,
+        site_name=data.site_name,
+        logo_url=data.logo_url,
+        allow_registration=data.allow_registration,
+        site_description=data.site_description,
+        site_url=data.site_url,
+        og_title=data.og_title,
+        og_description=data.og_description,
+        og_image_url=data.og_image_url,
     )
-    return {
-        "site_name": config.site_name,
-        "logo_url": config.logo_url,
-        "allow_registration": config.allow_registration,
-    }
+    return _config_response(config)
 
 
 @router.get("/articles")
