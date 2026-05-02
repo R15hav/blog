@@ -59,6 +59,6 @@ services:
       # Available at build time — baked into the Next.js client bundle.
       # Update this if you rename the blog-backend service.
       - key: NEXT_PUBLIC_API_URL
-        value: https://blog-backend.onrender.com
+        value: https://blog-backend-2xzu.onrender.com
       - key: NODE_ENV
         value: production

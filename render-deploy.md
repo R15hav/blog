@@ -62,15 +62,15 @@ If you renamed the backend service:
 
 ## Step 4 — Verify
 
-Once both services show a green **Live** status, test the following URLs (replace `blog-frontend` / `blog-backend` with your actual service names):
+Once both services show a green **Live** status, test the following URLs:
 
 | Check | URL |
 |---|---|
-| Frontend home page | `https://blog-frontend.onrender.com/` |
-| Register a new account | `https://blog-frontend.onrender.com/register` |
-| Login | `https://blog-frontend.onrender.com/login` |
-| FastAPI interactive docs | `https://blog-backend.onrender.com/docs` |
-| API health check | `https://blog-backend.onrender.com/api/v1/settings` |
+| Frontend home page | `https://blog-frontend-h0oo.onrender.com/` |
+| Register a new account | `https://blog-frontend-h0oo.onrender.com/register` |
+| Login | `https://blog-frontend-h0oo.onrender.com/login` |
+| FastAPI interactive docs | `https://blog-backend-2xzu.onrender.com/docs` |
+| API health check | `https://blog-backend-2xzu.onrender.com/api/v1/settings` |
 
 ---
 
