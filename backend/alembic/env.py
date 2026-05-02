@@ -18,8 +18,17 @@ if config.config_file_name is not None:
 
 target_metadata = Base.metadata
 
-# Override sqlalchemy.url from the environment variable if set
-DATABASE_URL = os.getenv("DATABASE_URL", "sqlite+aiosqlite:///./test.db")
+# Override sqlalchemy.url from the environment variable if set.
+# Normalize PaaS-injected postgres:// / postgresql:// → postgresql+asyncpg://
+# so the async engine can connect. SQLite URLs are left unchanged.
+def _async_db_url(url: str) -> str:
+    if url.startswith("postgres://"):
+        return url.replace("postgres://", "postgresql+asyncpg://", 1)
+    if url.startswith("postgresql://"):
+        return url.replace("postgresql://", "postgresql+asyncpg://", 1)
+    return url
+
+DATABASE_URL = _async_db_url(os.getenv("DATABASE_URL", "sqlite+aiosqlite:///./test.db"))
 config.set_main_option("sqlalchemy.url", DATABASE_URL)
 
 

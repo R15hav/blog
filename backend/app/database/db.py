@@ -10,10 +10,16 @@ from sqlalchemy.orm import DeclarativeBase, relationship
 from fastapi_users.db import SQLAlchemyUserDatabase, SQLAlchemyBaseUserTableUUID
 from fastapi_users_db_sqlalchemy.generics import GUID
 
-DATABASE_URL = os.getenv("DATABASE_URL", "sqlite+aiosqlite:///./test.db")
+def _async_db_url(url: str) -> str:
+    # Render (and many PaaS) inject postgres:// or postgresql:// — neither works
+    # with SQLAlchemy's async engine, which requires the +asyncpg driver prefix.
+    if url.startswith("postgres://"):
+        return url.replace("postgres://", "postgresql+asyncpg://", 1)
+    if url.startswith("postgresql://"):
+        return url.replace("postgresql://", "postgresql+asyncpg://", 1)
+    return url
 
-# asyncpg needs postgresql+asyncpg://... but SQLite needs sqlite+aiosqlite://...
-# The env var should already use the correct async driver prefix.
+DATABASE_URL = _async_db_url(os.getenv("DATABASE_URL", "sqlite+aiosqlite:///./test.db"))
 
 class Base(DeclarativeBase):
     pass
