@@ -1,5 +1,6 @@
 import asyncio
 import os
+import ssl
 from logging.config import fileConfig
 
 from sqlalchemy import pool
@@ -39,7 +40,10 @@ config.set_main_option("sqlalchemy.url", DATABASE_URL)
 
 _pg_connect_args: dict = {}
 if not DATABASE_URL.startswith("sqlite"):
-    _pg_connect_args = {"ssl": bool(os.getenv("RENDER")), "timeout": 10}
+    _ssl_ctx = ssl.create_default_context()
+    _ssl_ctx.check_hostname = False
+    _ssl_ctx.verify_mode = ssl.CERT_NONE
+    _pg_connect_args = {"ssl": _ssl_ctx, "timeout": 10}
 
 
 def run_migrations_offline() -> None:
