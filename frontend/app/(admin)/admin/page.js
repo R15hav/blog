@@ -10,7 +10,7 @@ import {
   uploadLogo,
 } from "../../_lib/api_callout";
 
-const API = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
+const API = process.env.NEXT_PUBLIC_API_URL || "";
 
 function Kpi({ label, value }) {
   return (

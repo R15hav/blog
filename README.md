@@ -3,6 +3,7 @@
 Full-stack blog app: **FastAPI** backend + **Next.js 16** frontend.
 
 > Running with Docker or deploying to the cloud? See the **[Docker & Cloud Deployment Guide](DOCKER.md)**.
+> Deploying to Render as a single container? See the **[Render Deployment Guide](deploy.md)**.
 
 | Service  | URL                        |
 |----------|----------------------------|
