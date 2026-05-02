@@ -117,8 +117,10 @@
         </div>
         <div class="sidebar-items">
           <a class="sidebar-link" href="#deployment">Overview</a>
-          <a class="sidebar-link" href="#docker-compose">Docker Compose</a>
-          <a class="sidebar-link" href="#render-deploy">Render (single container)</a>
+          <a class="sidebar-link" href="#docker-compose">Docker Compose (local)</a>
+          <a class="sidebar-link" href="#render-deploy">Render Blueprint</a>
+          <a class="sidebar-link sub" href="#render-wire-urls">Wire URLs</a>
+          <a class="sidebar-link sub" href="#render-first-admin">First Admin</a>
           <a class="sidebar-link" href="#configuration">Environment Variables</a>
         </div>
       </div>
@@ -352,8 +354,8 @@ npm run dev</pre>
       <div class="callout callout-warning">
         <span class="callout-icon">⚠️</span>
         <div class="callout-body">
-          <strong>First admin</strong>
-          The first user to register does not automatically become admin. You must set <code>is_superuser = true</code> directly in the database (or use an admin seed script) for the first superuser.
+              <strong>First admin</strong>
+          The first user to register does not automatically become admin. Register an account through the UI first, then promote it to admin directly in the database — see the <a href="#render-first-admin">First Admin</a> section in Deployment.
         </div>
       </div>
     </section>
@@ -427,75 +429,164 @@ npm run dev</pre>
     <!-- DEPLOYMENT ───────────────────────────────────────── -->
     <section id="deployment">
       <h2>Deployment</h2>
-      <p>Two deployment paths are supported: a <strong>three-service Docker Compose</strong> setup for self-hosting, and a <strong>single-container Dockerfile</strong> for PaaS providers like Render.</p>
+      <p>Two deployment paths are supported: <strong>Docker Compose</strong> for local self-hosting, and <strong>Render Blueprint</strong> (<code>render.yaml</code>) for one-click cloud deployment.</p>
     </section>
 
     <section id="docker-compose">
-      <h2>Docker Compose</h2>
-      <p>The <code>docker-compose.yml</code> at the repo root runs three services: PostgreSQL 16, the FastAPI backend, and the Next.js frontend.</p>
+      <h2>Docker Compose — Local / Self-hosted</h2>
+      <p>The <code>docker-compose.yml</code> at the repo root runs three services: PostgreSQL 16, the FastAPI backend, and the Next.js frontend. This is the recommended path for local development and self-hosted servers.</p>
       <div class="code-block">
-        <div class="code-block-header"><span class="code-lang">bash</span><button class="copy-btn" data-copy="# Copy the example env file and fill in your secrets&#10;cp backend/.env.example backend/.env&#10;&#10;# Start all services&#10;docker compose up --build"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2 2v1"/></svg> Copy</button></div>
-        <pre><span style="color: var(--ink-4)"># Copy the example env file and fill in your secrets</span>
-cp backend/.env.example backend/.env
-
-<span style="color: var(--ink-4)"># Start all services</span>
-docker compose up --build</pre>
+        <div class="code-block-header"><span class="code-lang">bash</span><button class="copy-btn" data-copy="docker compose up --build"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2 2v1"/></svg> Copy</button></div>
+        <pre>docker compose up --build</pre>
       </div>
       <table>
         <thead><tr><th>Service</th><th>Image</th><th>Port</th></tr></thead>
         <tbody>
           <tr><td><code>db</code></td><td>postgres:16-alpine</td><td>5432 (internal)</td></tr>
           <tr><td><code>backend</code></td><td>Python 3.12 + uv</td><td>8000</td></tr>
-          <tr><td><code>frontend</code></td><td>Node 20 Alpine (standalone)</td><td>3000</td></tr>
+          <tr><td><code>frontend</code></td><td>Node 24 Alpine (standalone)</td><td>3000</td></tr>
         </tbody>
       </table>
     </section>
 
     <section id="render-deploy">
-      <h2>Render — Single Container</h2>
-      <p>The repo includes a multi-stage <code>Dockerfile</code> that bundles the frontend, backend, Nginx, and Supervisor into a single container that exposes port <code>10000</code>. This is what Render expects.</p>
+      <h2>Render — Blueprint Deployment</h2>
+      <p>The repo includes a <code>render.yaml</code> Blueprint that provisions <strong>three separate Render services</strong> in one click: a managed PostgreSQL database, the FastAPI backend (Docker), and the Next.js frontend (native Node.js build).</p>
+
       <div class="doc-steps">
         <div class="doc-step">
           <div class="doc-step-body">
-            <h4>Create a new Web Service on Render</h4>
-            <p>Connect your GitHub repository. Set the environment to <strong>Docker</strong>. Render will detect the <code>Dockerfile</code> automatically.</p>
+            <h4>Deploy via Blueprint</h4>
+            <p>In the Render dashboard click <strong>New + → Blueprint</strong>, connect your GitHub repo, then click <strong>Apply</strong>. Render provisions all three services automatically. The first build takes 3–6 minutes.</p>
           </div>
         </div>
         <div class="doc-step">
           <div class="doc-step-body">
-            <h4>Set environment variables</h4>
-            <p>Add <code>DATABASE_URL</code>, <code>SECRET</code>, and <code>FRONTEND_URL</code> in the Render dashboard. See the <a href="#configuration">Configuration</a> table below.</p>
+            <h4>Note your service URLs</h4>
+            <p>Render may append a random suffix to service names if the plain name is already taken (e.g. <code>blog-backend-2xzu.onrender.com</code>). Note the actual URLs from each service's page before continuing.</p>
           </div>
         </div>
         <div class="doc-step">
           <div class="doc-step-body">
-            <h4>Deploy</h4>
-            <p>Click <strong>Deploy</strong>. Render builds the container and exposes it on a <code>.onrender.com</code> subdomain. The Nginx config inside the container handles routing between frontend and API.</p>
+            <h4>Wire the URLs (Step 2 in render-deploy.md)</h4>
+            <p>See <a href="#render-wire-urls">Wire URLs</a> below.</p>
+          </div>
+        </div>
+        <div class="doc-step">
+          <div class="doc-step-body">
+            <h4>Create the first admin</h4>
+            <p>See <a href="#render-first-admin">First Admin</a> below.</p>
           </div>
         </div>
       </div>
+
       <div class="callout callout-info">
         <span class="callout-icon">ℹ️</span>
-        <div class="callout-body">Full step-by-step instructions are in <a href="../render-deploy.md"><code>render-deploy.md</code></a> in the repo root.</div>
+        <div class="callout-body">The full step-by-step guide including post-deploy checklist is in <a href="../render-deploy.md"><code>render-deploy.md</code></a> in the repo root.</div>
+      </div>
+    </section>
+
+    <section id="render-wire-urls">
+      <h3>Wire the backend ↔ frontend URLs</h3>
+      <p>After the first deploy, each service needs to know the other's URL. Two env vars must be set manually because the URLs are only known after the services are created.</p>
+
+      <p><strong>FRONTEND_URL</strong> — tells the backend which origin to allow for CORS</p>
+      <ol>
+        <li>Copy the <strong>blog-frontend</strong> service URL (e.g. <code>https://blog-frontend-xxxx.onrender.com</code>)</li>
+        <li>Go to <strong>blog-backend → Environment</strong> tab → add <code>FRONTEND_URL = https://blog-frontend-xxxx.onrender.com</code></li>
+        <li>Save — the backend redeploys automatically</li>
+      </ol>
+
+      <p><strong>NEXT_PUBLIC_API_URL</strong> — baked into the Next.js client bundle at build time</p>
+      <ol>
+        <li>Copy the <strong>blog-backend</strong> service URL (e.g. <code>https://blog-backend-xxxx.onrender.com</code>)</li>
+        <li>Go to <strong>blog-frontend → Environment</strong> tab → update <code>NEXT_PUBLIC_API_URL = https://blog-backend-xxxx.onrender.com</code></li>
+        <li>Save — the frontend rebuilds with the correct URL baked into the bundle</li>
+      </ol>
+
+      <div class="callout callout-warning">
+        <span class="callout-icon">⚠️</span>
+        <div class="callout-body">
+          <strong>NEXT_PUBLIC_API_URL is a build-time variable.</strong> Saving it triggers a full frontend rebuild. API calls from the browser will fail until the rebuild completes and the service is live again.
+        </div>
+      </div>
+    </section>
+
+    <section id="render-first-admin">
+      <h3>First Admin User</h3>
+      <p>There is no admin account out of the box. The Render Shell (direct container access) is a paid feature, so the easiest approach is to use a PostgreSQL GUI tool such as <a href="https://tableplus.com" target="_blank" rel="noopener">TablePlus</a> (free tier is sufficient).</p>
+
+      <div class="doc-steps">
+        <div class="doc-step">
+          <div class="doc-step-body">
+            <h4>Register an account</h4>
+            <p>Go to <code>/register</code> on your deployed frontend and create the account you want to promote. This ensures the password is properly hashed by the application.</p>
+          </div>
+        </div>
+        <div class="doc-step">
+          <div class="doc-step-body">
+            <h4>Get the database connection string</h4>
+            <p>In the Render dashboard go to <strong>blog-db → Info</strong> tab → copy the <strong>External Connection String</strong> (format: <code>postgresql://blog_user:PASSWORD@HOST/blog_db</code>).</p>
+          </div>
+        </div>
+        <div class="doc-step">
+          <div class="doc-step-body">
+            <h4>Connect with TablePlus</h4>
+            <p>Open TablePlus → <strong>New Connection → PostgreSQL</strong>. Paste the connection string into the URL field. Enable <strong>SSL</strong> (Render requires it). Click <strong>Connect</strong>.</p>
+          </div>
+        </div>
+        <div class="doc-step">
+          <div class="doc-step-body">
+            <h4>Run the promotion query</h4>
+            <p>Open a new query tab (<kbd>Cmd/Ctrl+T</kbd>) and run:</p>
+            <div class="code-block">
+              <div class="code-block-header"><span class="code-lang">sql</span><button class="copy-btn" data-copy="UPDATE users&#10;SET is_superuser = true,&#10;    is_active    = true,&#10;    role         = 'admin'&#10;WHERE email = 'your@email.com';"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2 2v1"/></svg> Copy</button></div>
+              <pre>UPDATE users
+SET is_superuser = true,
+    is_active    = true,
+    role         = 'admin'
+WHERE email = 'your@email.com';</pre>
+            </div>
+            <p>Click <strong>Commit</strong> (<kbd>Cmd/Ctrl+S</kbd>) — TablePlus does not auto-commit.</p>
+          </div>
+        </div>
+        <div class="doc-step">
+          <div class="doc-step-body">
+            <h4>Log in</h4>
+            <p>Go to <code>/login</code> on your deployed frontend. You now have access to <code>/admin</code>.</p>
+          </div>
+        </div>
       </div>
     </section>
 
     <section id="configuration">
       <h2>Environment Variables</h2>
-      <p>All secrets and deployment-specific values are configured through environment variables. Create a <code>backend/.env</code> file for local development (loaded automatically by <code>python-dotenv</code>).</p>
+      <p>For local development, create a <code>backend/.env</code> file. On Render, all variables are set in the <strong>Environment</strong> tab of each service.</p>
+
+      <h3>Backend</h3>
       <table>
         <thead><tr><th>Variable</th><th>Default</th><th>Description</th></tr></thead>
         <tbody>
-          <tr><td><code>DATABASE_URL</code></td><td><code>sqlite+aiosqlite:///./test.db</code></td><td>SQLite locally; set to a PostgreSQL URL in production</td></tr>
-          <tr><td><code>SECRET</code></td><td><code>dev-secret-change-me</code></td><td>JWT signing secret — <strong>must be changed in production</strong></td></tr>
-          <tr><td><code>FRONTEND_URL</code></td><td><code>http://localhost:3000</code></td><td>Allowed CORS origin — set to your production domain</td></tr>
+          <tr><td><code>DATABASE_URL</code></td><td><code>sqlite+aiosqlite:///./test.db</code></td><td>Auto-injected by Render from the managed DB. SQLite used locally.</td></tr>
+          <tr><td><code>SECRET</code></td><td>—</td><td>JWT signing secret. Auto-generated by Render on first deploy. <strong>Must be set manually for local prod.</strong></td></tr>
+          <tr><td><code>FRONTEND_URL</code></td><td><code>http://localhost:3000</code></td><td>Allowed CORS origin. Set to the full frontend URL after deploying.</td></tr>
         </tbody>
       </table>
+
+      <h3>Frontend</h3>
+      <table>
+        <thead><tr><th>Variable</th><th>Default</th><th>Description</th></tr></thead>
+        <tbody>
+          <tr><td><code>NEXT_PUBLIC_API_URL</code></td><td><code>http://localhost:8000</code></td><td>Backend API base URL. Baked into the Next.js bundle at build time — requires a rebuild after changing.</td></tr>
+          <tr><td><code>NODE_ENV</code></td><td><code>production</code></td><td>Set by <code>render.yaml</code>. Do not change.</td></tr>
+          <tr><td><code>HOSTNAME</code></td><td><code>0.0.0.0</code></td><td>Set by <code>render.yaml</code>. Ensures the Next.js standalone server binds to all interfaces so Render's proxy can reach it.</td></tr>
+        </tbody>
+      </table>
+
       <div class="callout callout-danger">
         <span class="callout-icon">🔴</span>
         <div class="callout-body">
-          <strong>Never commit secrets</strong>
-          Do not commit <code>.env</code> files or change the default <code>SECRET</code> value without replacing it. Use Render's environment variable panel or a secrets manager in production.
+          <strong>Never commit secrets.</strong> Do not commit <code>.env</code> files. Use Render's environment variable panel or a secrets manager in production.
         </div>
       </div>
     </section>
@@ -556,13 +647,28 @@ docker compose up --build</pre>
       </div>
 
       <h3>CORS errors in the browser</h3>
-      <p><strong>Cause:</strong> The backend's <code>FRONTEND_URL</code> doesn't match the origin the browser is sending.<br><strong>Fix:</strong> Set <code>FRONTEND_URL</code> to your exact frontend origin (e.g. <code>https://yourblog.onrender.com</code>) in the backend environment.</p>
+      <p><strong>Cause:</strong> The backend's <code>FRONTEND_URL</code> doesn't match the origin the browser is sending.<br><strong>Fix:</strong> Set <code>FRONTEND_URL</code> to your exact frontend origin (e.g. <code>https://blog-frontend-xxxx.onrender.com</code>) in the backend environment on Render.</p>
 
       <h3>Login succeeds but I'm redirected back to login</h3>
-      <p><strong>Cause:</strong> The JWT token isn't being saved to <code>localStorage</code> — this can happen if <code>CORS</code> credentials are misconfigured or the token response format changed.<br><strong>Fix:</strong> Open browser DevTools → Network → check the <code>/auth/jwt/login</code> response. Ensure <code>access_token</code> is present in the JSON.</p>
+      <p><strong>Cause:</strong> The JWT token isn't being saved to <code>localStorage</code> — this can happen if CORS credentials are misconfigured or the token response format changed.<br><strong>Fix:</strong> Open browser DevTools → Network → check the <code>/auth/jwt/login</code> response. Ensure <code>access_token</code> is present in the JSON.</p>
 
       <h3>Theme change not visible to visitors</h3>
       <p><strong>Cause:</strong> The CSS URL is not publicly accessible or returned a non-200 status.<br><strong>Fix:</strong> Open the URL directly in a browser and confirm it returns valid CSS. Also ensure the URL is HTTPS in production.</p>
+
+      <h3>Render — backend migration fails on first deploy</h3>
+      <p><strong>Cause:</strong> The <code>DATABASE_URL</code> Render injects uses the <code>postgres://</code> scheme, but SQLAlchemy's async engine requires <code>postgresql+asyncpg://</code>. The app normalises this automatically.<br>If you see an SSL error (<em>"certificate verify failed: self-signed certificate"</em>), ensure you are on the latest commit — earlier versions passed <code>ssl=True</code> (boolean) which triggers strict verification. The fix uses an explicit <code>ssl.SSLContext</code> with <code>CERT_NONE</code>.</p>
+
+      <h3>Render — frontend returns 502 Bad Gateway</h3>
+      <p><strong>Cause:</strong> The Next.js standalone server is binding to <code>localhost</code> instead of <code>0.0.0.0</code>, so Render's reverse proxy can't reach it.<br><strong>Fix:</strong> Ensure <code>HOSTNAME=0.0.0.0</code> is set in the <strong>blog-frontend</strong> environment — this is already included in <code>render.yaml</code>. If you added the service manually, add this variable in the Render dashboard.</p>
+
+      <h3>Render — frontend build fails with "Cannot find module 'typescript'"</h3>
+      <p><strong>Cause:</strong> <code>npm ci</code> with <code>NODE_ENV=production</code> skips devDependencies. TypeScript is a devDependency required to transpile <code>next.config.ts</code>.<br><strong>Fix:</strong> The build command in <code>render.yaml</code> uses <code>npm ci --include=dev</code> to force devDependency installation. If you see this error, confirm your <code>render.yaml</code> build command includes the <code>--include=dev</code> flag.</p>
+
+      <h3>Render — API calls return 404 after deploying</h3>
+      <p><strong>Cause:</strong> <code>NEXT_PUBLIC_API_URL</code> is baked into the Next.js bundle at build time. If it was set after the initial build or points to the wrong backend URL, all client-side API calls will fail silently.<br><strong>Fix:</strong> Update <code>NEXT_PUBLIC_API_URL</code> in the frontend environment to match your actual backend URL (including any Render suffix), then save to trigger a rebuild.</p>
+
+      <h3>Render — free tier "cold start" delay</h3>
+      <p><strong>Cause:</strong> Render free services spin down after 15 minutes of inactivity. The first request after spin-down takes 30–60 seconds.<br><strong>Fix:</strong> This is expected on the free tier. Upgrade to a paid plan to keep the service always-on, or use an external uptime monitor to keep it warm.</p>
     </section>
 
     <!-- Page nav -->
