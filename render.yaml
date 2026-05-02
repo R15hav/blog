@@ -7,11 +7,11 @@
 #   3. Render reads this file and creates all three services automatically.
 #
 # After the first deploy:
-#   - Copy the blog-frontend service URL (e.g. https://blog-frontend.onrender.com)
-#     and set it as FRONTEND_URL in the blog-backend service's environment tab.
-#   - Copy the blog-backend service URL (e.g. https://blog-backend.onrender.com)
-#     and update NEXT_PUBLIC_API_URL in blog-frontend's environment tab, then
-#     trigger a manual redeploy of the frontend so Next.js picks up the new value.
+#   - Copy the blog-frontend URL and set it as FRONTEND_URL in blog-backend's
+#     environment tab (required for CORS).
+#   - NEXT_PUBLIC_API_URL is already set to https://blog-backend.onrender.com
+#     and is baked into the Next.js build automatically — no manual step needed
+#     unless you rename the backend service.
 
 databases:
   - name: blog-db
@@ -45,19 +45,20 @@ services:
         sync: false
 
   # ── Frontend (Next.js) ──────────────────────────────────────────────────────
+  # Uses Render's native Node.js environment (not Docker) so that env vars
+  # are available at build time and NEXT_PUBLIC_API_URL is baked into the bundle.
   - type: web
     name: blog-frontend
-    env: docker
-    dockerfilePath: ./frontend/Dockerfile
-    dockerContext: ./frontend
+    env: node
+    rootDir: ./frontend
+    buildCommand: npm ci && npm run build && cp -r .next/static .next/standalone/.next/static && cp -r public .next/standalone/public
+    startCommand: node .next/standalone/server.js
     plan: free
     region: oregon
-    # NEXT_PUBLIC_API_URL must be available at Docker build time so Next.js
-    # can bake it into the client bundle.  The default below matches the
-    # backend service name above; update it if you rename blog-backend.
-    buildArgs:
-      - key: NEXT_PUBLIC_API_URL
-        value: https://blog-backend.onrender.com
     envVars:
+      # Available at build time — baked into the Next.js client bundle.
+      # Update this if you rename the blog-backend service.
       - key: NEXT_PUBLIC_API_URL
         value: https://blog-backend.onrender.com
+      - key: NODE_ENV
+        value: production

@@ -6,7 +6,7 @@ This project deploys to Render as three separate services defined in [`render.ya
 |---|---|---|
 | `blog-db` | Managed PostgreSQL | Render-managed database |
 | `blog-backend` | Web Service (Docker) | FastAPI on port 8000 |
-| `blog-frontend` | Web Service (Docker) | Next.js on port 3000 |
+| `blog-frontend` | Web Service (Node.js) | Next.js on port 3000 |
 
 Render reads `render.yaml` and creates all three automatically — no manual service setup required.
 
@@ -46,22 +46,17 @@ After the first deploy completes:
 
 ---
 
-## Step 3 — Wire NEXT_PUBLIC_API_URL (frontend → backend)
+## Step 3 — Verify NEXT_PUBLIC_API_URL
 
-`NEXT_PUBLIC_API_URL` is baked into the Next.js bundle at **build time**, so a redeploy is required after updating it.
+`render.yaml` already sets `NEXT_PUBLIC_API_URL` to `https://blog-backend.onrender.com`. Because the frontend uses Render's native Node.js build, this env var is available at build time and automatically baked into the Next.js client bundle.
 
-1. Go to the **blog-backend** service page and copy its URL, e.g. `https://blog-backend.onrender.com`
-2. Go to the **blog-frontend** service → **Environment** tab
-3. Update both the env var and the build arg:
+**If you kept the default service name (`blog-backend`) this step requires nothing — skip to Step 4.**
 
-   | Key | Value |
-   |---|---|
-   | `NEXT_PUBLIC_API_URL` | `https://blog-backend.onrender.com` |
+If you renamed the backend service:
 
-4. Click **Save Changes**
-5. Click **Manual Deploy** → **Deploy latest commit** — the frontend rebuilds and bakes the new API URL into the bundle
-
-> **Why is this needed?** `render.yaml` sets `NEXT_PUBLIC_API_URL` to `https://blog-backend.onrender.com` by default. If your backend service name is `blog-backend` this is already correct and Steps 3.1–3.5 can be skipped.
+1. Go to the **blog-frontend** service → **Environment** tab
+2. Update `NEXT_PUBLIC_API_URL` to match the actual backend URL
+3. Click **Save Changes** — the frontend rebuilds automatically with the correct URL baked in
 
 ---
 
@@ -99,7 +94,8 @@ Render redeploys automatically when you push to the connected branch (`master`).
 
 | Variable | Set by | Description |
 |---|---|---|
-| `NEXT_PUBLIC_API_URL` | `render.yaml` / You (Step 3) | Full URL of the backend service. Baked into the bundle at build time. |
+| `NEXT_PUBLIC_API_URL` | `render.yaml` | Full URL of the backend service. Available at build time (native Node.js env) and baked into the Next.js client bundle. |
+| `NODE_ENV` | `render.yaml` | Set to `production`. |
 
 ---
 
