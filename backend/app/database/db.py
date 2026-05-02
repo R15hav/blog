@@ -1,4 +1,5 @@
 import os
+import ssl
 import uuid
 from collections.abc import AsyncGenerator
 from datetime import datetime
@@ -32,7 +33,10 @@ DATABASE_URL = _async_db_url(os.getenv("DATABASE_URL", "sqlite+aiosqlite:///./te
 # fails quickly with a real error instead of a silent 60-second hang.
 _pg_connect_args: dict = {}
 if not DATABASE_URL.startswith("sqlite"):
-    _pg_connect_args = {"ssl": bool(os.getenv("RENDER")), "timeout": 10}
+    _ssl_ctx = ssl.create_default_context()
+    _ssl_ctx.check_hostname = False
+    _ssl_ctx.verify_mode = ssl.CERT_NONE
+    _pg_connect_args = {"ssl": _ssl_ctx, "timeout": 10}
 
 class Base(DeclarativeBase):
     pass

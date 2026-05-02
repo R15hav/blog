@@ -51,7 +51,7 @@ services:
     name: blog-frontend
     env: node
     rootDir: ./frontend
-    buildCommand: npm ci && npm run build && cp -r .next/static .next/standalone/.next/static && cp -r public .next/standalone/public
+    buildCommand: npm ci --include=dev && npm run build && cp -r .next/static .next/standalone/.next/static && cp -r public .next/standalone/public
     startCommand: node .next/standalone/server.js
     plan: free
     region: oregon
