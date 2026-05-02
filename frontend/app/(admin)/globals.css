@@ -322,11 +322,11 @@ table.dataset { width: 100%; border-collapse: collapse; font-family: var(--font-
 }
 
 @media (max-width: 768px) {
-  .admin-shell { grid-template-columns: 1fr; min-height: 0; }
+  .admin-shell { grid-template-columns: 1fr; min-height: 0; overflow-x: hidden; }
 
   /* Sidebar: compact vertical strip, nav rows become horizontal scroll */
   .admin-side {
-    position: static; height: auto; overflow-y: visible; align-self: start;
+    position: static; height: auto; align-self: start;
     border-right: none; border-bottom: 1px solid var(--rule);
     padding: 14px 0 0;
   }
@@ -335,7 +335,7 @@ table.dataset { width: 100%; border-collapse: collapse; font-family: var(--font-
   .admin-side h6 { display: none; }
   .admin-nav {
     flex-direction: row; flex-wrap: nowrap; overflow-x: auto;
-    -webkit-overflow-scrolling: touch; margin-bottom: 0;
+    -webkit-overflow-scrolling: touch; margin-bottom: 0; width: 100%;
   }
   .admin-nav a,
   .admin-nav-btn {
@@ -352,15 +352,18 @@ table.dataset { width: 100%; border-collapse: collapse; font-family: var(--font-
   }
 
   .admin-main { padding: 20px 16px; }
-  .kpi-row { grid-template-columns: 1fr 1fr; }
+  .kpi-row { grid-template-columns: 1fr 1fr; gap: 10px; }
+  .kpi { padding: 12px 12px; }
+  .kpi-value { font-size: 24px; }
   .admin-header { flex-direction: column; align-items: flex-start; gap: 10px; }
   .admin-header h1 { font-size: 24px; }
   table.dataset { display: block; overflow-x: auto; -webkit-overflow-scrolling: touch; }
 
   /* OG section: stack form above preview */
 
-  /* OG section: stack form and preview vertically */
+  /* OG section: stack form and preview vertically, form matches site settings width */
   .og-section { flex-direction: column !important; gap: 20px !important; }
+  .og-section .admin-settings-form { width: 100%; max-width: 100%; }
   .og-preview { min-width: 0 !important; max-width: 100% !important; }
 
   /* Add-theme form: stack all 4 items vertically */
@@ -369,6 +372,5 @@ table.dataset { width: 100%; border-collapse: collapse; font-family: var(--font-
 }
 
 @media (max-width: 480px) {
-  .kpi-row { grid-template-columns: 1fr; }
   .admin-main { padding: 16px 12px; }
 }

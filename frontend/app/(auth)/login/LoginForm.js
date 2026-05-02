@@ -6,7 +6,7 @@ import { verifyToken } from "../../_lib/api_callout";
 
 const API = process.env.NEXT_PUBLIC_API_URL || "";
 
-export default function LoginForm({ allowRegistration = true }) {
+export default function LoginForm({ allowRegistration = true, siteName = "Blog" }) {
   const router = useRouter();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -56,7 +56,7 @@ export default function LoginForm({ allowRegistration = true }) {
       {/* Left — marketing panel */}
       <div className="auth-marketing">
         <a className="wordmark" href="/">
-          Blog<span className="dot" />
+          {siteName}<span className="dot" />
         </a>
         <blockquote style={{ margin: 0 }}>
           <p className="auth-quote">
@@ -72,6 +72,9 @@ export default function LoginForm({ allowRegistration = true }) {
 
       {/* Right — form panel */}
       <div className="auth-form">
+        <div className="auth-mobile-brand">
+          <a className="wordmark" href="/">{siteName}<span className="dot" /></a>
+        </div>
         <h1>Welcome back</h1>
         <p className="lede">Sign in to continue writing.</p>
 
