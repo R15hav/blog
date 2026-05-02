@@ -11,25 +11,28 @@ from fastapi_users.db import SQLAlchemyUserDatabase, SQLAlchemyBaseUserTableUUID
 from fastapi_users_db_sqlalchemy.generics import GUID
 
 def _async_db_url(url: str) -> str:
-    # Render injects postgres:// or postgresql:// — SQLAlchemy async needs +asyncpg.
+    """Normalise scheme for SQLAlchemy async engine. SSL is handled via connect_args."""
+    from urllib.parse import urlparse, urlencode, parse_qs, urlunparse
     if url.startswith("postgres://"):
         url = url.replace("postgres://", "postgresql+asyncpg://", 1)
     elif url.startswith("postgresql://"):
         url = url.replace("postgresql://", "postgresql+asyncpg://", 1)
     else:
-        return url  # SQLite or already normalised — leave untouched
-
-    # Render passes sslmode=require (libpq style); asyncpg uses ssl=require.
-    url = url.replace("sslmode=require", "ssl=require")
-    url = url.replace("sslmode=verify-full", "ssl=verify-full")
-
-    # If no ssl param at all and we're on Render, add it.
-    if "ssl=" not in url and os.getenv("RENDER"):
-        url += ("&" if "?" in url else "?") + "ssl=require"
-
-    return url
+        return url
+    # Strip SSL query params — asyncpg ignores sslmode and mishandles ssl= in URLs;
+    # we pass ssl via connect_args instead.
+    parsed = urlparse(url)
+    params = {k: v[0] for k, v in parse_qs(parsed.query, keep_blank_values=True).items()
+              if k not in ("ssl", "sslmode")}
+    return urlunparse(parsed._replace(query=urlencode(params)))
 
 DATABASE_URL = _async_db_url(os.getenv("DATABASE_URL", "sqlite+aiosqlite:///./test.db"))
+
+# Pass SSL and a fast connection timeout via connect_args so asyncpg
+# fails quickly with a real error instead of a silent 60-second hang.
+_pg_connect_args: dict = {}
+if not DATABASE_URL.startswith("sqlite"):
+    _pg_connect_args = {"ssl": bool(os.getenv("RENDER")), "timeout": 10}
 
 class Base(DeclarativeBase):
     pass
@@ -141,7 +144,7 @@ class SiteConfig(Base):
     allow_registration = Column(Boolean, nullable=False, default=True, server_default="1")
 
 
-engine = create_async_engine(DATABASE_URL)
+engine = create_async_engine(DATABASE_URL, connect_args=_pg_connect_args)
 async_session_maker = async_sessionmaker(engine, expire_on_commit=False)
 
 async def create_db_and_tables():

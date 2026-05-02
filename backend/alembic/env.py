@@ -22,23 +22,24 @@ target_metadata = Base.metadata
 # Normalize PaaS-injected postgres:// / postgresql:// → postgresql+asyncpg://
 # so the async engine can connect. SQLite URLs are left unchanged.
 def _async_db_url(url: str) -> str:
+    from urllib.parse import urlparse, urlencode, parse_qs, urlunparse
     if url.startswith("postgres://"):
         url = url.replace("postgres://", "postgresql+asyncpg://", 1)
     elif url.startswith("postgresql://"):
         url = url.replace("postgresql://", "postgresql+asyncpg://", 1)
     else:
         return url
-
-    url = url.replace("sslmode=require", "ssl=require")
-    url = url.replace("sslmode=verify-full", "ssl=verify-full")
-
-    if "ssl=" not in url and os.getenv("RENDER"):
-        url += ("&" if "?" in url else "?") + "ssl=require"
-
-    return url
+    parsed = urlparse(url)
+    params = {k: v[0] for k, v in parse_qs(parsed.query, keep_blank_values=True).items()
+              if k not in ("ssl", "sslmode")}
+    return urlunparse(parsed._replace(query=urlencode(params)))
 
 DATABASE_URL = _async_db_url(os.getenv("DATABASE_URL", "sqlite+aiosqlite:///./test.db"))
 config.set_main_option("sqlalchemy.url", DATABASE_URL)
+
+_pg_connect_args: dict = {}
+if not DATABASE_URL.startswith("sqlite"):
+    _pg_connect_args = {"ssl": bool(os.getenv("RENDER")), "timeout": 10}
 
 
 def run_migrations_offline() -> None:
@@ -69,6 +70,7 @@ async def run_async_migrations() -> None:
         config.get_section(config.config_ini_section, {}),
         prefix="sqlalchemy.",
         poolclass=pool.NullPool,
+        connect_args=_pg_connect_args,
     )
     async with connectable.connect() as connection:
         await connection.run_sync(do_run_migrations)
