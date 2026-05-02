@@ -1,0 +1,63 @@
+# Render Infrastructure as Code — three-service deployment
+# Equivalent to `docker compose up` but on Render.
+#
+# Deploy:
+#   1. Push this file to your repo (master branch).
+#   2. In the Render dashboard → New → Blueprint → connect this repo.
+#   3. Render reads this file and creates all three services automatically.
+#
+# After the first deploy:
+#   - Copy the blog-frontend service URL (e.g. https://blog-frontend.onrender.com)
+#     and set it as FRONTEND_URL in the blog-backend service's environment tab.
+#   - Copy the blog-backend service URL (e.g. https://blog-backend.onrender.com)
+#     and update NEXT_PUBLIC_API_URL in blog-frontend's environment tab, then
+#     trigger a manual redeploy of the frontend so Next.js picks up the new value.
+
+databases:
+  - name: blog-db
+    databaseName: blog_db
+    user: blog_user
+    plan: free
+    region: oregon
+
+services:
+
+  # ── Backend (FastAPI) ────────────────────────────────────────────────────────
+  - type: web
+    name: blog-backend
+    env: docker
+    dockerfilePath: ./backend/Dockerfile
+    dockerContext: ./backend
+    plan: free
+    region: oregon
+    envVars:
+      # Render injects the managed-DB connection string automatically.
+      # Our _async_db_url() in db.py normalises it to postgresql+asyncpg://
+      - key: DATABASE_URL
+        fromDatabase:
+          name: blog-db
+          property: connectionString
+      # Auto-generated 32-character secret for JWT signing.
+      - key: SECRET
+        generateValue: true
+      # Set this to the blog-frontend URL after the first deploy.
+      - key: FRONTEND_URL
+        sync: false
+
+  # ── Frontend (Next.js) ──────────────────────────────────────────────────────
+  - type: web
+    name: blog-frontend
+    env: docker
+    dockerfilePath: ./frontend/Dockerfile
+    dockerContext: ./frontend
+    plan: free
+    region: oregon
+    # NEXT_PUBLIC_API_URL must be available at Docker build time so Next.js
+    # can bake it into the client bundle.  The default below matches the
+    # backend service name above; update it if you rename blog-backend.
+    buildArgs:
+      - key: NEXT_PUBLIC_API_URL
+        value: https://blog-backend.onrender.com
+    envVars:
+      - key: NEXT_PUBLIC_API_URL
+        value: https://blog-backend.onrender.com
