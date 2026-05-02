@@ -2,14 +2,26 @@
 
 Full-stack blog app: **FastAPI** backend + **Next.js 16** frontend.
 
-> Running with Docker or deploying to the cloud? See the **[Docker & Cloud Deployment Guide](DOCKER.md)**.
-> Deploying to Render as a single container? See the **[Render Deployment Guide](deploy.md)**.
+> Running with Docker or deploying to the cloud? See the **[Docker & Cloud Deployment Guide](docker-development.md)**.
+> Deploying to Render as a single container? See the **[Render Deployment Guide](render-deploy.md)**.
 
 | Service  | URL                        |
 |----------|----------------------------|
 | Frontend | http://localhost:3000      |
 | Backend  | http://localhost:8000      |
 | API docs | http://localhost:8000/docs |
+
+---
+
+## Features
+
+- **Articles** — create, edit, delete, and search rich-text posts (Editor.js)
+- **Comments & Likes** — readers can comment on and like articles
+- **User roles** — `guest`, `author`, `admin`; role controls write access and dashboard visibility
+- **User profiles** — extended profiles with bio, work experience, qualifications, and education
+- **Admin panel** — manage users, articles, comments, themes, and site settings
+- **Theme management** — create and activate custom CSS themes from the admin panel
+- **Site settings** — configure site name, logo, and open/closed registration
 
 ---
 
@@ -183,28 +195,60 @@ This is harmless. It means `uv` is ignoring a system-level virtual environment a
 
 ```
 blog/
-├── backend/                  # FastAPI app
+├── backend/                      # FastAPI app
 │   ├── app/
-│   │   ├── api/v1/articles.py   # Route handlers
-│   │   ├── app.py               # App entry point, CORS config
-│   │   ├── core/users.py        # fastapi-users auth wiring
-│   │   ├── database/db.py       # SQLAlchemy models & engine
-│   │   ├── models/              # Pydantic schemas
-│   │   └── services/articles.py # Business logic
-│   ├── main.py               # Uvicorn entrypoint
-│   ├── pyproject.toml        # Python dependencies (uv)
-│   └── test.db               # SQLite DB (auto-created, gitignored)
+│   │   ├── api/v1/
+│   │   │   ├── articles.py       # Articles CRUD, likes, comments
+│   │   │   ├── admin.py          # Admin: users, themes, stats, site settings
+│   │   │   ├── author.py         # Author-specific endpoints
+│   │   │   └── profile.py        # User profile, experience, qualifications
+│   │   ├── app.py                # App entry point, CORS, static files
+│   │   ├── core/users.py         # fastapi-users auth wiring
+│   │   ├── database/db.py        # SQLAlchemy models & async engine
+│   │   ├── models/               # Pydantic request/response schemas
+│   │   └── services/
+│   │       ├── articles.py       # Articles business logic
+│   │       ├── admin.py          # Admin business logic
+│   │       ├── profile.py        # Profile business logic
+│   │       ├── site_settings.py  # Site config management
+│   │       └── theme.py          # Theme management
+│   ├── alembic/                  # Database migrations
+│   ├── uploads/                  # Uploaded files (logo, etc.) — served at /uploads
+│   ├── main.py                   # Uvicorn entrypoint
+│   ├── pyproject.toml            # Python dependencies (uv)
+│   └── test.db                   # SQLite DB (auto-created, gitignored)
 │
-└── frontend/                 # Next.js app
-    ├── app/
-    │   ├── (auth)/           # Login, register, forgot-password
-    │   ├── (blog)/           # Feed, create, update, search
-    │   ├── _lib/
-    │   │   ├── api_callout.js   # Fetch wrappers → http://localhost:8000
-    │   │   └── utility.js       # JWT helpers, date utils
-    │   └── components/
-    │       └── Editorjs.js      # Rich-text editor
-    └── package.json
+├── frontend/                     # Next.js 16 app
+│   ├── app/
+│   │   ├── (auth)/               # Login, register, forgot-password
+│   │   ├── (blog)/               # Feed, article view, create, update, search,
+│   │   │   │                     #   dashboard, profile
+│   │   │   └── components/       # NavLinks, ArticleInteractions, etc.
+│   │   ├── (admin)/              # Admin panel (superuser only)
+│   │   │   └── admin/
+│   │   │       ├── page.js       # Admin dashboard
+│   │   │       ├── articles/     # Article management
+│   │   │       ├── comments/     # Comment moderation
+│   │   │       ├── theme/        # Theme management
+│   │   │       └── users/        # User management
+│   │   ├── context/
+│   │   │   └── AuthContext.tsx   # Auth state (user, token, login, logout)
+│   │   ├── _lib/
+│   │   │   ├── api_callout.js    # Fetch wrappers → backend API
+│   │   │   ├── theme.ts          # Theme utilities
+│   │   │   └── utility.js        # JWT helpers, date utils
+│   │   └── components/
+│   │       ├── BackButton.tsx    # Shared back navigation
+│   │       └── Editorjs.js       # Editor.js rich-text editor
+│   └── package.json
+│
+├── deploy/                       # Deployment config
+│   ├── nginx.conf.template       # Nginx reverse-proxy config
+│   ├── supervisord.conf          # Supervisor process manager
+│   └── start.sh                  # Container startup script
+│
+├── docker-compose.yml            # Local Docker setup (Postgres + backend + frontend)
+└── Dockerfile                    # Single-container production build
 ```
 
 ---
