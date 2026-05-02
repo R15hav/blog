@@ -12,7 +12,7 @@ function SearchIcon() {
 }
 
 export default function NavLinks({ siteName = "Blog", allowRegistration = true }: { siteName?: string; allowRegistration?: boolean }) {
-  const { user, logout } = useAuth();
+  const { user, logout } = useAuth()!;
   const pathname = usePathname();
   const router = useRouter();
 
