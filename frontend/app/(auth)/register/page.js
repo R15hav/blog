@@ -1,15 +1,18 @@
-import { getAllowRegistration } from "../../_lib/theme";
+import { getAllowRegistration, getSiteName } from "../../_lib/theme";
 import RegisterForm from "./RegisterForm";
 
 export default async function RegisterPage() {
-  const allowRegistration = await getAllowRegistration();
+  const [allowRegistration, siteName] = await Promise.all([
+    getAllowRegistration(),
+    getSiteName(),
+  ]);
 
   if (!allowRegistration) {
     return (
       <div className="auth-shell">
         <div className="auth-marketing">
           <a className="wordmark" href="/">
-            Blog<span className="dot" />
+            {siteName}<span className="dot" />
           </a>
           <blockquote style={{ margin: 0 }}>
             <p className="auth-quote">
@@ -32,5 +35,5 @@ export default async function RegisterPage() {
     );
   }
 
-  return <RegisterForm />;
+  return <RegisterForm siteName={siteName} />;
 }
