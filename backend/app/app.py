@@ -4,6 +4,7 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI, Depends
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
+from sqlalchemy import update
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.models.users import UserRead, UserCreate, UserUpdate
@@ -12,15 +13,29 @@ from app.api.v1.articles import router as articles_router
 from app.api.v1.admin import router as admin_router
 from app.api.v1.profile import router as profile_router
 from app.api.v1.author import router as author_router
-from app.database.db import create_db_and_tables, get_async_session
+from app.database.db import create_db_and_tables, get_async_session, async_session_maker, User
 from app.core.users import fastapi_users, auth_backend
 from app.services.theme import get_active_theme
 from app.services.site_settings import get_site_config
 
 
+async def _promote_first_admin() -> None:
+    email = os.getenv("FIRST_ADMIN_EMAIL", "").strip()
+    if not email:
+        return
+    async with async_session_maker() as session:
+        await session.execute(
+            update(User)
+            .where(User.email == email)
+            .values(is_superuser=True, is_active=True, role="admin")
+        )
+        await session.commit()
+
+
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     await create_db_and_tables()
+    await _promote_first_admin()
     yield
 
 
