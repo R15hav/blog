@@ -19,6 +19,7 @@
   --ok:          oklch(0.550 0.100 145);
   --warn:        oklch(0.620 0.130 70);
   --font-serif: "Source Serif 4", "Source Serif Pro", Charter, "Iowan Old Style", Georgia, serif;
+  --font-body:  var(--font-serif);
   --font-sans:  "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
   --font-mono:  "JetBrains Mono", ui-monospace, "SF Mono", Menlo, monospace;
   --r-sm: 4px;
@@ -32,7 +33,7 @@ html, body { margin: 0; padding: 0; }
 body {
   background: var(--paper);
   color: var(--ink);
-  font-family: var(--font-serif);
+  font-family: var(--font-body);
   font-feature-settings: "kern", "liga", "onum";
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
@@ -324,7 +325,7 @@ a { color: var(--accent-ink); }
 .byline-text { display: flex; flex-direction: column; gap: 2px; }
 
 .article-body p {
-  font-family: var(--font-serif); font-size: 18.5px; line-height: 1.67; color: var(--ink);
+  font-family: var(--font-body); font-size: 18.5px; line-height: 1.67; color: var(--ink);
   margin: 0 0 22px; text-wrap: pretty;
 }
 .article-body h1 {
