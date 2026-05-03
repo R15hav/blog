@@ -15,8 +15,9 @@
   --accent-ink:  oklch(0.420 0.120 40);
   --ok:          oklch(0.550 0.100 145);
   --warn:        oklch(0.620 0.130 70);
-  --font-serif: "Source Serif 4", "Source Serif Pro", Charter, Georgia, serif;
-  --font-sans:  "Inter", -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+  --font-serif: "Source Serif 4", "Source Serif Pro", Charter, "Iowan Old Style", Georgia, serif;
+  --font-body:  var(--font-serif);
+  --font-sans:  "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
   --font-mono:  "JetBrains Mono", ui-monospace, "SF Mono", Menlo, monospace;
   --r-sm: 4px; --r: 6px; --r-lg: 10px;
 }
@@ -214,7 +215,7 @@ table.dataset { width: 100%; border-collapse: collapse; font-family: var(--font-
 .add-theme {
   border: 1px dashed var(--rule); border-radius: var(--r);
   padding: 18px 20px; background: var(--paper-2);
-  display: grid; grid-template-columns: auto 1fr auto auto; gap: 12px;
+  display: grid; grid-template-columns: auto auto 1fr auto; gap: 12px;
   align-items: center; margin-bottom: 16px;
 }
 .add-theme input {
