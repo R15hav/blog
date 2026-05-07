@@ -1,6 +1,6 @@
 from typing import Optional
 
-from fastapi import APIRouter, Depends, Query
+from fastapi import APIRouter, Depends, Query, Response
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.models.articles import ArticleBase, CommentCreate
@@ -18,6 +18,8 @@ from app.services.articles import (
     list_comments as svc_list_comments,
     add_comment as svc_add_comment,
     delete_comment as svc_delete_comment,
+    list_sitemap_entries as svc_list_sitemap_entries,
+    get_sitemap_meta as svc_get_sitemap_meta,
 )
 
 router = APIRouter()
@@ -129,3 +131,38 @@ async def remove_comment(
     session: AsyncSession = Depends(get_async_session),
 ):
     return await svc_delete_comment(session, comment_id, user)
+
+
+# ── Sitemap (SEO crawl-wall) ───────────────────────────────────────────────────
+
+_SITEMAP_CACHE_CONTROL = (
+    "public, max-age=3600, s-maxage=3600, stale-while-revalidate=86400"
+)
+
+
+@router.get("/sitemap/articles")
+async def sitemap_articles(
+    response: Response,
+    page: int = Query(1, ge=1),
+    per_page: int = Query(5000, ge=1, le=5000),
+    session: AsyncSession = Depends(get_async_session),
+):
+    items, total = await svc_list_sitemap_entries(session, page, per_page)
+    total_pages = (total + per_page - 1) // per_page if total else 0
+    response.headers["Cache-Control"] = _SITEMAP_CACHE_CONTROL
+    return {
+        "page": page,
+        "per_page": per_page,
+        "total": total,
+        "total_pages": total_pages,
+        "items": items,
+    }
+
+
+@router.get("/sitemap/meta")
+async def sitemap_meta(
+    response: Response,
+    session: AsyncSession = Depends(get_async_session),
+):
+    response.headers["Cache-Control"] = _SITEMAP_CACHE_CONTROL
+    return await svc_get_sitemap_meta(session)

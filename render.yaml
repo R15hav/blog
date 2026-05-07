@@ -1,17 +1,25 @@
-# Render Infrastructure as Code — three-service deployment
-# Equivalent to `docker compose up` but on Render.
+# Render Infrastructure as Code — single-image deployment
+#
+# One Web Service runs the consolidated container (nginx + supervisord
+# fronting the FastAPI backend and the Next.js frontend in a single image),
+# plus one managed Postgres database. Nginx is the only public listener;
+# it splits traffic between the backend (/api/v1, /auth, /users, /uploads,
+# /docs, /openapi.json) and the frontend (everything else).
 #
 # Deploy:
 #   1. Push this file to your repo (master branch).
-#   2. In the Render dashboard → New → Blueprint → connect this repo.
-#   3. Render reads this file and creates all three services automatically.
+#   2. Render dashboard → New → Blueprint → connect this repo.
+#   3. Render reads this file, provisions the database, builds the image,
+#      and starts the service.
 #
 # After the first deploy:
-#   - Copy the blog-frontend URL and set it as FRONTEND_URL in blog-backend's
-#     environment tab (required for CORS).
-#   - NEXT_PUBLIC_API_URL is already set to https://blog-backend.onrender.com
-#     and is baked into the Next.js build automatically — no manual step needed
-#     unless you rename the backend service.
+#   - Copy the blog-app public URL (e.g. https://blog-app-xxxx.onrender.com)
+#     and set FRONTEND_URL on the service to that value (used as the CORS
+#     allow-origin). Same-origin works without it, but setting it explicitly
+#     keeps the contract honest if you ever front the service with a custom
+#     domain or a CDN.
+#   - Optionally set FIRST_ADMIN_EMAIL to auto-promote that account to
+#     superuser on every startup (see render-deploy.md).
 
 databases:
   - name: blog-db
@@ -22,45 +30,42 @@ databases:
 
 services:
 
-  # ── Backend (FastAPI) ────────────────────────────────────────────────────────
+  # ── Consolidated app (nginx + FastAPI + Next.js in one container) ──────────
   - type: web
-    name: blog-backend
+    name: blog-app
     env: docker
-    dockerfilePath: ./backend/Dockerfile
-    dockerContext: ./backend
+    dockerfilePath: ./Dockerfile
+    dockerContext: .
     plan: free
     region: oregon
+    # Nginx exposes /healthz; the backend answers, no auth required.
+    healthCheckPath: /healthz
+    # Persist uploaded logos / avatars across redeploys. Free tier allows up
+    # to 1 GB; bump this if you expect heavier media.
+    disk:
+      name: uploads
+      mountPath: /app/backend/uploads
+      sizeGB: 1
     envVars:
       # Render injects the managed-DB connection string automatically.
-      # Our _async_db_url() in db.py normalises it to postgresql+asyncpg://
+      # backend/app/database/db.py normalises it to postgresql+asyncpg://.
       - key: DATABASE_URL
         fromDatabase:
           name: blog-db
           property: connectionString
-      # Auto-generated 32-character secret for JWT signing.
+      # Auto-generated 32-character secret for JWT signing (set once at
+      # service creation; rotating it invalidates every existing token).
       - key: SECRET
         generateValue: true
-      # Set this to the blog-frontend URL after the first deploy.
+      # Set this to the deployed service URL after the first deploy.
+      # Render exposes RENDER_EXTERNAL_URL at runtime but render.yaml does
+      # not interpolate it, so this stays sync:false (operator sets it).
       - key: FRONTEND_URL
         sync: false
-
-  # ── Frontend (Next.js) ──────────────────────────────────────────────────────
-  # Uses Render's native Node.js environment (not Docker) so that env vars
-  # are available at build time and NEXT_PUBLIC_API_URL is baked into the bundle.
-  - type: web
-    name: blog-frontend
-    env: node
-    rootDir: ./frontend
-    buildCommand: npm ci --include=dev && npm run build && cp -r .next/static .next/standalone/.next/static && cp -r public .next/standalone/public
-    startCommand: node .next/standalone/server.js
-    plan: free
-    region: oregon
-    envVars:
-      # Available at build time — baked into the Next.js client bundle.
-      # Update this if you rename the blog-backend service.
-      - key: NEXT_PUBLIC_API_URL
-        value: https://blog-backend-2xzu.onrender.com
-      - key: NODE_ENV
-        value: production
-      - key: HOSTNAME
-        value: 0.0.0.0
+      # Optional: when set, the user with this email is promoted to
+      # superuser/admin on every startup (see backend/app/app.py lifespan).
+      - key: FIRST_ADMIN_EMAIL
+        sync: false
+      # Make Python logging unbuffered so Render's log viewer is live.
+      - key: PYTHONUNBUFFERED
+        value: "1"

@@ -1,150 +1,162 @@
-# Render Deployment Guide — Blueprint (Three Services)
+# Render Deployment Guide — Single-Image Blueprint
 
-This project deploys to Render as three separate services defined in [`render.yaml`](render.yaml):
+This project deploys to Render as **one Web Service plus one managed Postgres database**, defined in [`render.yaml`](render.yaml):
 
 | Service | Type | What it runs |
 |---|---|---|
 | `blog-db` | Managed PostgreSQL | Render-managed database |
-| `blog-backend` | Web Service (Docker) | FastAPI on port 8000 |
-| `blog-frontend` | Web Service (Node.js) | Next.js standalone server |
+| `blog-app` | Web Service (Docker) | nginx + supervisord fronting FastAPI **and** Next.js in a single container |
 
-Render reads `render.yaml` and creates all three automatically — no manual service setup required.
+Nginx is the only public listener on the container. It routes:
+
+- `/api/v1/*`, `/auth/*`, `/users/*`, `/uploads/*`, `/docs`, `/openapi.json` → FastAPI (backend)
+- everything else → Next.js (frontend)
+- `/healthz` → backend health endpoint (used by Render's health check)
+
+Because the browser hits a single origin, the frontend issues **relative** API calls (`/api/v1/...`) and `NEXT_PUBLIC_API_URL` is intentionally unset.
+
+Render reads `render.yaml` and provisions everything automatically — no manual service setup.
 
 ---
 
 ## Prerequisites
 
 - Code pushed to a GitHub repository
-- A [Render](https://render.com) account (free tier is sufficient)
+- A [Render](https://render.com) account (free tier works)
 
 ---
 
 ## Step 1 — Deploy via Blueprint
 
-1. In the Render dashboard click **New +** → **Blueprint**
-2. Connect your GitHub account if you haven't already, then select this repository
-3. Render detects `render.yaml` and previews the three services it will create
-4. Click **Apply** — Render provisions the database first, then builds and deploys both services
+1. Render dashboard → **New +** → **Blueprint**.
+2. Connect your GitHub account if needed, then select this repository.
+3. Render detects `render.yaml` and previews the database + service it will create.
+4. Click **Apply**. Render provisions the database first, then builds the root [`Dockerfile`](Dockerfile) (build context = repo root) and starts `blog-app`.
 
-> The first build takes 3–6 minutes. Watch the build logs in real time on each service's page.
+> The first build takes 5–10 minutes (Next.js build + Python deps). Watch the build logs from the service page.
 
-> **Note on service URLs**: Render appends a random suffix to service names if the plain name is already taken on the platform (e.g. `blog-backend-2xzu.onrender.com`). Note your actual URLs from each service's page — you will need them in the steps below.
+> **Note on service URLs**: Render appends a random suffix when a name is already taken (e.g. `blog-app-2xzu.onrender.com`). Note your actual URL — you will need it in Step 2.
 
 ---
 
-## Step 2 — Wire the backend and frontend URLs
+## Step 2 — Set FRONTEND_URL (and optionally FIRST_ADMIN_EMAIL)
 
-After the first deploy completes, both services need to know each other's URL.
+After the first deploy, the service is reachable but `FRONTEND_URL` is unset. Same-origin requests work without it, but you should set it explicitly so CORS is honest if you later add a custom domain or a CDN in front.
 
-### 2a — Set FRONTEND_URL on the backend (required for CORS)
-
-1. Go to the **blog-frontend** service page and copy its URL (e.g. `https://blog-frontend-xxxx.onrender.com`)
-2. Go to the **blog-backend** service → **Environment** tab
-3. Add the variable:
+1. Go to **blog-app** → **Environment**.
+2. Set:
 
    | Key | Value |
    |---|---|
-   | `FRONTEND_URL` | `https://blog-frontend-xxxx.onrender.com` |
+   | `FRONTEND_URL` | `https://blog-app-xxxx.onrender.com` (your service URL) |
+   | `FIRST_ADMIN_EMAIL` *(optional)* | the email of the account you want auto-promoted to admin on every startup |
 
-4. Click **Save Changes** — the backend redeploys with CORS allowing your frontend origin
+3. **Save Changes** — Render redeploys.
 
-### 2b — Set NEXT_PUBLIC_API_URL on the frontend (baked into the bundle at build time)
-
-1. Go to the **blog-backend** service page and copy its URL (e.g. `https://blog-backend-xxxx.onrender.com`)
-2. Go to the **blog-frontend** service → **Environment** tab
-3. Update the variable:
-
-   | Key | Value |
-   |---|---|
-   | `NEXT_PUBLIC_API_URL` | `https://blog-backend-xxxx.onrender.com` |
-
-4. Click **Save Changes** — the frontend rebuilds with the correct backend URL baked into the Next.js bundle
-
-> `NEXT_PUBLIC_API_URL` is a build-time variable. Any change requires a full frontend rebuild to take effect — Render triggers this automatically when you save.
+`DATABASE_URL` and `SECRET` are wired automatically by `render.yaml` (database connection string + auto-generated JWT secret). Do not set them by hand.
 
 ---
 
 ## Step 3 — Create the first admin user
 
-There is no admin account by default. Because Render's Shell is a paid feature, the easiest approach is to connect to the managed database directly using a GUI tool such as [TablePlus](https://tableplus.com) (free tier is sufficient).
+You have two options.
 
-### 3a — Register an account
+### Option A — Auto-promote via `FIRST_ADMIN_EMAIL` (easiest)
 
-Go to `https://blog-frontend-xxxx.onrender.com/register` and create an account with the email address you want to use as admin. This ensures the password is correctly hashed by the application.
+1. Go to `https://blog-app-xxxx.onrender.com/register` and create an account with the email you want to use as admin. The application hashes the password correctly.
+2. Set `FIRST_ADMIN_EMAIL` on **blog-app** to that same email and save. Render redeploys.
+3. On startup, the lifespan handler in [`backend/app/app.py`](backend/app/app.py) finds that user and sets `is_superuser=true`, `is_active=true`, `role='admin'`.
+4. Sign in at `/login`. You now have access to `/admin`.
 
-### 3b — Get the database connection string
+### Option B — Promote via the database (no env-var change needed)
 
-1. In the Render dashboard go to the **blog-db** service → **Info** tab
-2. Under **Connections**, copy the **External Connection String**
-   (format: `postgresql://blog_user:PASSWORD@HOST/blog_db`)
+Useful if you cannot redeploy or want to avoid the implicit promotion on every boot.
 
-### 3c — Connect with TablePlus
+1. Register an account at `/register` as above.
+2. **blog-db** → **Info** → copy the **External Connection String** (`postgresql://blog_user:PASSWORD@HOST/blog_db`).
+3. Connect with [TablePlus](https://tableplus.com), DBeaver, or `psql`. Enable SSL (Render requires it).
+4. Run:
 
-1. Open TablePlus → **New Connection** → **PostgreSQL**
-2. Paste the connection string into the URL field, or fill in the individual fields (host, port, user, password, database) from the connection details
-3. Enable **SSL** (Render requires it)
-4. Click **Connect**
+   ```sql
+   UPDATE users
+   SET is_superuser = true,
+       is_active    = true,
+       role         = 'admin'
+   WHERE email = 'your@email.com';
+   ```
 
-### 3d — Promote the account to admin
-
-Open a new query (`Cmd+T` / `Ctrl+T`) and run:
-
-```sql
-UPDATE users
-SET is_superuser = true,
-    is_active    = true,
-    role         = 'admin'
-WHERE email = 'your@email.com';
-```
-
-Click **Commit** (`Cmd+S` / `Ctrl+S`) to save the change — TablePlus does not auto-commit.
-
-### 3e — Log in
-
-Go to `https://blog-frontend-xxxx.onrender.com/login` and sign in. You will now have access to the `/admin` panel.
+5. Commit (`Cmd+S` / `Ctrl+S` in TablePlus — it does not auto-commit).
+6. Sign in at `/login`.
 
 ---
 
 ## Step 4 — Verify
 
-Once both services show a green **Live** status:
+Once **blog-app** shows a green **Live** status, all of these should work:
 
 | Check | URL |
 |---|---|
-| Frontend home page | `https://blog-frontend-xxxx.onrender.com/` |
-| Register a new account | `https://blog-frontend-xxxx.onrender.com/register` |
-| Login | `https://blog-frontend-xxxx.onrender.com/login` |
-| Admin panel | `https://blog-frontend-xxxx.onrender.com/admin` |
-| FastAPI interactive docs | `https://blog-backend-xxxx.onrender.com/docs` |
-| API health check | `https://blog-backend-xxxx.onrender.com/api/v1/settings` |
+| Frontend home page | `https://blog-app-xxxx.onrender.com/` |
+| Register | `https://blog-app-xxxx.onrender.com/register` |
+| Login | `https://blog-app-xxxx.onrender.com/login` |
+| Admin panel | `https://blog-app-xxxx.onrender.com/admin` |
+| FastAPI interactive docs | `https://blog-app-xxxx.onrender.com/docs` |
+| Public site config | `https://blog-app-xxxx.onrender.com/api/v1/settings` |
+| Health check | `https://blog-app-xxxx.onrender.com/healthz` |
 
-Replace `blog-frontend-xxxx` / `blog-backend-xxxx` with your actual service URLs.
+Replace `blog-app-xxxx` with your actual service slug.
 
 ---
 
 ## Redeploying after code changes
 
-Render redeploys automatically when you push to the connected branch (`master`). To trigger a manual redeploy go to the service page → **Manual Deploy** → **Deploy latest commit**.
+Render redeploys automatically on push to the connected branch (`master`). For a manual redeploy: service page → **Manual Deploy** → **Deploy latest commit**.
+
+---
+
+## Persistent uploads
+
+`render.yaml` mounts a 1 GB Disk at `/app/backend/uploads`. Logo and avatar uploads written by the admin panel survive redeploys and image rebuilds. If you need more space, bump `disk.sizeGB` in `render.yaml` (paid plans only above 1 GB).
+
+---
+
+## Database migrations
+
+Alembic is configured in [`backend/alembic`](backend/alembic). [`backend/app/app.py`](backend/app/app.py) also runs `create_db_and_tables()` on startup as a safety net for fresh databases — sufficient for first deploy but **not** for schema changes against an existing DB.
+
+For schema changes against an existing DB:
+
+1. Generate a migration locally: `cd backend && uv run alembic revision --autogenerate -m "your change"`.
+2. Commit and push. The next Render deploy ships the new revision file.
+3. Apply it. Either:
+   - Open a shell on the running container (Render dashboard → service → **Shell** tab, or `render exec <service-id> -- bash`) and run `cd /app/backend && alembic upgrade head`, **or**
+   - Add a pre-deploy step / start-command wrapper that runs `alembic upgrade head` before launching supervisord. (Render's pre-deploy command setting can run `cd /app/backend && alembic upgrade head`.)
+
+> Render's **Shell** tab is available on paid plans. On free tier you can either upgrade temporarily, run migrations from a one-off Job, or apply them directly with `psql` against the External Connection String.
+
+---
+
+## Debugging the running container
+
+- **Logs**: service page → **Logs** tab, live tail.
+- **Shell** (paid plan): service page → **Shell** tab, or `render exec <service-id> -- bash`. Useful for `alembic upgrade head`, inspecting `/app/backend/uploads`, or running `curl localhost:8000/healthz` from inside the container.
+- **Metrics**: service page → **Metrics** tab for CPU / memory / bandwidth.
 
 ---
 
 ## Environment variable reference
 
-### blog-backend
+### blog-app
 
 | Variable | Set by | Description |
 |---|---|---|
-| `DATABASE_URL` | `render.yaml` (auto from DB) | PostgreSQL connection string — injected automatically by Render |
-| `SECRET` | `render.yaml` (auto-generated) | JWT signing secret — generated once at service creation |
-| `FRONTEND_URL` | You (Step 2a) | Full URL of the frontend service. Required for CORS. |
+| `DATABASE_URL` | `render.yaml` (auto from `blog-db`) | PostgreSQL connection string. The backend normaliser converts it to `postgresql+asyncpg://`. |
+| `SECRET` | `render.yaml` (auto-generated) | JWT signing secret. Generated once at service creation; rotating it invalidates every issued token. |
+| `FRONTEND_URL` | You (Step 2) | Public URL of the service. Used as the CORS allow-origin. |
+| `FIRST_ADMIN_EMAIL` | You (Step 2, optional) | If set, the user with this email is promoted to admin on every startup. |
+| `PYTHONUNBUFFERED` | `render.yaml` | Set to `1` so Python log output is live in Render's log viewer. |
 
-### blog-frontend
-
-| Variable | Set by | Description |
-|---|---|---|
-| `NEXT_PUBLIC_API_URL` | You (Step 2b) | Full URL of the backend service. Baked into the Next.js bundle at build time. |
-| `NODE_ENV` | `render.yaml` | Set to `production`. |
-| `HOSTNAME` | `render.yaml` | Set to `0.0.0.0` so the standalone server binds to all interfaces. |
+`NEXT_PUBLIC_API_URL`, `NEXT_PUBLIC_APP_URL`, `HOSTNAME`, and `NODE_ENV` are intentionally **not** set here. The frontend issues relative API calls (so it does not need a baked-in API origin) and the rest are handled inside the container image.
 
 ---
 
@@ -152,6 +164,6 @@ Render redeploys automatically when you push to the connected branch (`master`).
 
 - **Cold starts on free tier**: Render free services spin down after 15 minutes of inactivity. The first request after that takes 30–60 seconds. Upgrade to a paid plan to disable spin-down.
 - **Free PostgreSQL expiry**: The free Render PostgreSQL database is deleted after 90 days. Export your data or upgrade to Starter before then.
-- **Uploaded files**: Logo uploads are stored on the backend container's local disk and are lost on each redeploy. To persist them, configure an S3-compatible object store and update `backend/app/api/v1/admin.py`.
-- **URL suffix**: Render appends a random slug to service names when the plain name is taken. If your URLs differ from the defaults, update `NEXT_PUBLIC_API_URL` in the frontend environment and `FRONTEND_URL` in the backend environment accordingly.
-- **Render Shell is paid**: Direct shell access to the backend container requires a paid plan. Use a database GUI (TablePlus, DBeaver, pgAdmin) with the external connection string for any direct DB operations.
+- **URL suffix**: Render appends a random slug to service names when the plain name is taken. Update `FRONTEND_URL` accordingly if your URL is not `https://blog-app.onrender.com`.
+- **Render Shell is paid**: Free tier cannot open an interactive shell. For DB work, use the External Connection String with a GUI/`psql`. For migrations, see the section above.
+- **Single-container limits**: Backend + frontend share one container's CPU and memory. If the Next.js renderer or FastAPI worker becomes a bottleneck, split them back into separate Render services (or move the frontend to a static host) — the previous multi-service `render.yaml` is in git history if you need a starting point.
