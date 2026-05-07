@@ -508,4 +508,33 @@ document.addEventListener("DOMContentLoaded", function () {
       setActiveLink(id);
     }
   });
+
+  /* ── Home page (index.html) — reveal animations ──────────── */
+  var reveals = document.querySelectorAll(".reveal");
+  if (reveals.length && "IntersectionObserver" in window) {
+    var revealIO = new IntersectionObserver(function (entries) {
+      entries.forEach(function (e) {
+        if (e.isIntersecting) {
+          e.target.classList.add("visible");
+          revealIO.unobserve(e.target);
+        }
+      });
+    }, { threshold: 0.08 });
+    reveals.forEach(function (el) { revealIO.observe(el); });
+  }
+
+  /* ── Home page — role tabs ───────────────────────────────── */
+  var roleTabs = document.querySelectorAll(".role-tab");
+  roleTabs.forEach(function (tab) {
+    tab.addEventListener("click", function () {
+      var role = tab.dataset.role;
+      roleTabs.forEach(function (t) { t.classList.remove("active"); });
+      tab.classList.add("active");
+      document.querySelectorAll(".role-panel").forEach(function (p) {
+        p.classList.remove("active");
+      });
+      var panel = document.getElementById("role-" + role);
+      if (panel) panel.classList.add("active");
+    });
+  });
 });
