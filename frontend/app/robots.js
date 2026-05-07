@@ -5,7 +5,7 @@ export default async function robots() {
   let siteUrl = APP_URL;
 
   try {
-    const res = await fetch(`${API}/api/v1/settings`);
+    const res = await fetch(`${API}/api/v1/settings`, { next: { revalidate: 3600 } });
     if (res.ok) {
       const settings = await res.json();
       siteUrl = settings.site_url || APP_URL;
@@ -16,7 +16,17 @@ export default async function robots() {
     rules: {
       userAgent: "*",
       allow: "/",
-      disallow: ["/admin/", "/dashboard/", "/create-article", "/update-article/"],
+      disallow: [
+        "/api/",
+        "/uploads/",
+        "/admin/",
+        "/dashboard/",
+        "/create-article",
+        "/update-article/",
+        "/login",
+        "/register",
+        "/forgot-password",
+      ],
     },
     sitemap: `${siteUrl}/sitemap.xml`,
   };

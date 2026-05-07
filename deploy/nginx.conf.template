@@ -1,0 +1,89 @@
+# Rendered by /deploy/start.sh via envsubst -> /etc/nginx/nginx.conf
+# Only $PORT is substituted; nginx variables ($host, $remote_addr, etc.)
+# are preserved because envsubst is invoked with an explicit allow-list.
+
+worker_processes  1;
+daemon            off;
+error_log         /dev/stderr warn;
+pid               /run/nginx.pid;
+
+events {
+    worker_connections 1024;
+}
+
+http {
+    include            /etc/nginx/mime.types;
+    default_type       application/octet-stream;
+    sendfile           on;
+    tcp_nopush         on;
+    keepalive_timeout  65;
+    server_tokens      off;
+
+    # Allow logo uploads (multipart bodies up to 25MB)
+    client_max_body_size 25m;
+
+    # Combined log format -> stdout so container logs surface everything
+    log_format  main  '$remote_addr - $remote_user [$time_local] "$request" '
+                      '$status $body_bytes_sent "$http_referer" '
+                      '"$http_user_agent" "$http_x_forwarded_for"';
+    access_log /dev/stdout main;
+
+    # Common proxy settings reused by every backend/frontend location
+    proxy_http_version 1.1;
+    proxy_set_header   Host              $host;
+    proxy_set_header   X-Real-IP         $remote_addr;
+    proxy_set_header   X-Forwarded-For   $proxy_add_x_forwarded_for;
+    proxy_set_header   X-Forwarded-Proto $scheme;
+    proxy_read_timeout 300s;
+    proxy_send_timeout 300s;
+
+    upstream backend  { server 127.0.0.1:8000; keepalive 16; }
+    upstream frontend { server 127.0.0.1:3000; keepalive 16; }
+
+    server {
+        listen      ${PORT} default_server;
+        listen      [::]:${PORT} default_server;
+        server_name _;
+
+        # Liveness probe -- does NOT depend on backend or frontend
+        location = /healthz {
+            access_log off;
+            add_header Content-Type text/plain;
+            return 200 'ok';
+        }
+
+        # ---- Backend (FastAPI) routes -----------------------------------
+        location /api/v1/ {
+            proxy_pass http://backend;
+        }
+
+        location /auth/ {
+            proxy_pass http://backend;
+        }
+
+        location /users/ {
+            proxy_pass http://backend;
+        }
+
+        location /uploads/ {
+            proxy_pass http://backend;
+        }
+
+        location = /docs {
+            proxy_pass http://backend;
+        }
+
+        location = /openapi.json {
+            proxy_pass http://backend;
+        }
+
+        # ---- Frontend (Next.js standalone) -- catch-all -----------------
+        # Upgrade/Connection headers enable Next's HMR-style websockets and
+        # any future websocket usage in the app.
+        location / {
+            proxy_pass http://frontend;
+            proxy_set_header Upgrade    $http_upgrade;
+            proxy_set_header Connection "upgrade";
+        }
+    }
+}

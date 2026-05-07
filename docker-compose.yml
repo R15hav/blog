@@ -1,50 +1,64 @@
+# Local mirror of the Render single-image deployment.
+#
+# `app` is built from the root Dockerfile (nginx + supervisord + FastAPI +
+# Next.js in one container). It is the only service with a published port;
+# the database is reachable only on the internal compose network.
+#
+# Bring it up with:
+#   docker compose up --build
+# Then browse to http://localhost:8080.
+#
+# To auto-promote an admin on first boot:
+#   FIRST_ADMIN_EMAIL=you@example.com docker compose up --build
+
 services:
   db:
     image: postgres:16-alpine
     restart: unless-stopped
-    env_file: ./backend/.env
     environment:
-      POSTGRES_USER: ${POSTGRES_USER:-blog_user}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-blog_pass}
-      POSTGRES_DB: ${POSTGRES_DB:-blog_db}
+      POSTGRES_USER: blog_user
+      POSTGRES_PASSWORD: blog_pass
+      POSTGRES_DB: blog_db
     volumes:
       - pgdata:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-blog_user}"]
+      test: ["CMD-SHELL", "pg_isready -U blog_user"]
       interval: 5s
       timeout: 5s
       retries: 10
 
-  backend:
-    build: ./backend
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
     restart: unless-stopped
     depends_on:
       db:
         condition: service_healthy
-    env_file: ./backend/.env
     environment:
-      DATABASE_URL: postgresql+asyncpg://${POSTGRES_USER:-blog_user}:${POSTGRES_PASSWORD:-blog_pass}@db:5432/${POSTGRES_DB:-blog_db}
-      FRONTEND_URL: ${FRONTEND_URL:-http://localhost:3000}
+      # asyncpg-flavoured URL — the backend's URL normaliser also accepts
+      # postgres:// / postgresql://, but the explicit driver removes any doubt.
+      DATABASE_URL: postgresql+asyncpg://blog_user:blog_pass@db:5432/blog_db
+      # Dev-only secret. Override in production / Render via env vars.
+      SECRET: dev-secret-change-me
+      # Same-origin in compose; nginx serves both backend and frontend on :8080.
+      FRONTEND_URL: http://localhost:8080
+      # Optional: auto-promote this email to admin on every startup.
+      FIRST_ADMIN_EMAIL: ${FIRST_ADMIN_EMAIL:-}
+      # Nginx inside the container listens on $PORT (default 8080).
+      PORT: "8080"
     ports:
-      - "8000:8000"
+      - "8080:8080"
+    volumes:
+      # Persist logos / avatars across `docker compose down`.
+      - uploads:/app/backend/uploads
     healthcheck:
-      test: ["CMD-SHELL", "curl -f http://localhost:8000/docs > /dev/null 2>&1 || exit 1"]
+      test: ["CMD-SHELL", "curl -fsS http://localhost:8080/healthz || exit 1"]
       interval: 10s
       timeout: 5s
       retries: 5
-      start_period: 20s
-
-  frontend:
-    build:
-      context: ./frontend
-      args:
-        NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-http://localhost:8000}
-    restart: unless-stopped
-    depends_on:
-      backend:
-        condition: service_healthy
-    ports:
-      - "3000:3000"
+      start_period: 30s
 
 volumes:
   pgdata:
+  uploads:
