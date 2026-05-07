@@ -47,10 +47,10 @@
       Rich Editor.js content. Role-based workflow. Deploy with one command.
     </p>
     <div class="hero-ctas">
-      <a href="guide.html#getting-started" class="btn btn-primary btn-lg">Get started</a>
-      <a href="guide.html" class="btn btn-ghost btn-lg">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
-        User manual
+      <a href="guide.html#um-quickstart" class="btn btn-primary btn-lg">Get started</a>
+      <a href="guide.html#cg-overview" class="btn btn-ghost btn-lg">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>
+        Contribute
       </a>
     </div>
     <div class="hero-social">
@@ -126,7 +126,7 @@
         </div>
         <h3 class="feature-title">Live Theme Switching</h3>
         <p class="feature-desc">Paste any external CSS URL in the admin panel. Every visitor instantly sees the new look. No redeploy, no CDN flush — server-side injection on every page load.</p>
-        <a href="guide.html#theme-management" class="feature-learn">Learn how it works →</a>
+        <a href="guide.html#um-admins-themes" class="feature-learn">Learn how it works →</a>
       </div>
 
       <div class="feature-card">
@@ -135,7 +135,7 @@
         </div>
         <h3 class="feature-title">Editor.js Rich Content</h3>
         <p class="feature-desc">Block-structured editing with headers, ordered &amp; unordered lists, inline code, fenced code blocks, images, embeds, and checklists. Content stored as portable JSON.</p>
-        <a href="guide.html#writing-articles" class="feature-learn">See the editor →</a>
+        <a href="guide.html#um-authors-write" class="feature-learn">See the editor →</a>
       </div>
 
       <div class="feature-card">
@@ -144,7 +144,7 @@
         </div>
         <h3 class="feature-title">Role-Based Workflow</h3>
         <p class="feature-desc">Three roles: <strong>Admin</strong> controls everything, <strong>Author</strong> writes after approval, <strong>Visitor</strong> reads without an account. Registration flows through admin approval.</p>
-        <a href="guide.html#user-roles" class="feature-learn">See role matrix →</a>
+        <a href="guide.html#um-authors-approval" class="feature-learn">See role matrix →</a>
       </div>
 
       <div class="feature-card">
@@ -153,7 +153,7 @@
         </div>
         <h3 class="feature-title">Admin Panel</h3>
         <p class="feature-desc">Manage users, moderate all articles, review comments, switch themes, and configure site settings (name, logo, open/closed registration) — all from one dashboard.</p>
-        <a href="guide.html#admin-panel" class="feature-learn">Explore admin →</a>
+        <a href="guide.html#um-admins-dashboard" class="feature-learn">Explore admin →</a>
       </div>
 
       <div class="feature-card">
@@ -162,7 +162,7 @@
         </div>
         <h3 class="feature-title">SQLite → PostgreSQL</h3>
         <p class="feature-desc">SQLite with auto-schema creation for local development. Switch to PostgreSQL in production with a single <code>DATABASE_URL</code> env var. Alembic handles schema migrations.</p>
-        <a href="guide.html#configuration" class="feature-learn">Configure the DB →</a>
+        <a href="guide.html#um-deploy-env" class="feature-learn">Configure the DB →</a>
       </div>
 
       <div class="feature-card">
@@ -171,7 +171,7 @@
         </div>
         <h3 class="feature-title">Deploy Anywhere</h3>
         <p class="feature-desc">Docker Compose (three services) for self-hosted setups. Or use the single-container Dockerfile — Nginx + FastAPI + Next.js + Supervisor — for Render and other PaaS providers.</p>
-        <a href="guide.html#deployment" class="feature-learn">Deployment guide →</a>
+        <a href="guide.html#um-deploy-render" class="feature-learn">Deployment guide →</a>
       </div>
     </div>
   </div>
@@ -356,17 +356,32 @@
   </div>
 </section>
 
-<!-- ── CTA banner ────────────────────────────────────────────── -->
-<section class="section">
+<!-- ── Two-card CTA: Users vs Contributors ──────────────────── -->
+<section class="section" id="get-involved">
   <div class="section-inner">
-    <div class="cta-banner reveal">
-      <div class="cta-banner-text">
-        <h2>Ready to launch your blog?</h2>
-        <p>One <code style="background: oklch(0.30 0.015 60); padding: 2px 6px; border-radius: 4px; font-family: var(--font-mono); font-size: 0.9em;">docker compose up</code> and you're running. Full docs in under 10 minutes.</p>
+    <div class="section-header centered reveal">
+      <p class="section-eyebrow">Two doors in</p>
+      <h2 class="section-heading">Pick your path.</h2>
+      <p class="section-sub">Run an instance, or fork the codebase and ship a feature.</p>
+    </div>
+
+    <div class="feature-grid reveal" style="grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); max-width: 880px; margin: 0 auto;">
+      <div class="feature-card">
+        <div class="feature-icon accent">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>
+        </div>
+        <h3 class="feature-title">For users</h3>
+        <p class="feature-desc">Run the deployed app: read articles, write posts, manage your site. Step-by-step setup for Render and self-hosted Docker.</p>
+        <a href="guide.html#um-overview" class="btn btn-primary btn-sm" style="margin-top: 8px;">Open the User Manual →</a>
       </div>
-      <div style="display: flex; gap: 12px; flex-wrap: wrap;">
-        <a href="guide.html#getting-started" class="btn btn-primary btn-lg">Read the docs</a>
-        <a href="guide.html#deployment" class="btn btn-ghost btn-lg">Deployment guide</a>
+
+      <div class="feature-card">
+        <div class="feature-icon blue">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>
+        </div>
+        <h3 class="feature-title">For contributors</h3>
+        <p class="feature-desc">Fork it, run it locally, ship a PR. Architecture deep-dives, gotchas, "how to add a route", and the full API reference.</p>
+        <a href="guide.html#cg-overview" class="btn btn-primary btn-sm" style="margin-top: 8px;">Open the Contributor Guide →</a>
       </div>
     </div>
   </div>
@@ -380,37 +395,39 @@
       <p>An open-source, minimal blog platform built to be themed. FastAPI backend, Next.js 16 frontend.</p>
     </div>
     <div>
-      <p class="footer-col-label">Documentation</p>
+      <p class="footer-col-label">User Manual</p>
       <ul class="footer-links">
-        <li><a href="guide.html#getting-started">Getting Started</a></li>
-        <li><a href="guide.html#writing-articles">Writing Articles</a></li>
-        <li><a href="guide.html#admin-panel">Admin Panel</a></li>
-        <li><a href="guide.html#theme-management">Theme Management</a></li>
-        <li><a href="guide.html#deployment">Deployment</a></li>
+        <li><a href="guide.html#um-quickstart">Quick Start</a></li>
+        <li><a href="guide.html#um-authors-write">Writing Articles</a></li>
+        <li><a href="guide.html#um-admins-dashboard">Admin Panel</a></li>
+        <li><a href="guide.html#um-admins-themes">Themes</a></li>
+        <li><a href="guide.html#um-deploy-render">Deploy to Render</a></li>
       </ul>
     </div>
     <div>
-      <p class="footer-col-label">Platform</p>
+      <p class="footer-col-label">Contribute</p>
       <ul class="footer-links">
-        <li><a href="guide.html#user-roles">User Roles</a></li>
-        <li><a href="guide.html#registration">Registration</a></li>
-        <li><a href="guide.html#configuration">Configuration</a></li>
-        <li><a href="guide.html#api-overview">API Reference</a></li>
+        <li><a href="guide.html#cg-overview">Project Overview</a></li>
+        <li><a href="guide.html#cg-setup">Local Setup</a></li>
+        <li><a href="guide.html#cg-architecture">Architecture</a></li>
+        <li><a href="guide.html#cg-api">API Reference</a></li>
+        <li><a href="guide.html#cg-pr">Submit a PR</a></li>
       </ul>
     </div>
     <div>
-      <p class="footer-col-label">Stack</p>
+      <p class="footer-col-label">Project</p>
       <ul class="footer-links">
-        <li><a href="https://fastapi.tiangolo.com" target="_blank" rel="noopener">FastAPI</a></li>
-        <li><a href="https://nextjs.org" target="_blank" rel="noopener">Next.js 16</a></li>
-        <li><a href="https://editorjs.io" target="_blank" rel="noopener">Editor.js</a></li>
-        <li><a href="https://fastapi-users.github.io" target="_blank" rel="noopener">FastAPI Users</a></li>
+        <li><a href="https://github.com/R15hav/blog" target="_blank" rel="noopener">GitHub</a></li>
+        <li><a href="https://github.com/R15hav/blog/issues" target="_blank" rel="noopener">Report an issue</a></li>
+        <li><a href="https://github.com/R15hav/blog/blob/master/CONTRIBUTING.md" target="_blank" rel="noopener">Contributing</a></li>
+        <li><a href="https://github.com/R15hav/blog/blob/master/LICENSE" target="_blank" rel="noopener">License (MIT)</a></li>
+        <li><a href="https://github.com/R15hav/blog/blob/master/SECURITY.md" target="_blank" rel="noopener">Security</a></li>
       </ul>
     </div>
   </div>
   <div class="footer-bottom">
     <div class="footer-bottom-inner">
-      <p class="footer-copy">© 2025 Paper Blog — MIT License</p>
+      <p class="footer-copy">© 2026 Paper Blog — Open-source under the <a href="https://github.com/R15hav/blog/blob/master/LICENSE" target="_blank" rel="noopener">MIT License</a></p>
       <div class="footer-tech">
         <span>FastAPI 0.124</span>
         <span>·</span>
