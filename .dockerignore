@@ -1,0 +1,51 @@
+# Build context hygiene for the root multi-stage Dockerfile.
+# Without this, `backend/.venv` (host glibc, possibly wrong arch) and
+# `frontend/node_modules` / `frontend/.next` would be uploaded as context
+# and silently shadow what the build stages produce.
+
+# VCS
+.git
+.github
+.gitignore
+
+# Editor / OS noise
+.DS_Store
+.idea
+.vscode
+*.swp
+
+# Docs and dev-only files
+*.md
+docker-development.md
+seo.md
+todo.txt
+product-requirements.md
+user-manual
+
+# Backend host artifacts -- rebuilt inside the image
+backend/.venv
+backend/__pycache__
+backend/**/__pycache__
+backend/*.pyc
+backend/.pytest_cache
+backend/test.db
+backend/*.sqlite3
+backend/.env
+backend/.env.local
+backend/uploads/*
+!backend/uploads/.gitkeep
+backend/tests
+
+# Frontend host artifacts -- rebuilt inside the image
+frontend/node_modules
+frontend/.next
+frontend/out
+frontend/.env
+frontend/.env.local
+frontend/.env.*.local
+frontend/*.map
+
+# Don't ship the alternate Dockerfiles into the build context root
+# (they're harmless but wasteful)
+backend/Dockerfile
+frontend/Dockerfile

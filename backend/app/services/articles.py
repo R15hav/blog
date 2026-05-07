@@ -1,5 +1,5 @@
 import uuid
-from datetime import datetime
+from datetime import datetime, timezone
 
 from fastapi import HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -293,3 +293,54 @@ async def delete_comment(session: AsyncSession, comment_id_str: str, user) -> di
     await session.delete(comment)
     await session.commit()
     return {"success": True}
+
+
+# ── Sitemap (lightweight projection for SEO crawl-wall) ────────────────────────
+
+def _iso_utc(dt: datetime) -> str:
+    if dt.tzinfo is not None:
+        dt = dt.astimezone(timezone.utc).replace(tzinfo=None)
+    return dt.replace(microsecond=0).isoformat() + "Z"
+
+
+async def list_sitemap_entries(
+    session: AsyncSession, page: int, per_page: int
+) -> tuple[list[dict], int]:
+    base_filter = Post.published == "true"
+
+    count_q = select(func.count()).select_from(Post).where(base_filter)
+    total = (await session.execute(count_q)).scalar() or 0
+
+    offset = (page - 1) * per_page
+    rows_q = (
+        select(Post.id, Post.created_date)
+        .where(base_filter)
+        .order_by(Post.created_date.desc())
+        .offset(offset)
+        .limit(per_page)
+    )
+    rows = (await session.execute(rows_q)).all()
+
+    items = [
+        {"id": str(row_id), "lastmod": _iso_utc(row_created)}
+        for row_id, row_created in rows
+    ]
+    return items, total
+
+
+async def get_sitemap_meta(session: AsyncSession) -> dict:
+    PER_PAGE = 5000
+    base_filter = Post.published == "true"
+
+    row = (await session.execute(
+        select(func.count(Post.id), func.max(Post.created_date)).where(base_filter)
+    )).one()
+    total, max_dt = row[0] or 0, row[1]
+
+    total_pages = (total + PER_PAGE - 1) // PER_PAGE if total else 0
+    return {
+        "total": total,
+        "max_lastmod": _iso_utc(max_dt) if max_dt is not None else None,
+        "per_page": PER_PAGE,
+        "total_pages": total_pages,
+    }
