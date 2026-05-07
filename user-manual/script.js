@@ -17,9 +17,11 @@
   /* Early theme application — runs synchronously to avoid FOUC          */
   /* -------------------------------------------------------------------- */
   try {
+    // Default to light. Honour user's saved preference if they've toggled before;
+    // otherwise ignore OS prefers-color-scheme so first-time visitors always
+    // land on the light theme.
     var saved = localStorage.getItem("paper-theme");
-    var prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
-    var theme = saved || (prefersDark ? "dark" : "light");
+    var theme = saved === "dark" ? "dark" : "light";
     document.documentElement.setAttribute("data-theme", theme);
   } catch (_) { /* localStorage may be unavailable */ }
 })();
