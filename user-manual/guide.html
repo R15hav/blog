@@ -3,32 +3,44 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>User Manual — Paper Blog</title>
-  <meta name="description" content="Complete user manual for Paper Blog: installation, writing articles, admin panel, themes, and deployment." />
+  <title>Documentation — Paper Blog</title>
+  <meta name="description" content="Paper Blog documentation: a user manual for readers, authors, admins and operators, plus a contributor guide for developers." />
+  <meta name="color-scheme" content="light dark" />
+
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Source+Serif+4:ital,opsz,wght@0,8..60,300..700;1,8..60,300..700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Source+Serif+4:ital,opsz,wght@0,8..60,300..700;1,8..60,300..700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="style.css" />
 </head>
 <body>
 
-<div class="read-progress"><div class="read-progress-fill" id="readProgress"></div></div>
-<div class="sidebar-overlay" id="sidebarOverlay"></div>
+<!-- Reading progress bar (very top of viewport) -->
+<div class="read-progress" aria-hidden="true"><div class="read-progress-fill" id="readProgress"></div></div>
 
-<!-- ── Nav ─────────────────────────────────────────────────── -->
-<nav class="site-nav">
-  <a class="nav-brand" href="index.html">Paper<span class="dot"></span></a>
+<!-- Mobile sidebar dimming overlay -->
+<div class="sidebar-overlay" id="sidebarOverlay" aria-hidden="true"></div>
+
+<!-- Skip link for keyboard users -->
+<a class="skip-link" href="#mainContent">Skip to content</a>
+
+<!-- ── Top nav ─────────────────────────────────────────────── -->
+<nav class="site-nav" aria-label="Primary">
+  <div class="site-nav-left">
+    <button class="nav-hamburger" id="navHamburger" aria-label="Open navigation" aria-controls="docsSidebar" aria-expanded="false">
+      <span></span><span></span><span></span>
+    </button>
+    <a class="nav-brand" href="index.html">Paper<span class="dot"></span></a>
+  </div>
+
   <ul class="nav-links">
     <li><a href="index.html">Home</a></li>
-    <li><a href="guide.html" class="active">Docs</a></li>
+    <li><a href="guide.html" class="active" aria-current="page">Docs</a></li>
   </ul>
+
   <div class="nav-actions">
     <button class="theme-toggle" id="themeToggle" aria-label="Toggle dark mode">
-      <svg id="iconSun" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:none"><circle cx="12" cy="12" r="5"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg>
-      <svg id="iconMoon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
-    </button>
-    <button class="nav-hamburger" id="navHamburger" aria-label="Open menu">
-      <span></span><span></span><span></span>
+      <svg id="iconSun" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:none" aria-hidden="true"><circle cx="12" cy="12" r="5"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg>
+      <svg id="iconMoon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
     </button>
   </div>
 </nav>
@@ -36,661 +48,1258 @@
 <!-- ── Docs layout ──────────────────────────────────────────── -->
 <div class="docs-layout">
 
-  <!-- Sidebar -->
-  <aside class="docs-sidebar" id="docsSidebar">
-    <div class="sidebar-search">
-      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg>
-      <input type="text" id="sidebarSearch" placeholder="Search docs…" aria-label="Search docs" />
+  <!-- ── Sidebar ─────────────────────────────────────────────── -->
+  <aside class="docs-sidebar" id="docsSidebar" aria-label="Documentation navigation">
+
+    <!-- Mode toggle (segmented control) -->
+    <div class="mode-toggle" role="tablist" aria-label="Documentation mode">
+      <button
+        type="button"
+        role="tab"
+        id="modeTabUserManual"
+        class="mode-tab active"
+        data-mode="user-manual"
+        aria-selected="true"
+        aria-controls="modePanelUserManual"
+        tabindex="0"
+      >
+        <span class="mode-tab-icon" aria-hidden="true">📖</span>
+        <span class="mode-tab-label">User Manual</span>
+      </button>
+      <button
+        type="button"
+        role="tab"
+        id="modeTabContribute"
+        class="mode-tab"
+        data-mode="contribute"
+        aria-selected="false"
+        aria-controls="modePanelContribute"
+        tabindex="-1"
+      >
+        <span class="mode-tab-icon" aria-hidden="true">🛠️</span>
+        <span class="mode-tab-label">Contribute</span>
+      </button>
     </div>
 
-    <nav id="sidebarNav">
-      <div class="sidebar-group open" data-group="start">
-        <div class="sidebar-group-label" role="button">
-          Getting Started
-          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg>
-        </div>
-        <div class="sidebar-items">
-          <a class="sidebar-link" href="#overview">Overview</a>
-          <a class="sidebar-link" href="#prerequisites">Prerequisites</a>
-          <a class="sidebar-link sub" href="#backend-prereq">Backend (uv)</a>
-          <a class="sidebar-link sub" href="#frontend-prereq">Frontend (Node ≥ 20)</a>
-          <a class="sidebar-link" href="#getting-started">Quick Start</a>
-          <a class="sidebar-link sub" href="#start-backend">Start the backend</a>
-          <a class="sidebar-link sub" href="#start-frontend">Start the frontend</a>
+    <!-- Sidebar search -->
+    <div class="sidebar-search">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg>
+      <input type="search" id="sidebarSearch" placeholder="Search this guide…" aria-label="Search documentation" autocomplete="off" />
+      <kbd class="sidebar-search-kbd" aria-hidden="true">/</kbd>
+    </div>
+
+    <!-- Cross-mode hint when current mode has zero matches -->
+    <button type="button" class="sidebar-cross-hint" id="sidebarCrossHint" hidden>
+      <span id="sidebarCrossHintText">0 results in the other section</span>
+      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" aria-hidden="true"><polyline points="9 18 15 12 9 6"/></svg>
+    </button>
+
+    <!-- Empty-state row when nothing matches anywhere -->
+    <div class="sidebar-empty" id="sidebarEmpty" hidden>
+      <p>No matches.</p>
+    </div>
+
+    <!-- ── User Manual sidebar nav ─────────────────────────── -->
+    <nav class="sidebar-nav" id="sidebarNavUserManual" aria-label="User Manual contents" data-mode="user-manual">
+
+      <div class="sidebar-group open" data-group="um-top">
+        <div class="sidebar-items sidebar-items-flat">
+          <a class="sidebar-link" href="#um-overview">Overview</a>
+          <a class="sidebar-link" href="#um-quickstart">Quick Start</a>
         </div>
       </div>
 
-      <div class="sidebar-divider"></div>
+      <div class="sidebar-divider" aria-hidden="true"></div>
 
-      <div class="sidebar-group open" data-group="readers">
-        <div class="sidebar-group-label" role="button">
-          For Visitors
-          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg>
-        </div>
+      <div class="sidebar-group open" data-group="um-visitors">
+        <h2 class="sidebar-group-label" role="button" tabindex="0" aria-expanded="true">
+          <a class="sidebar-group-anchor" href="#um-visitors">For Readers</a>
+          <svg class="sidebar-group-chev" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><polyline points="9 18 15 12 9 6"/></svg>
+        </h2>
         <div class="sidebar-items">
-          <a class="sidebar-link" href="#reading-articles">Reading Articles</a>
-          <a class="sidebar-link" href="#search">Searching Articles</a>
-          <a class="sidebar-link" href="#registration">Registration &amp; Login</a>
+          <a class="sidebar-link sub" href="#um-visitors-reading">Reading &amp; Article View</a>
+          <a class="sidebar-link sub" href="#um-visitors-search">Search</a>
+          <a class="sidebar-link sub" href="#um-visitors-account">Register &amp; Sign In</a>
         </div>
       </div>
 
-      <div class="sidebar-divider"></div>
-
-      <div class="sidebar-group open" data-group="authors">
-        <div class="sidebar-group-label" role="button">
-          For Authors
-          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg>
-        </div>
+      <div class="sidebar-group open" data-group="um-authors">
+        <h2 class="sidebar-group-label" role="button" tabindex="0" aria-expanded="true">
+          <a class="sidebar-group-anchor" href="#um-authors">For Authors</a>
+          <svg class="sidebar-group-chev" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><polyline points="9 18 15 12 9 6"/></svg>
+        </h2>
         <div class="sidebar-items">
-          <a class="sidebar-link" href="#author-approval">Getting Approved</a>
-          <a class="sidebar-link" href="#writing-articles">Writing Articles</a>
-          <a class="sidebar-link sub" href="#editor-blocks">Editor.js Blocks</a>
-          <a class="sidebar-link sub" href="#publish-toggle">Draft vs Published</a>
-          <a class="sidebar-link" href="#managing-articles">Managing Articles</a>
-          <a class="sidebar-link" href="#user-profile">Your Profile</a>
+          <a class="sidebar-link sub" href="#um-authors-approval">Account Approval</a>
+          <a class="sidebar-link sub" href="#um-authors-write">Writing with Editor.js</a>
+          <a class="sidebar-link sub" href="#um-authors-drafts">Drafts vs Published</a>
+          <a class="sidebar-link sub" href="#um-authors-manage">Editing &amp; Deleting</a>
+          <a class="sidebar-link sub" href="#um-authors-profile">Your Profile</a>
         </div>
       </div>
 
-      <div class="sidebar-divider"></div>
-
-      <div class="sidebar-group open" data-group="admin">
-        <div class="sidebar-group-label" role="button">
-          For Admins
-          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg>
-        </div>
+      <div class="sidebar-group open" data-group="um-admins">
+        <h2 class="sidebar-group-label" role="button" tabindex="0" aria-expanded="true">
+          <a class="sidebar-group-anchor" href="#um-admins">For Admins</a>
+          <svg class="sidebar-group-chev" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><polyline points="9 18 15 12 9 6"/></svg>
+        </h2>
         <div class="sidebar-items">
-          <a class="sidebar-link" href="#admin-panel">Admin Panel</a>
-          <a class="sidebar-link" href="#user-management">User Management</a>
-          <a class="sidebar-link" href="#article-management">Article Management</a>
-          <a class="sidebar-link" href="#theme-management">Theme Management</a>
-          <a class="sidebar-link" href="#site-settings">Site Settings</a>
-          <a class="sidebar-link" href="#comment-moderation">Comment Moderation</a>
+          <a class="sidebar-link sub" href="#um-admins-dashboard">Admin Dashboard</a>
+          <a class="sidebar-link sub" href="#um-admins-users">User Management</a>
+          <a class="sidebar-link sub" href="#um-admins-themes">Theme Management</a>
+          <a class="sidebar-link sub" href="#um-admins-settings">Site Settings</a>
+          <a class="sidebar-link sub" href="#um-admins-moderation">Content Moderation</a>
         </div>
       </div>
 
-      <div class="sidebar-divider"></div>
-
-      <div class="sidebar-group open" data-group="deploy">
-        <div class="sidebar-group-label" role="button">
-          Deployment
-          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg>
-        </div>
+      <div class="sidebar-group open" data-group="um-deploy">
+        <h2 class="sidebar-group-label" role="button" tabindex="0" aria-expanded="true">
+          <a class="sidebar-group-anchor" href="#um-deploy">Deployment for Operators</a>
+          <svg class="sidebar-group-chev" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><polyline points="9 18 15 12 9 6"/></svg>
+        </h2>
         <div class="sidebar-items">
-          <a class="sidebar-link" href="#deployment">Overview</a>
-          <a class="sidebar-link" href="#docker-compose">Docker Compose (local)</a>
-          <a class="sidebar-link" href="#render-deploy">Render Blueprint</a>
-          <a class="sidebar-link sub" href="#render-wire-urls">Wire URLs</a>
-          <a class="sidebar-link sub" href="#render-first-admin">First Admin</a>
-          <a class="sidebar-link" href="#configuration">Environment Variables</a>
+          <a class="sidebar-link sub" href="#um-deploy-render">Deploy on Render (Web Service)</a>
+          <a class="sidebar-link sub" href="#um-deploy-docker">Self-host with Docker</a>
+          <a class="sidebar-link sub" href="#um-deploy-env">Environment Variables</a>
+          <a class="sidebar-link sub" href="#um-deploy-admin">Bootstrapping the First Admin</a>
+          <a class="sidebar-link sub" href="#um-deploy-uploads">Persistent Uploads &amp; Backups</a>
+          <a class="sidebar-link sub" href="#um-deploy-trouble">Troubleshooting Production</a>
         </div>
       </div>
 
-      <div class="sidebar-divider"></div>
+      <div class="sidebar-divider" aria-hidden="true"></div>
 
-      <div class="sidebar-group open" data-group="ref">
-        <div class="sidebar-group-label" role="button">
-          Reference
-          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg>
-        </div>
-        <div class="sidebar-items">
-          <a class="sidebar-link" href="#user-roles">User Role Matrix</a>
-          <a class="sidebar-link" href="#api-overview">API Overview</a>
-          <a class="sidebar-link" href="#troubleshooting">Troubleshooting</a>
+      <div class="sidebar-group open" data-group="um-faq">
+        <div class="sidebar-items sidebar-items-flat">
+          <a class="sidebar-link" href="#um-faq">FAQ</a>
         </div>
       </div>
+
     </nav>
+
+    <!-- ── Contribute sidebar nav ─────────────────────────── -->
+    <nav class="sidebar-nav" id="sidebarNavContribute" aria-label="Contribute contents" data-mode="contribute" hidden>
+
+      <div class="sidebar-group open" data-group="cg-top">
+        <div class="sidebar-items sidebar-items-flat">
+          <a class="sidebar-link" href="#cg-overview">Project Overview</a>
+          <a class="sidebar-link" href="#cg-stack">Tech Stack</a>
+        </div>
+      </div>
+
+      <div class="sidebar-divider" aria-hidden="true"></div>
+
+      <div class="sidebar-group open" data-group="cg-architecture">
+        <h2 class="sidebar-group-label" role="button" tabindex="0" aria-expanded="true">
+          <a class="sidebar-group-anchor" href="#cg-architecture">Architecture</a>
+          <svg class="sidebar-group-chev" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><polyline points="9 18 15 12 9 6"/></svg>
+        </h2>
+        <div class="sidebar-items">
+          <a class="sidebar-link sub" href="#cg-architecture-be">Backend Layering</a>
+          <a class="sidebar-link sub" href="#cg-architecture-fe">Frontend Layering</a>
+          <a class="sidebar-link sub" href="#cg-architecture-auth">Auth &amp; JWT Flow</a>
+          <a class="sidebar-link sub" href="#cg-architecture-themes">Theme System</a>
+          <a class="sidebar-link sub" href="#cg-architecture-settings">Site Settings &amp; Singletons</a>
+          <a class="sidebar-link sub" href="#cg-architecture-deploy">Single-Image Deploy Topology</a>
+        </div>
+      </div>
+
+      <div class="sidebar-group open" data-group="cg-setup">
+        <h2 class="sidebar-group-label" role="button" tabindex="0" aria-expanded="true">
+          <a class="sidebar-group-anchor" href="#cg-setup">Local Setup</a>
+          <svg class="sidebar-group-chev" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><polyline points="9 18 15 12 9 6"/></svg>
+        </h2>
+        <div class="sidebar-items">
+          <a class="sidebar-link sub" href="#cg-setup-prereqs">Prerequisites</a>
+          <a class="sidebar-link sub" href="#cg-setup-backend">Backend (Python + uv)</a>
+          <a class="sidebar-link sub" href="#cg-setup-frontend">Frontend (Node + Next.js)</a>
+          <a class="sidebar-link sub" href="#cg-setup-db">Database (SQLite or Postgres)</a>
+          <a class="sidebar-link sub" href="#cg-setup-docker">Docker Compose (full stack)</a>
+        </div>
+      </div>
+
+      <div class="sidebar-divider" aria-hidden="true"></div>
+
+      <div class="sidebar-group open" data-group="cg-mid">
+        <div class="sidebar-items sidebar-items-flat">
+          <a class="sidebar-link" href="#cg-tour">Code Tour</a>
+          <a class="sidebar-link" href="#cg-gotchas">Gotchas — Must Read</a>
+        </div>
+      </div>
+
+      <div class="sidebar-group open" data-group="cg-howto">
+        <h2 class="sidebar-group-label" role="button" tabindex="0" aria-expanded="true">
+          <a class="sidebar-group-anchor" href="#cg-howto">How To</a>
+          <svg class="sidebar-group-chev" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><polyline points="9 18 15 12 9 6"/></svg>
+        </h2>
+        <div class="sidebar-items">
+          <a class="sidebar-link sub" href="#cg-howto-route">Add a Backend Route</a>
+          <a class="sidebar-link sub" href="#cg-howto-page">Add a Frontend Page</a>
+          <a class="sidebar-link sub" href="#cg-howto-migration">Write a Database Migration</a>
+          <a class="sidebar-link sub" href="#cg-howto-theme">Build &amp; Test a Theme</a>
+        </div>
+      </div>
+
+      <div class="sidebar-divider" aria-hidden="true"></div>
+
+      <div class="sidebar-group open" data-group="cg-end">
+        <div class="sidebar-items sidebar-items-flat">
+          <a class="sidebar-link" href="#cg-api">API Reference</a>
+          <a class="sidebar-link" href="#cg-cloud">Cloud Deployment for Forks</a>
+          <a class="sidebar-link" href="#cg-pr">Submitting a Pull Request</a>
+          <a class="sidebar-link" href="#cg-coc">Code of Conduct</a>
+        </div>
+      </div>
+
+    </nav>
+
   </aside>
 
-  <!-- Content -->
-  <main class="docs-content" id="docsContent">
+  <!-- ── Main content ──────────────────────────────────────── -->
+  <main class="docs-content" id="mainContent">
 
-    <!-- GETTING STARTED ──────────────────────────────────── -->
-    <section id="overview">
-      <h1>User Manual</h1>
-      <p>Paper Blog is an open-source, full-stack blog platform built with <strong>FastAPI</strong> (backend) and <strong>Next.js 16</strong> (frontend). Its defining feature is <strong>live theme switching</strong>: an admin pastes any external CSS URL and the site's appearance changes instantly for all visitors — no redeploy required.</p>
-      <p>This manual covers everything from first run to production deployment.</p>
+    <div
+      class="docs-mode-panel"
+      data-mode="user-manual"
+      id="modePanelUserManual"
+      role="tabpanel"
+      aria-labelledby="modeTabUserManual"
+    >
+      <section id="um-overview">
+  <h1>User Manual</h1>
+  <p>Paper Blog is an open-source blog platform built on <strong>FastAPI</strong> and <strong>Next.js 16</strong>. It ships with a rich block editor (Editor.js), role-based authentication, live theme switching, and a built-in admin panel — all packaged so a single operator can run a small publication without writing code.</p>
+  <p>This manual is for people <em>using</em> a deployed instance. It is split into four parts: <strong>Readers</strong> (anyone visiting the site), <strong>Authors</strong> (people writing posts), <strong>Admins</strong> (the people approving authors and configuring the site), and <strong>Operators</strong> (the person who deployed the thing). Pick the section that matches your hat.</p>
+</section>
 
-      <div class="callout callout-info">
-        <span class="callout-icon">ℹ️</span>
-        <div class="callout-body">
-          <strong>API documentation</strong>
-          The backend exposes interactive API docs at <code>http://localhost:8000/docs</code> (Swagger UI) and <code>http://localhost:8000/redoc</code> (ReDoc) when running locally.
-        </div>
-      </div>
-    </section>
+<section id="um-quickstart">
+  <h2>Quick Start</h2>
+  <p>If you have just landed on a deployed Paper Blog, here is the shortest path to participating.</p>
+  <ol>
+    <li>Open the site URL — the home page lists the most recent published articles.</li>
+    <li>Click any title to read the full article. No account needed.</li>
+    <li>Use the search bar (or visit <code>/search-article</code>) to find articles by title.</li>
+    <li>To leave a like or comment, register at <code>/register</code> with your email and a password.</li>
+    <li>After registering you will see a "pending" message — your account is inactive until an admin approves it.</li>
+    <li>Once approved, sign in at <code>/login</code>. Your token is stored in <code>localStorage</code> and lasts one hour.</li>
+    <li>If the admin also gave you the <code>author</code> role, the navigation will expose <strong>Write</strong> and <strong>Dashboard</strong>.</li>
+    <li>Admins land on <code>/admin</code> after sign-in.</li>
+  </ol>
+</section>
 
-    <section id="prerequisites">
-      <h2>Prerequisites</h2>
-      <p>You need two tools installed before running the project: <code>uv</code> for the Python backend and Node.js ≥ 20.9.0 for the frontend.</p>
-    </section>
+<section id="um-visitors">
+  <h2>For Readers</h2>
+  <p>You can read every published article without an account. Likes, comments, and bookmarks all require sign-in, but nothing about reading does.</p>
+</section>
 
-    <section id="backend-prereq">
-      <h3>Backend — uv</h3>
-      <p>The backend uses <a href="https://github.com/astral-sh/uv" target="_blank" rel="noopener"><code>uv</code></a> to manage the Python environment. Install it with:</p>
-      <div class="code-block">
-        <div class="code-block-header"><span class="code-lang">bash</span><button class="copy-btn" data-copy="curl -LsSf https://astral.sh/uv/install.sh | sh"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg> Copy</button></div>
-        <pre>curl -LsSf https://astral.sh/uv/install.sh | sh</pre>
-      </div>
-      <p>Verify with <code>uv --version</code>. Python 3.12+ is required (managed automatically by uv).</p>
-    </section>
+<section id="um-visitors-reading">
+  <h3>Reading &amp; Article View</h3>
+  <p>The home page (<code>/</code>) shows <strong>only published articles</strong>, ordered newest first, paginated <strong>20 per page</strong>. Drafts never appear here, regardless of who wrote them.</p>
+  <p>Each article page is a three-column reading view:</p>
+  <ul>
+    <li><strong>Title</strong>, byline (author name + avatar), publication date, computed read time, and word count.</li>
+    <li>A <strong>table of contents</strong> rail on the left that auto-builds from the article's headings.</li>
+    <li>A <strong>reading-progress bar</strong> at the very top of the page that fills as you scroll.</li>
+    <li>A right-side rail with <strong>Bookmark</strong>, <strong>Share</strong>, and the read-time badge.</li>
+    <li>A <strong>Reactions</strong> section (likes) and a threaded <strong>Comments</strong> section at the bottom.</li>
+  </ul>
+  <p>Articles also emit JSON-LD structured data, so they show up cleanly in search engines and link previews.</p>
+  <div class="callout callout-info">
+    <span class="callout-icon">i</span>
+    <div class="callout-body">
+      <strong>Anonymous reading is fine.</strong>
+      You can read, browse, and search without logging in. Liking and commenting are the first things that ask for an account.
+    </div>
+  </div>
+</section>
 
-    <section id="frontend-prereq">
-      <h3>Frontend — Node.js ≥ 20.9.0</h3>
-      <p>Next.js 16 requires Node.js 20.9.0 or higher. Use <a href="https://github.com/nvm-sh/nvm" target="_blank" rel="noopener">nvm</a> to manage versions — the system Node from apt is often v18 which won't work.</p>
-      <div class="code-block">
-        <div class="code-block-header"><span class="code-lang">bash</span><button class="copy-btn" data-copy="curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.40.0/install.sh | bash&#10;source ~/.bashrc&#10;nvm install 24&#10;nvm use 24"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2 2v1"/></svg> Copy</button></div>
-        <pre><span style="color: var(--ink-4)"># Install nvm</span>
-curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.40.0/install.sh | bash
-source ~/.bashrc
+<section id="um-visitors-search">
+  <h3>Search</h3>
+  <p>The search page lives at <code>/search-article</code>. It is a <strong>title-only</strong>, case-insensitive substring match — typing <code>fast</code> matches an article called "FastAPI Tips" but not one whose title is "Speedy Servers".</p>
+  <p>Under the hood it calls <code>GET /api/v1/search-articles?title=…</code>. Search returns up to a single page of matching published articles in one shot — there is no pagination on the search endpoint, so very broad queries on a large site will be capped server-side.</p>
+</section>
 
-<span style="color: var(--ink-4)"># Install and use Node 24 LTS</span>
-nvm install 24
-nvm use 24</pre>
-      </div>
-      <div class="callout callout-warning">
-        <span class="callout-icon">⚠️</span>
-        <div class="callout-body">
-          <strong>nvm in non-interactive shells</strong>
-          nvm is sourced via your shell profile (<code>.bashrc</code> / <code>.zshrc</code>). It is not available in non-interactive shells unless you explicitly run <code>source ~/.nvm/nvm.sh</code> first.
-        </div>
-      </div>
-    </section>
+<section id="um-visitors-account">
+  <h3>Register &amp; Sign In</h3>
+  <p>Registration is at <code>/register</code>. You only need an email address and a password. There are no email-verification steps to clear, but there <em>is</em> an approval gate — see below.</p>
+  <p><strong>New accounts are inactive by default.</strong> The backend's <code>UserManager.on_after_register</code> hook flips <code>is_active=false</code> the moment your row is created. Until an admin activates the account, the login page rejects you with an "inactive user" / 401 error. This is by design — it stops drive-by signups from posting comments.</p>
+  <p>If the admin has switched off <code>allow_registration</code> in <strong>Site Settings</strong>, the registration link disappears and the form is hidden. Reach out to the operator if you need an account on a closed instance.</p>
+  <div class="callout callout-tip">
+    <span class="callout-icon">+</span>
+    <div class="callout-body">
+      <strong>Forgot password.</strong>
+      Use the link on the login page. In a default install, the reset token is returned in the API response (no email is sent) — the operator wires up SMTP themselves.
+    </div>
+  </div>
+</section>
 
-    <section id="getting-started">
-      <h2>Quick Start</h2>
-      <p>Clone the repository, then start the backend and frontend in two terminal tabs.</p>
-    </section>
+<section id="um-authors">
+  <h2>For Authors</h2>
+  <p>Authors are users who can create, edit, and publish articles. The path from "I just registered" to "I can publish" goes through one human gate (an admin) and two server-side checks (active flag + author role).</p>
+</section>
 
-    <section id="start-backend">
-      <h3>Start the backend</h3>
-      <p>The <code>uv</code> project root is <code>backend/</code>, so you <strong>must run from that directory</strong>.</p>
-      <div class="code-block">
-        <div class="code-block-header"><span class="code-lang">bash</span><button class="copy-btn" data-copy="cd backend&#10;uv run python main.py"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2 2v1"/></svg> Copy</button></div>
-        <pre>cd backend
-uv run python main.py</pre>
-      </div>
-      <p>On first run, <code>backend/test.db</code> (SQLite) is created automatically. The server runs on <code>http://localhost:8000</code>. To reset the database, delete <code>test.db</code> and restart.</p>
-    </section>
+<section id="um-authors-approval">
+  <h3>Account Approval</h3>
+  <p>The platform has four kinds of users, controlled by two columns on the <code>users</code> table:</p>
+  <table>
+    <thead><tr><th>Designation</th><th><code>is_active</code></th><th><code>role</code></th><th><code>is_superuser</code></th></tr></thead>
+    <tbody>
+      <tr><td>Just registered</td><td>false</td><td>guest</td><td>false</td></tr>
+      <tr><td>Reader (activated)</td><td>true</td><td>guest</td><td>false</td></tr>
+      <tr><td>Author</td><td>true</td><td>author</td><td>false</td></tr>
+      <tr><td>Admin</td><td>true</td><td>admin</td><td>true</td></tr>
+    </tbody>
+  </table>
+  <p>To <em>write</em> articles you need <strong>both</strong> <code>is_active=true</code> <strong>and</strong> <code>role</code> in <code>("author", "admin")</code>, OR you are a superuser. The author/admin gate is enforced by <code>current_author_or_admin</code> on every create and update endpoint, so no UI tricks will get you past it.</p>
+  <div class="callout callout-warning">
+    <span class="callout-icon">!</span>
+    <div class="callout-body">
+      <strong>Activation alone is not enough.</strong>
+      Clicking "Activate" in the admin user list only sets <code>is_active=true</code>. It does <strong>not</strong> change your role from <code>guest</code> to <code>author</code>. If you can log in but the dashboard 403s, ask your admin to bump your role — see the User Management section below for the exact path.
+    </div>
+  </div>
+</section>
 
-    <section id="start-frontend">
-      <h3>Start the frontend</h3>
-      <div class="code-block">
-        <div class="code-block-header"><span class="code-lang">bash</span><button class="copy-btn" data-copy="source ~/.nvm/nvm.sh&#10;nvm use 24&#10;cd frontend&#10;npm install  # first time only&#10;npm run dev"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2 2v1"/></svg> Copy</button></div>
-        <pre>source ~/.nvm/nvm.sh
-nvm use 24
-cd frontend
-npm install   <span style="color: var(--ink-4)"># first time only</span>
-npm run dev</pre>
-      </div>
-      <p>The frontend runs on <code>http://localhost:3000</code>. Both services must be running simultaneously.</p>
+<section id="um-authors-write">
+  <h3>Writing with Editor.js</h3>
+  <p>Click <strong>Write</strong> in the navigation, or go directly to <code>/create-article</code>. The screen has a plain text title field at the top and the Editor.js block editor below it. Click the <strong>+</strong> icon next to any block, or type <code>/</code> on an empty line to open the block menu.</p>
+  <p>The available block tools, registered in <code>frontend/app/components/Editorjs.js</code>:</p>
+  <table>
+    <thead><tr><th>Tool</th><th>What it does</th></tr></thead>
+    <tbody>
+      <tr><td><strong>Paragraph</strong></td><td>The default — what you get when you start typing.</td></tr>
+      <tr><td><strong>Header</strong></td><td>H1 through H6. Headings populate the table of contents on the article page.</td></tr>
+      <tr><td><strong>List</strong></td><td>Ordered or unordered.</td></tr>
+      <tr><td><strong>Quote</strong></td><td>Pull-quote with caption.</td></tr>
+      <tr><td><strong>Code</strong></td><td>Fenced code block, monospace, no language tag.</td></tr>
+      <tr><td><strong>Inline code &amp; Marker</strong></td><td>Inline formatting available from the popup toolbar inside any text block.</td></tr>
+      <tr><td><strong>Table</strong></td><td>Resizable rows and columns.</td></tr>
+      <tr><td><strong>Image</strong></td><td>URL-only. Paste a publicly reachable image URL and press Enter. There is no file upload.</td></tr>
+      <tr><td><strong>Embed</strong></td><td>YouTube, Twitter / X, CodePen, and other Editor.js-supported services.</td></tr>
+      <tr><td><strong>Delimiter</strong></td><td>Three-dot horizontal break.</td></tr>
+      <tr><td><strong>Raw HTML</strong></td><td>Drops straight HTML into the article. Use sparingly.</td></tr>
+      <tr><td><strong>Warning</strong></td><td>Boxed callout with a title and message.</td></tr>
+      <tr><td><strong>Alert</strong></td><td>Coloured alert variants (info, warning, danger, success).</td></tr>
+    </tbody>
+  </table>
+  <div class="callout callout-info">
+    <span class="callout-icon">i</span>
+    <div class="callout-body">
+      <strong>Images are URL-only.</strong>
+      The Image block expects a URL pointing at an already-hosted image. Use Imgur, Cloudinary, S3, GitHub raw, or whatever your team uses — the platform itself will not store article images.
+    </div>
+  </div>
+  <div class="callout callout-tip">
+    <span class="callout-icon">+</span>
+    <div class="callout-body">
+      <strong>Pick distinctive titles.</strong>
+      Search is title-only and the sitemap uses titles as anchor text. A unique, descriptive title helps both readers and search engines.
+    </div>
+  </div>
+</section>
 
-      <table>
-        <thead><tr><th>Service</th><th>URL</th></tr></thead>
-        <tbody>
-          <tr><td>Frontend</td><td><code>http://localhost:3000</code></td></tr>
-          <tr><td>Backend API</td><td><code>http://localhost:8000</code></td></tr>
-          <tr><td>API Docs (Swagger)</td><td><code>http://localhost:8000/docs</code></td></tr>
-        </tbody>
-      </table>
-    </section>
+<section id="um-authors-drafts">
+  <h3>Drafts vs Published</h3>
+  <p>The <strong>Published</strong> checkbox in the editor toolbar is the visibility switch. Internally it is a string column — <code>"true"</code> or <code>"false"</code> — not a boolean, so the backend does string comparisons everywhere. From your side, it is just a checkbox.</p>
+  <ul>
+    <li><strong>Draft</strong> (unchecked): visible only to you and to admins. Will not appear on <code>/</code>, in search, in the sitemap, or in RSS.</li>
+    <li><strong>Published</strong> (checked): visible to everyone, included in the home feed, search results, and <code>sitemap.xml</code>.</li>
+  </ul>
+  <p>You can flip the toggle as many times as you like — un-publishing pulls the article straight back to draft.</p>
+</section>
 
-    <!-- FOR VISITORS ─────────────────────────────────────── -->
-    <section id="reading-articles">
-      <h2>Reading Articles</h2>
-      <p>No account is needed to read. The home page (<code>/</code>) shows all published articles ordered by date with title, author, and publication date. Click any article to open the full view.</p>
-      <p>Each article page includes:</p>
+<section id="um-authors-manage">
+  <h3>Editing &amp; Deleting</h3>
+  <p>Your <strong>Dashboard</strong> at <code>/dashboard</code> lists every article you own — drafts and published, with their like and comment counts. From there:</p>
+  <ul>
+    <li>Click the title to open the live article view.</li>
+    <li>Click <strong>Edit</strong> to reopen the editor at <code>/update-article/{id}</code>.</li>
+    <li>Click <strong>Delete</strong> to remove the article permanently. There is no soft-delete or undo.</li>
+  </ul>
+  <p>Ownership is checked server-side. If you try to <code>PUT</code> or <code>DELETE</code> someone else's article you will get a 403 — not even a clever cURL gets around this. <strong>Admins</strong> can edit and delete any article via <code>/admin/articles</code>.</p>
+</section>
+
+<section id="um-authors-profile">
+  <h3>Your Profile</h3>
+  <p>Visit <code>/profile</code>. The page is split into four cards, each with its own edit modal.</p>
+  <table>
+    <thead><tr><th>Card</th><th>Fields</th></tr></thead>
+    <tbody>
+      <tr><td><strong>Basic info</strong></td><td><code>first_name</code>, <code>last_name</code>, <code>contact</code>, <code>location</code>, <code>gender</code>, <code>headline</code>, <code>bio</code></td></tr>
+      <tr><td><strong>Experience</strong></td><td>Multiple entries. Each has <code>company_name</code>, <code>designation</code>, <code>years</code>, <code>months</code>.</td></tr>
+      <tr><td><strong>Qualifications</strong></td><td>Multiple entries. Each has <code>institution</code>, <code>degree</code>, <code>field_of_study</code>, <code>year</code>.</td></tr>
+      <tr><td><strong>School Education</strong></td><td>One row per <code>grade</code> (e.g. "10th", "12th"). Saving the same grade twice updates the existing row — it is an upsert keyed on grade.</td></tr>
+    </tbody>
+  </table>
+  <p>Profile data is not exposed on the article byline today — only your email-derived display name and avatar initials show up there — but it is stored and available via the API for future use.</p>
+</section>
+
+<section id="um-admins">
+  <h2>For Admins</h2>
+  <p>Admins (users with <code>is_superuser=true</code>) get an extra panel at <code>/admin</code>. Everything in this section assumes you have already been promoted to admin — see <a href="#um-deploy-admin">Bootstrapping the First Admin</a> if not.</p>
+</section>
+
+<section id="um-admins-dashboard">
+  <h3>Admin Dashboard</h3>
+  <p>The dashboard lives at <code>/admin</code> and is the landing page for the panel. It surfaces a handful of KPIs powered by <code>GET /api/v1/admin/stats</code>:</p>
+  <ul>
+    <li><strong>Articles total</strong>, plus a split into <strong>published</strong> and <strong>draft</strong>.</li>
+    <li><strong>Users total</strong>, plus an <strong>active</strong> count (i.e. how many have been approved).</li>
+  </ul>
+  <p>From here, the side navigation routes you to Articles, Comments, Users, Theme, and Site Settings.</p>
+</section>
+
+<section id="um-admins-users">
+  <h3>User Management</h3>
+  <p>Open <strong>/admin/users</strong>. You will see a paginated table (20 per page) with email, status (Active / Pending), role badge, and an action button. The search box filters by email substring and is case-insensitive; <code>GET /api/v1/admin/users?q=…</code> does the work.</p>
+  <p>Two actions are exposed in the UI:</p>
+  <ul>
+    <li><strong>Activate</strong> — calls <code>PATCH /api/v1/admin/users/{id}/activate</code>. Sets <code>is_active=true</code>. The user can now log in.</li>
+    <li><strong>Deactivate</strong> — calls <code>PATCH /api/v1/admin/users/{id}/deactivate</code>. Sets <code>is_active=false</code>. The user's data is kept but they can no longer authenticate.</li>
+  </ul>
+  <div class="callout callout-warning">
+    <span class="callout-icon">!</span>
+    <div class="callout-body">
+      <strong>Role assignment is not in the UI.</strong>
+      The Users page does not currently expose a way to change a user's <code>role</code> from <code>guest</code> to <code>author</code>. The activate flow does not change the role either. To promote a reader to an author, run SQL directly against the database:
+    </div>
+  </div>
+  <div class="code-block">
+    <div class="code-block-header"><span class="code-lang">sql</span></div>
+    <pre>UPDATE users SET role = 'author' WHERE email = 'someone@example.com';</pre>
+  </div>
+  <p>Use <code>psql</code>, TablePlus, DBeaver, or the connection string from your hosting provider's database panel. Pair this with Activate in the UI, and the user becomes a fully working author.</p>
+</section>
+
+<section id="um-admins-themes">
+  <h3>Theme Management</h3>
+  <p>The platform's signature feature lives at <strong>/admin/theme</strong>. A theme is a row in the <code>theme_configs</code> table with a <code>name</code> and an external CSS <code>url</code>. Exactly one theme is active at a time.</p>
+  <ol>
+    <li>Click <strong>Add Theme</strong>, enter a name and a publicly reachable CSS URL, save. The theme is registered but not active.</li>
+    <li>Click <strong>Activate</strong> next to any theme. This calls <code>PUT /api/v1/admin/themes/{id}/activate</code>, which deactivates every other theme and flips this one on.</li>
+    <li>Open the public site in a new tab. The blog layout server component injects <code>&lt;link rel="stylesheet" href="{url}"&gt;</code> into <code>&lt;head&gt;</code> on every page render.</li>
+  </ol>
+  <p>The active-theme fetch is server-cached with <code>revalidate: 60</code>, so visitors will see the new theme within roughly a minute even without a hard refresh.</p>
+  <div class="callout callout-tip">
+    <span class="callout-icon">+</span>
+    <div class="callout-body">
+      <strong>Where to host the CSS.</strong>
+      Any HTTPS URL that returns a valid CSS file works. Common choices: a GitHub repo's <code>raw.githubusercontent.com</code> URL, a jsDelivr CDN URL pointing at an npm-published theme, your own static host, or a CSS gist on jsDelivr. If the URL is HTTP-only or returns non-200, the link will load but the site will fall back to base styles.
+    </div>
+  </div>
+</section>
+
+<section id="um-admins-settings">
+  <h3>Site Settings</h3>
+  <p>The settings page edits the singleton <code>SiteConfig</code> row. The same row is exposed publicly at <code>GET /api/v1/settings</code> (the frontend uses it for branding and metadata) and edited via <code>PUT /api/v1/admin/settings</code>.</p>
+  <table>
+    <thead><tr><th>Field</th><th>Used for</th></tr></thead>
+    <tbody>
+      <tr><td><code>site_name</code></td><td>Wordmark in the navbar, default <code>&lt;title&gt;</code> on every page.</td></tr>
+      <tr><td><code>site_description</code></td><td>Default meta description.</td></tr>
+      <tr><td><code>site_url</code></td><td>Canonical site origin used by <code>sitemap.xml</code> and <code>robots.txt</code>.</td></tr>
+      <tr><td><code>logo_url</code></td><td>Image shown in the navbar instead of the wordmark. Either an external URL or one returned by the upload endpoint below.</td></tr>
+      <tr><td><code>allow_registration</code></td><td>When false, the registration page and "Get started" links are hidden.</td></tr>
+      <tr><td><code>og_title</code> / <code>og_description</code> / <code>og_image_url</code></td><td>OpenGraph metadata for social link previews. Falls back to the site name / description if blank.</td></tr>
+    </tbody>
+  </table>
+  <p>To upload a logo, use the upload control on the settings page. It POSTs to <code>/api/v1/admin/upload-logo</code> and saves the file to <code>backend/uploads/</code> on the server's filesystem (served at <code>/uploads/{filename}</code>). The upload returns a path that you then save into <code>logo_url</code>.</p>
+</section>
+
+<section id="um-admins-moderation">
+  <h3>Content Moderation</h3>
+  <p>Two pages, both under <code>/admin</code>:</p>
+  <ul>
+    <li><strong>/admin/articles</strong> — every article on the site, regardless of author or publish status. Search, paginate, edit, delete. Any deletion here is permanent.</li>
+    <li><strong>/admin/comments</strong> — every comment on every article. Search by comment body or article title; delete with one click. Sorted newest first.</li>
+  </ul>
+  <p>There is currently no spam filter or rate-limit. If a deployed instance starts attracting drive-by comments, the practical mitigation is to flip <code>allow_registration</code> off and only invite the people you trust.</p>
+</section>
+
+<section id="um-deploy">
+  <h2>Deployment for Operators</h2>
+  <p>Paper Blog deploys as a single Docker image: nginx + supervisord fronting the FastAPI backend and the Next.js frontend in one container. The same image runs in <code>docker compose</code> locally and on Render. Pick whichever path matches where you want the site to live.</p>
+</section>
+
+<section id="um-deploy-render">
+  <h3>Deploy on Render (Web Service)</h3>
+  <p>This is the manual route — useful if you want to set the service up by hand instead of using the Blueprint. The repo's <code>render.yaml</code> defines the same thing declaratively if you'd rather click <strong>New + → Blueprint</strong>.</p>
+  <ol>
+    <li><strong>Create the database first.</strong> Render dashboard → <strong>New + → PostgreSQL</strong>. Name <code>blog-db</code>, region <strong>Oregon</strong>, plan <strong>Free</strong>. Wait for the Available status.</li>
+    <li><strong>Copy the Internal Database URL.</strong> From the database's Info tab, grab the <strong>Internal Connection String</strong>. It looks like <code>postgresql://blog_user:…@dpg-xxxx-a/blog_db</code>.</li>
+    <li><strong>Create the Web Service.</strong> <strong>New + → Web Service → Docker</strong>. Connect your GitHub repo. Branch: <code>master</code>. Root directory: leave blank. Dockerfile path: <code>./Dockerfile</code>. Build context: <code>.</code> (a single dot — the repo root).</li>
+    <li><strong>Add environment variables.</strong>
       <ul>
-        <li>A <strong>table of contents</strong> (hover the tab on the left to expand)</li>
-        <li>A <strong>reading progress bar</strong> at the top of the page</li>
-        <li><strong>Like</strong> and <strong>share</strong> buttons in the right rail</li>
-        <li>A <strong>comments section</strong> at the bottom (reading login-free; posting requires an account)</li>
+        <li><code>DATABASE_URL</code> — paste the Internal URL from step 2.</li>
+        <li><code>SECRET</code> — generate one with <code>openssl rand -hex 32</code>. Do not reuse the dev default.</li>
+        <li><code>FIRST_ADMIN_EMAIL</code> — optional, but the easiest way to bootstrap an admin (see below).</li>
       </ul>
-    </section>
+    </li>
+    <li><strong>Add a persistent disk.</strong> Disks tab → <strong>Add Disk</strong>. Name <code>uploads</code>, mount path <code>/app/backend/uploads</code>, size <strong>1 GB</strong>. Without this, every redeploy wipes uploaded logos.</li>
+    <li><strong>Health Check Path.</strong> Set it to <code>/healthz</code>. Nginx serves this directly without touching the backend.</li>
+    <li><strong>Create Web Service.</strong> Render builds the Dockerfile (5–10 minutes the first time) and starts the container.</li>
+  </ol>
+  <div class="callout callout-warning">
+    <span class="callout-icon">!</span>
+    <div class="callout-body">
+      <strong>Same project for the Internal URL.</strong>
+      The web service and the database must live in the same Render project (workspace) for the Internal URL hostname (<code>dpg-xxxx-a</code>) to resolve. If they are split across projects, switch <code>DATABASE_URL</code> to the <strong>External</strong> connection string instead — it is slower but works from anywhere.
+    </div>
+  </div>
+</section>
 
-    <section id="search">
-      <h2>Searching Articles</h2>
-      <p>Use the search bar in the top navigation or go to <code>/search-article</code>. Search is partial and case-insensitive — typing <code>fast</code> will match articles titled "FastAPI Tips". Only published articles appear in results.</p>
-    </section>
+<section id="um-deploy-docker">
+  <h3>Self-host with Docker</h3>
+  <p>The <code>docker-compose.yml</code> at the repo root brings up Postgres 16 and the consolidated app container. This mirrors the Render deployment exactly, but locally.</p>
+  <div class="code-block">
+    <div class="code-block-header"><span class="code-lang">bash</span></div>
+    <pre>git clone https://github.com/&lt;your-fork&gt;/blog.git
+cd blog
+docker compose up -d</pre>
+  </div>
+  <p>Once both containers are healthy, browse to <strong>http://localhost:8080</strong>. Nginx is the only public listener; the backend (8000) and frontend (3000) are not exposed.</p>
+  <p>To bootstrap the first admin via env var, set <code>FIRST_ADMIN_EMAIL</code> when bringing the stack up:</p>
+  <div class="code-block">
+    <div class="code-block-header"><span class="code-lang">bash</span></div>
+    <pre>FIRST_ADMIN_EMAIL=you@example.com docker compose up -d</pre>
+  </div>
+  <p>Register that email through the UI first so the password is hashed correctly, then restart the <code>app</code> container — the lifespan handler will promote the row.</p>
+</section>
 
-    <section id="registration">
-      <h2>Registration &amp; Login</h2>
-      <p>Go to <code>/register</code> and fill in your email and password. After submitting you'll see a <em>"Pending approval"</em> message — your account is inactive until an admin activates it.</p>
-      <p>Once approved, log in at <code>/login</code>. The JWT token is stored in <code>localStorage</code> and expires after 1 hour. Log out via the navigation bar.</p>
-      <div class="callout callout-tip">
-        <span class="callout-icon">💡</span>
-        <div class="callout-body">
-          <strong>Password reset</strong>
-          Use the "Forgot password?" link on the login page. In development the reset token is returned in the API response (no email sent). Hook up SMTP to send real reset emails.
-        </div>
-      </div>
-    </section>
+<section id="um-deploy-env">
+  <h3>Environment Variables</h3>
+  <p>The single-image build is configured entirely through environment variables. There is no file you have to edit on disk — everything passes through <code>docker run -e</code>, the Render Environment tab, or compose's <code>environment:</code> block.</p>
+  <table>
+    <thead><tr><th>Variable</th><th>Default</th><th>Purpose</th></tr></thead>
+    <tbody>
+      <tr><td><code>DATABASE_URL</code></td><td><code>sqlite+aiosqlite:///./test.db</code></td><td>Postgres or SQLite URL. Backend normalises <code>postgres://</code> / <code>postgresql://</code> to <code>postgresql+asyncpg://</code> and strips <code>ssl=</code>/<code>sslmode=</code> query params.</td></tr>
+      <tr><td><code>SECRET</code></td><td><code>dev-secret-change-me</code></td><td>JWT signing secret. <strong>Must be overridden in production.</strong> Rotating invalidates every existing token.</td></tr>
+      <tr><td><code>FIRST_ADMIN_EMAIL</code></td><td>(unset)</td><td>If set, the user with this email is promoted to <code>is_superuser=true</code>, <code>is_active=true</code>, <code>role='admin'</code> on every container start.</td></tr>
+      <tr><td><code>FRONTEND_URL</code></td><td><code>http://localhost:3000</code></td><td>CORS allow-origin. Optional in single-image mode because the browser hits the same origin as the API; set it for honesty if you front the service with a custom domain.</td></tr>
+      <tr><td><code>PORT</code></td><td><code>8080</code></td><td>The public port nginx binds to. Render overrides this automatically; leave it alone otherwise.</td></tr>
+      <tr><td><code>PYTHONUNBUFFERED</code></td><td>(unset)</td><td>Set to <code>1</code> so Python log output is live in the platform's log viewer.</td></tr>
+    </tbody>
+  </table>
+  <div class="callout callout-info">
+    <span class="callout-icon">i</span>
+    <div class="callout-body">
+      <strong>Variables you might expect to set, but shouldn't.</strong>
+      <code>NEXT_PUBLIC_API_URL</code>, <code>NEXT_PUBLIC_APP_URL</code>, <code>HOSTNAME</code>, and <code>NODE_ENV</code> are <em>intentionally</em> not exposed in the single-image build. The frontend issues relative API calls and the rest are baked in by the Dockerfile. Setting them manually creates inconsistencies.
+    </div>
+  </div>
+</section>
 
-    <!-- FOR AUTHORS ──────────────────────────────────────── -->
-    <section id="author-approval">
-      <h2>Getting Approved</h2>
-      <p>After registering, your account has the <code>guest</code> role and is inactive. An admin must activate your account from the <strong>Admin → Users</strong> panel before you can log in and write. You'll also need the <code>author</code> role (or <code>admin</code>) to access the dashboard and create articles.</p>
-      <div class="doc-steps">
-        <div class="doc-step">
-          <div class="doc-step-body">
-            <h4>Register at /register</h4>
-            <p>Submit your email and password. You'll see a pending message — you cannot log in yet.</p>
-          </div>
-        </div>
-        <div class="doc-step">
-          <div class="doc-step-body">
-            <h4>Admin activates your account</h4>
-            <p>An admin visits <strong>Admin → Users</strong>, finds your email, and clicks "Activate". Your role is updated to <code>author</code>.</p>
-          </div>
-        </div>
-        <div class="doc-step">
-          <div class="doc-step-body">
-            <h4>Log in and start writing</h4>
-            <p>Go to <code>/login</code>. You now have access to <code>/dashboard</code> and <code>/create-article</code>.</p>
-          </div>
-        </div>
-      </div>
-    </section>
-
-    <section id="writing-articles">
-      <h2>Writing Articles</h2>
-      <p>Navigate to <strong>/create-article</strong> (or click "Write" in the navigation). The editor has two parts: a plain text title field at the top and the Editor.js block editor below.</p>
-    </section>
-
-    <section id="editor-blocks">
-      <h3>Editor.js Blocks</h3>
-      <p>Click the <strong>+</strong> icon to the left of any empty block, or type <code>/</code> to open the block menu. Available block types:</p>
-      <table>
-        <thead><tr><th>Block</th><th>How to insert</th><th>Notes</th></tr></thead>
-        <tbody>
-          <tr><td><strong>Paragraph</strong></td><td>Default when you type</td><td>Standard text with inline formatting</td></tr>
-          <tr><td><strong>Heading</strong></td><td><code>/heading</code> or H1–H6 buttons</td><td>Rendered in the TOC</td></tr>
-          <tr><td><strong>List</strong></td><td><code>/list</code></td><td>Ordered or unordered</td></tr>
-          <tr><td><strong>Checklist</strong></td><td><code>/checklist</code></td><td>Interactive checkboxes in the article view</td></tr>
-          <tr><td><strong>Code</strong></td><td><code>/code</code></td><td>Fenced code block with monospace font</td></tr>
-          <tr><td><strong>Image</strong></td><td><code>/image</code></td><td>URL-based (no file upload in v1)</td></tr>
-          <tr><td><strong>Embed</strong></td><td><code>/embed</code></td><td>YouTube, Twitter, CodePen, etc.</td></tr>
-          <tr><td><strong>Quote</strong></td><td><code>/quote</code></td><td>Pull quote with styled left border</td></tr>
-          <tr><td><strong>Delimiter</strong></td><td><code>/delimiter</code></td><td>Horizontal rule / section break</td></tr>
-        </tbody>
-      </table>
-      <p>Content is saved as JSON internally — the frontend renders each block type to HTML when an article is displayed.</p>
-    </section>
-
-    <section id="publish-toggle">
-      <h3>Draft vs Published</h3>
-      <p>The <strong>Published</strong> toggle in the editor toolbar controls visibility. Drafts are only visible to the article's author and admins. Toggle it on to make an article public, off to revert to draft.</p>
-      <div class="callout callout-info">
-        <span class="callout-icon">ℹ️</span>
-        <div class="callout-body">Only <code>published = true</code> articles appear on the public home page and in search results.</div>
-      </div>
-    </section>
-
-    <section id="managing-articles">
-      <h2>Managing Articles</h2>
-      <p>Your <strong>dashboard</strong> at <code>/dashboard</code> lists all your articles with their publish status, like count, and comment count. From here you can:</p>
-      <ul>
-        <li>Click the title to open the article</li>
-        <li>Click <strong>Edit</strong> to open it in the editor</li>
-        <li>Click <strong>Delete</strong> to permanently remove it</li>
-      </ul>
-      <p>You can only manage your own articles. Admins can manage all articles from the admin panel.</p>
-    </section>
-
-    <section id="user-profile">
-      <h2>Your Profile</h2>
-      <p>Visit <code>/profile</code> to manage your personal information. The profile is divided into sections — click any row to open its edit modal:</p>
-      <ul>
-        <li><strong>Basic info</strong> — first name, last name, headline, bio</li>
-        <li><strong>Work experience</strong> — job title, company, dates, description</li>
-        <li><strong>Qualifications</strong> — certifications and credentials</li>
-        <li><strong>Education</strong> — schools by grade level (Primary → University)</li>
-      </ul>
-    </section>
-
-    <!-- FOR ADMINS ───────────────────────────────────────── -->
-    <section id="admin-panel">
-      <h2>Admin Panel</h2>
-      <p>The admin panel is at <code>/admin</code> and is only accessible to users with <code>is_superuser = true</code>. From the dashboard you can see a summary of total users, articles, and comments, then navigate to each management section.</p>
-      <div class="callout callout-warning">
-        <span class="callout-icon">⚠️</span>
-        <div class="callout-body">
-              <strong>First admin</strong>
-          The first user to register does not automatically become admin. Register an account through the UI first, then promote it to admin directly in the database — see the <a href="#render-first-admin">First Admin</a> section in Deployment.
-        </div>
-      </div>
-    </section>
-
-    <section id="user-management">
-      <h2>User Management</h2>
-      <p>Navigate to <strong>Admin → Users</strong>. You'll see a table of all registered users with email, role, and active status.</p>
-      <ul>
-        <li><strong>Activate</strong> — enables the user to log in; sets their role to <code>author</code></li>
-        <li><strong>Deactivate</strong> — blocks the user from logging in without deleting their data</li>
-      </ul>
-      <p>Role values: <code>guest</code> (default after registration), <code>author</code> (can write), <code>admin</code> (full access).</p>
-    </section>
-
-    <section id="article-management">
-      <h2>Article Management</h2>
-      <p>Navigate to <strong>Admin → Articles</strong> to see all articles across all authors. Admins can edit or delete any article regardless of ownership. The table supports sorting and pagination.</p>
-    </section>
-
-    <section id="theme-management">
-      <h2>Theme Management</h2>
-      <p>This is the platform's signature feature. Navigate to <strong>Admin → Themes</strong>.</p>
-      <div class="doc-steps">
-        <div class="doc-step">
-          <div class="doc-step-body">
-            <h4>Add a theme</h4>
-            <p>Enter a name and paste a publicly accessible CSS URL. Click <strong>Add Theme</strong>. The theme is saved but not yet active.</p>
-          </div>
-        </div>
-        <div class="doc-step">
-          <div class="doc-step-body">
-            <h4>Activate a theme</h4>
-            <p>Click <strong>Activate</strong> next to any saved theme. This deactivates all other themes and marks this one active. The change takes effect immediately — no redeploy needed.</p>
-          </div>
-        </div>
-        <div class="doc-step">
-          <div class="doc-step-body">
-            <h4>Verify the change</h4>
-            <p>Open the blog in a new tab. The new CSS is injected server-side on every page load via a <code>&lt;link&gt;</code> tag, so every visitor sees the updated look immediately.</p>
-          </div>
-        </div>
-      </div>
-      <div class="callout callout-tip">
-        <span class="callout-icon">💡</span>
-        <div class="callout-body">
-          <strong>How it works technically</strong>
-          The Next.js <code>(blog)/layout.tsx</code> server component calls <code>GET /api/v1/theme/active</code> on every request and injects <code>&lt;link rel="stylesheet" href="{url}" /&gt;</code> into <code>&lt;head&gt;</code>. No CDN or cache layer is involved — the URL is fetched fresh each time.
-        </div>
-      </div>
-    </section>
-
-    <section id="site-settings">
-      <h2>Site Settings</h2>
-      <p>Navigate to <strong>Admin → Settings</strong>. Available options:</p>
-      <table>
-        <thead><tr><th>Setting</th><th>Description</th></tr></thead>
-        <tbody>
-          <tr><td><strong>Site Name</strong></td><td>Appears in the navigation wordmark and page titles</td></tr>
-          <tr><td><strong>Logo URL</strong></td><td>URL of an image to show instead of the text wordmark (optional)</td></tr>
-          <tr><td><strong>Allow Registration</strong></td><td>Toggle off to hide the "Get started" / Register links for new users</td></tr>
-        </tbody>
-      </table>
-      <p>Settings are fetched via the public <code>GET /api/v1/settings</code> endpoint — changes take effect immediately.</p>
-    </section>
-
-    <section id="comment-moderation">
-      <h2>Comment Moderation</h2>
-      <p>Navigate to <strong>Admin → Comments</strong> to view all comments across the platform. You can search by author or article and delete any comment. The comment list is paginated and sorted by newest first.</p>
-    </section>
-
-    <!-- DEPLOYMENT ───────────────────────────────────────── -->
-    <section id="deployment">
-      <h2>Deployment</h2>
-      <p>Two deployment paths are supported: <strong>Docker Compose</strong> for local self-hosting, and <strong>Render Blueprint</strong> (<code>render.yaml</code>) for one-click cloud deployment.</p>
-    </section>
-
-    <section id="docker-compose">
-      <h2>Docker Compose — Local / Self-hosted</h2>
-      <p>The <code>docker-compose.yml</code> at the repo root runs three services: PostgreSQL 16, the FastAPI backend, and the Next.js frontend. This is the recommended path for local development and self-hosted servers.</p>
-      <div class="code-block">
-        <div class="code-block-header"><span class="code-lang">bash</span><button class="copy-btn" data-copy="docker compose up --build"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2 2v1"/></svg> Copy</button></div>
-        <pre>docker compose up --build</pre>
-      </div>
-      <table>
-        <thead><tr><th>Service</th><th>Image</th><th>Port</th></tr></thead>
-        <tbody>
-          <tr><td><code>db</code></td><td>postgres:16-alpine</td><td>5432 (internal)</td></tr>
-          <tr><td><code>backend</code></td><td>Python 3.12 + uv</td><td>8000</td></tr>
-          <tr><td><code>frontend</code></td><td>Node 24 Alpine (standalone)</td><td>3000</td></tr>
-        </tbody>
-      </table>
-    </section>
-
-    <section id="render-deploy">
-      <h2>Render — Blueprint Deployment</h2>
-      <p>The repo includes a <code>render.yaml</code> Blueprint that provisions <strong>three separate Render services</strong> in one click: a managed PostgreSQL database, the FastAPI backend (Docker), and the Next.js frontend (native Node.js build).</p>
-
-      <div class="doc-steps">
-        <div class="doc-step">
-          <div class="doc-step-body">
-            <h4>Deploy via Blueprint</h4>
-            <p>In the Render dashboard click <strong>New + → Blueprint</strong>, connect your GitHub repo, then click <strong>Apply</strong>. Render provisions all three services automatically. The first build takes 3–6 minutes.</p>
-          </div>
-        </div>
-        <div class="doc-step">
-          <div class="doc-step-body">
-            <h4>Note your service URLs</h4>
-            <p>Render may append a random suffix to service names if the plain name is already taken (e.g. <code>blog-backend-2xzu.onrender.com</code>). Note the actual URLs from each service's page before continuing.</p>
-          </div>
-        </div>
-        <div class="doc-step">
-          <div class="doc-step-body">
-            <h4>Wire the URLs (Step 2 in render-deploy.md)</h4>
-            <p>See <a href="#render-wire-urls">Wire URLs</a> below.</p>
-          </div>
-        </div>
-        <div class="doc-step">
-          <div class="doc-step-body">
-            <h4>Create the first admin</h4>
-            <p>See <a href="#render-first-admin">First Admin</a> below.</p>
-          </div>
-        </div>
-      </div>
-
-      <div class="callout callout-info">
-        <span class="callout-icon">ℹ️</span>
-        <div class="callout-body">The full step-by-step guide including post-deploy checklist is in <a href="../render-deploy.md"><code>render-deploy.md</code></a> in the repo root.</div>
-      </div>
-    </section>
-
-    <section id="render-wire-urls">
-      <h3>Wire the backend ↔ frontend URLs</h3>
-      <p>After the first deploy, each service needs to know the other's URL. Two env vars must be set manually because the URLs are only known after the services are created.</p>
-
-      <p><strong>FRONTEND_URL</strong> — tells the backend which origin to allow for CORS</p>
-      <ol>
-        <li>Copy the <strong>blog-frontend</strong> service URL (e.g. <code>https://blog-frontend-xxxx.onrender.com</code>)</li>
-        <li>Go to <strong>blog-backend → Environment</strong> tab → add <code>FRONTEND_URL = https://blog-frontend-xxxx.onrender.com</code></li>
-        <li>Save — the backend redeploys automatically</li>
-      </ol>
-
-      <p><strong>NEXT_PUBLIC_API_URL</strong> — baked into the Next.js client bundle at build time</p>
-      <ol>
-        <li>Copy the <strong>blog-backend</strong> service URL (e.g. <code>https://blog-backend-xxxx.onrender.com</code>)</li>
-        <li>Go to <strong>blog-frontend → Environment</strong> tab → update <code>NEXT_PUBLIC_API_URL = https://blog-backend-xxxx.onrender.com</code></li>
-        <li>Save — the frontend rebuilds with the correct URL baked into the bundle</li>
-      </ol>
-
-      <div class="callout callout-warning">
-        <span class="callout-icon">⚠️</span>
-        <div class="callout-body">
-          <strong>NEXT_PUBLIC_API_URL is a build-time variable.</strong> Saving it triggers a full frontend rebuild. API calls from the browser will fail until the rebuild completes and the service is live again.
-        </div>
-      </div>
-    </section>
-
-    <section id="render-first-admin">
-      <h3>First Admin User</h3>
-      <p>There is no admin account out of the box. The Render Shell (direct container access) is a paid feature, so the easiest approach is to use a PostgreSQL GUI tool such as <a href="https://tableplus.com" target="_blank" rel="noopener">TablePlus</a> (free tier is sufficient).</p>
-
-      <div class="doc-steps">
-        <div class="doc-step">
-          <div class="doc-step-body">
-            <h4>Register an account</h4>
-            <p>Go to <code>/register</code> on your deployed frontend and create the account you want to promote. This ensures the password is properly hashed by the application.</p>
-          </div>
-        </div>
-        <div class="doc-step">
-          <div class="doc-step-body">
-            <h4>Get the database connection string</h4>
-            <p>In the Render dashboard go to <strong>blog-db → Info</strong> tab → copy the <strong>External Connection String</strong> (format: <code>postgresql://blog_user:PASSWORD@HOST/blog_db</code>).</p>
-          </div>
-        </div>
-        <div class="doc-step">
-          <div class="doc-step-body">
-            <h4>Connect with TablePlus</h4>
-            <p>Open TablePlus → <strong>New Connection → PostgreSQL</strong>. Paste the connection string into the URL field. Enable <strong>SSL</strong> (Render requires it). Click <strong>Connect</strong>.</p>
-          </div>
-        </div>
-        <div class="doc-step">
-          <div class="doc-step-body">
-            <h4>Run the promotion query</h4>
-            <p>Open a new query tab (<kbd>Cmd/Ctrl+T</kbd>) and run:</p>
-            <div class="code-block">
-              <div class="code-block-header"><span class="code-lang">sql</span><button class="copy-btn" data-copy="UPDATE users&#10;SET is_superuser = true,&#10;    is_active    = true,&#10;    role         = 'admin'&#10;WHERE email = 'your@email.com';"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2 2v1"/></svg> Copy</button></div>
-              <pre>UPDATE users
-SET is_superuser = true,
-    is_active    = true,
+<section id="um-deploy-admin">
+  <h3>Bootstrapping the First Admin</h3>
+  <p>There is no admin out of the box. You have two paths to create the first one.</p>
+  <h4>Path A — <code>FIRST_ADMIN_EMAIL</code> auto-promote</h4>
+  <ol>
+    <li>Go to <code>/register</code> on the live site and create an account with the email you want to be admin. (You will see "pending approval" — that is fine.)</li>
+    <li>Set <code>FIRST_ADMIN_EMAIL</code> on the service to that exact email.</li>
+    <li>Trigger a redeploy / restart. The lifespan handler in <code>backend/app/app.py</code> finds the row and sets <code>is_superuser=true, is_active=true, role='admin'</code>.</li>
+    <li>Sign in at <code>/login</code> and visit <code>/admin</code>.</li>
+  </ol>
+  <h4>Path B — direct SQL</h4>
+  <p>Useful when you can't redeploy, or you want to avoid promoting on every boot.</p>
+  <div class="code-block">
+    <div class="code-block-header"><span class="code-lang">sql</span></div>
+    <pre>UPDATE users
+SET is_superuser = TRUE,
+    is_active    = TRUE,
     role         = 'admin'
-WHERE email = 'your@email.com';</pre>
-            </div>
-            <p>Click <strong>Commit</strong> (<kbd>Cmd/Ctrl+S</kbd>) — TablePlus does not auto-commit.</p>
+WHERE email = 'you@example.com';</pre>
+  </div>
+  <p>Run this against the database via Render's database shell, <code>psql</code> with the External URL, or any Postgres GUI (TablePlus, DBeaver). TablePlus does not auto-commit — press <kbd>Cmd</kbd>/<kbd>Ctrl</kbd>+<kbd>S</kbd> after running.</p>
+</section>
+
+<section id="um-deploy-uploads">
+  <h3>Persistent Uploads &amp; Backups</h3>
+  <p>Uploaded logos (and any future avatar uploads) are written to <code>/app/backend/uploads/</code> inside the container and served back at <code>/uploads/{filename}</code> by FastAPI's <code>StaticFiles</code> mount.</p>
+  <ul>
+    <li><strong>On Render</strong>, attach a 1 GB Disk mounted at <code>/app/backend/uploads</code> (the <code>render.yaml</code> Blueprint does this for you). Without the disk, every redeploy wipes uploads.</li>
+    <li><strong>In docker-compose</strong>, the <code>uploads</code> named volume covers the same path. <code>docker compose down</code> keeps the volume; <code>docker compose down -v</code> destroys it.</li>
+  </ul>
+  <p><strong>Database backups are your responsibility.</strong> Nothing in the app does this for you. Render's managed Postgres has a backup feature on paid plans (Settings → Backups). For self-hosted Postgres, run <code>pg_dump</code> on a cron:</p>
+  <div class="code-block">
+    <div class="code-block-header"><span class="code-lang">bash</span></div>
+    <pre>pg_dump "$DATABASE_URL" | gzip &gt; "blog-$(date +%F).sql.gz"</pre>
+  </div>
+  <div class="callout callout-warning">
+    <span class="callout-icon">!</span>
+    <div class="callout-body">
+      <strong>Free Render Postgres expires after 90 days.</strong>
+      Export your data or upgrade to the Starter plan before then, otherwise the database is deleted.
+    </div>
+  </div>
+</section>
+
+<section id="um-deploy-trouble">
+  <h3>Troubleshooting Production</h3>
+
+  <h4>1. Alembic fails with <code>socket.gaierror: Name or service not known</code></h4>
+  <p><strong>What it means.</strong> The container started, called <code>alembic upgrade head</code>, and could not resolve the hostname inside <code>DATABASE_URL</code> to an IP.</p>
+  <p><strong>Fix.</strong> If you are on Render, the most common cause is that the web service and the database are in <em>different projects</em>, so the Internal URL (<code>dpg-xxxx-a</code>) does not resolve. Either move both into the same project, or switch <code>DATABASE_URL</code> to the <strong>External</strong> connection string. The container intentionally crashes loud here rather than booting against a missing schema — that is a feature, not a bug.</p>
+
+  <h4>2. <code>nginx: "daemon" directive is duplicate</code></h4>
+  <p><strong>What it means.</strong> Something is starting nginx with both <code>daemon off</code> baked into the config <em>and</em> a <code>-g 'daemon off;'</code> CLI override. The shipped <code>nginx.conf.template</code> has <code>daemon off;</code> in the <code>http</code> block; <code>supervisord.conf</code> launches nginx without an extra <code>-g</code>.</p>
+  <p><strong>Fix.</strong> Make sure <code>deploy/supervisord.conf</code> has not been edited to add <code>-g 'daemon off;'</code> back into the <code>[program:nginx]</code> command. The correct command is <code>/usr/sbin/nginx -c /etc/nginx/nginx.conf</code>.</p>
+
+  <h4>3. Container exits before serving traffic</h4>
+  <p><strong>What it means.</strong> Either the nginx config validation (<code>nginx -t</code>) failed, or alembic crashed.</p>
+  <p><strong>Fix.</strong> Read the logs from the top. Lines tagged <code>[start.sh]</code> show progress through nginx-render → uploads-dir → alembic-migrations → supervisord-handoff. The first non-<code>[start.sh]</code> error after one of those lines is the real failure. Migration failures are intentional — the container will not boot against a broken schema.</p>
+
+  <h4>4. Free-tier sleep on Render</h4>
+  <p><strong>What it means.</strong> Render's free web services spin down after 15 minutes of inactivity. The first request after a sleep takes 30–60 seconds while the container cold-boots.</p>
+  <p><strong>Fix.</strong> Expected behaviour. Upgrade to Starter to keep the service always-on, or run a periodic external uptime monitor that pokes <code>/healthz</code> every 10 minutes. Note that this also keeps the free Postgres from idling.</p>
+
+  <h4>5. CORS errors in the browser</h4>
+  <p><strong>What it means.</strong> The backend's <code>FRONTEND_URL</code> does not match the origin the browser is calling from.</p>
+  <p><strong>Fix.</strong> In single-image mode you usually do not need <code>FRONTEND_URL</code> at all because the API and the browser share an origin. If you do set it, set it to the exact public URL of your service, scheme included, no trailing slash.</p>
+</section>
+
+<section id="um-faq">
+  <h2>FAQ</h2>
+
+  <h3>Why was my registration not approved automatically?</h3>
+  <p>By design. <code>UserManager.on_after_register</code> sets <code>is_active=false</code> on every new account so admins can vet who joins. Ask the admin to activate you, or — if you are the operator — see the bootstrap section.</p>
+
+  <h3>I was activated but still can't write articles.</h3>
+  <p>You have <code>is_active=true</code> but probably still have <code>role='guest'</code>. The "Activate" button does not change role. Get an admin to run <code>UPDATE users SET role='author' WHERE email='you@example.com';</code> against the database.</p>
+
+  <h3>How do I change a user's role from the UI?</h3>
+  <p>You can't, today. The Users panel only exposes Activate/Deactivate. Role assignment is a direct database edit. The brief on this UX has been raised; for now, SQL is the answer.</p>
+
+  <h3>Can I run this on SQLite in production?</h3>
+  <p>It works, but it's not recommended. SQLite cannot handle concurrent writers as well as Postgres, and the SQLite file lives <em>inside</em> the container by default — a stateless redeploy will erase it unless you mount the file onto a persistent disk. Use Postgres for any deployment you care about.</p>
+
+  <h3>Where do uploaded images in my articles go?</h3>
+  <p>Nowhere — the platform does not host article images. The Editor.js Image block expects a URL pointing at an already-hosted image (Imgur, S3, GitHub raw, etc.). The <em>only</em> built-in upload is the admin Logo upload, which goes to <code>/app/backend/uploads/</code>.</p>
+
+  <h3>How do I rotate <code>SECRET</code>?</h3>
+  <p>Change the env var and redeploy. <strong>Every existing JWT becomes invalid immediately</strong> — every signed-in user is logged out and has to re-authenticate. Plan to do this off-hours.</p>
+
+  <h3>How long does a session last?</h3>
+  <p>One hour. The JWT carries a 3600-second lifetime, and the frontend stores it in <code>localStorage</code> as <code>access_token</code>. There is no refresh-token flow today; users sign in again after expiry.</p>
+
+  <h3>How do I disable new registrations entirely?</h3>
+  <p><strong>Admin → Site Settings</strong>, untick <strong>Allow Registration</strong>, save. The register links disappear from the navigation and the form is hidden. The endpoint is still reachable directly, but the UI no longer advertises it.</p>
+
+  <h3>The theme I activated isn't showing for visitors.</h3>
+  <p>Either the CSS URL returned a non-200, or the URL is not HTTPS while the site is HTTPS (mixed content gets blocked). Open the URL in a browser and confirm it returns valid CSS, then give the server-side cache up to 60 seconds to revalidate.</p>
+
+  <h3>Where are the API docs?</h3>
+  <p><code>/docs</code> on your deployed origin (Swagger UI), or <code>/openapi.json</code> for the raw schema. Nginx routes both straight through to FastAPI in production, so they work everywhere the app does.</p>
+</section>
+
+      <section id="um-loading-placeholder" aria-labelledby="um-loading-h">
+        <h1 id="um-loading-h">User Manual</h1>
+        <p class="docs-lede">
+          The user manual content will be spliced in here at integration time.
+        </p>
+        <div class="callout callout-info">
+          <span class="callout-icon" aria-hidden="true">ℹ️</span>
+          <div class="callout-body">
+            <strong>Loading…</strong>
+            <p>This panel is a placeholder. The lead will replace the
+            <code>&lt;!-- INSERT:USER_MANUAL_CONTENT --&gt;</code> marker with the
+            real <code>&lt;section id="um-…"&gt;</code> blocks shortly.</p>
           </div>
         </div>
-        <div class="doc-step">
-          <div class="doc-step-body">
-            <h4>Log in</h4>
-            <p>Go to <code>/login</code> on your deployed frontend. You now have access to <code>/admin</code>.</p>
+      </section>
+    </div>
+
+    <div
+      class="docs-mode-panel"
+      data-mode="contribute"
+      id="modePanelContribute"
+      role="tabpanel"
+      aria-labelledby="modeTabContribute"
+      hidden
+    >
+      <section id="cg-overview">
+  <h2>Project Overview</h2>
+  <p>Paper is an open-source full-stack blog platform with role-based authoring, dynamic themes, and a single-container deploy story. The backend is a layered FastAPI app; the frontend is a Next.js 16 App Router project. The two ship together inside a single Docker image (nginx + supervisord) for one-step Render / VPS deploys, or you can run them split via <code>docker compose</code> against Postgres for local parity. Released under the <strong>MIT License</strong> (<code>LICENSE</code> at the repo root).</p>
+  <p>At a glance: a thin <code>api/v1/*</code> layer hands work to <code>services/*</code>, which own transactions and ownership checks against SQLAlchemy models defined in <code>app/database/db.py</code>. The frontend talks to the backend via fetch wrappers in <code>app/_lib/api_callout.js</code> and stores a JWT in <code>localStorage</code>. See <a href="#cg-stack">Tech Stack</a> and <a href="#cg-architecture">Architecture</a> for the full picture.</p>
+</section>
+
+<section id="cg-stack">
+  <h2>Tech Stack</h2>
+  <p>Pinned versions are read from <code>backend/pyproject.toml</code>, <code>frontend/package.json</code>, and the production <code>Dockerfile</code>.</p>
+  <table>
+    <thead><tr><th>Layer</th><th>Component</th><th>Version</th></tr></thead>
+    <tbody>
+      <tr><td>Backend runtime</td><td>Python</td><td>3.12+</td></tr>
+      <tr><td>Backend framework</td><td>FastAPI</td><td>0.124+</td></tr>
+      <tr><td>Auth</td><td>fastapi-users[sqlalchemy]</td><td>15.0.1+</td></tr>
+      <tr><td>ORM</td><td>SQLAlchemy (async)</td><td>2.x</td></tr>
+      <tr><td>DB driver (Postgres)</td><td>asyncpg</td><td>0.30+</td></tr>
+      <tr><td>DB driver (SQLite)</td><td>aiosqlite</td><td>0.21+</td></tr>
+      <tr><td>Migrations</td><td>Alembic</td><td>1.18+</td></tr>
+      <tr><td>ASGI server</td><td>uvicorn[standard]</td><td>0.34+</td></tr>
+      <tr><td>Package manager</td><td>uv</td><td>latest</td></tr>
+      <tr><td>Frontend runtime</td><td>Node.js</td><td>20.9+</td></tr>
+      <tr><td>Frontend framework</td><td>Next.js</td><td>16.1.0</td></tr>
+      <tr><td>UI</td><td>React</td><td>19.2.3</td></tr>
+      <tr><td>Types</td><td>TypeScript</td><td>5.x</td></tr>
+      <tr><td>Styling</td><td>Tailwind CSS</td><td>4.x</td></tr>
+      <tr><td>Editor</td><td>Editor.js</td><td>2.31+</td></tr>
+      <tr><td>Lint</td><td>ESLint</td><td>9.x</td></tr>
+      <tr><td>Reverse proxy</td><td>nginx</td><td>1.x (Alpine)</td></tr>
+      <tr><td>Process supervisor</td><td>supervisord</td><td>4.x</td></tr>
+      <tr><td>Database</td><td>PostgreSQL</td><td>16</td></tr>
+      <tr><td>Container</td><td>Docker / Docker Compose</td><td>any recent</td></tr>
+    </tbody>
+  </table>
+</section>
+
+<section id="cg-architecture">
+  <h2>Architecture</h2>
+  <p>Three boundaries to keep in mind: (1) FastAPI request handler (<code>api/v1/*</code>) — thin, no business logic; (2) service layer (<code>services/*</code>) — owns transactions, validation, ownership checks; (3) ORM (<code>database/db.py</code>) — async SQLAlchemy. The frontend is pure App Router with three route groups <code>(auth)</code> / <code>(blog)</code> / <code>(admin)</code>, a server-rendered theme + metadata pipeline, and a localStorage JWT.</p>
+</section>
+
+<section id="cg-architecture-be">
+  <h3>Backend Layering</h3>
+  <div class="code-block">
+    <div class="code-block-header"><span class="code-lang">layout</span></div>
+    <pre>HTTP request
+    │
+    ▼
+api/v1/*.py            ← thin route handlers
+    │                    Depends(...) for auth / session
+    ▼
+services/*.py          ← business logic, transactions, ownership
+    │                    raises HTTPException on bad input
+    ▼
+database/db.py         ← async SQLAlchemy models + session factory</pre>
+  </div>
+  <p>Route files: <code>articles.py</code> (CRUD, likes, comments, sitemap), <code>admin.py</code> (users, themes, stats, settings, comments, logo upload), <code>author.py</code> (author dashboard), <code>profile.py</code> (profile, experience, qualifications, school).</p>
+  <p>Service files mirror the routers: <code>services/articles.py</code>, <code>services/admin.py</code>, <code>services/theme.py</code>, <code>services/site_settings.py</code>, <code>services/profile.py</code>. Services take an <code>AsyncSession</code> as the first arg and return dicts or ORM instances. Routes never call <code>session.commit()</code> directly.</p>
+  <div class="callout callout-info">
+    <span class="callout-icon">ℹ️</span>
+    <div class="callout-body">
+      <strong>Pydantic schemas</strong>
+      Live in <code>app/models/</code> (<code>articles.py</code>, <code>theme.py</code>, <code>users.py</code>). <em>Not</em> SQLAlchemy models — those live in <code>app/database/db.py</code>. The naming overlap is unfortunate; just remember <code>app/models/</code> = Pydantic, <code>app/database/</code> = SQLAlchemy.
+    </div>
+  </div>
+</section>
+
+<section id="cg-architecture-fe">
+  <h3>Frontend Layering</h3>
+  <p>Next.js App Router with three route groups, each with its own layout and <code>globals.css</code>:</p>
+  <ul>
+    <li><code>app/(auth)/</code> — login, register, forgot-password</li>
+    <li><code>app/(blog)/</code> — public feed, article view, search, plus authenticated <code>create-article</code>, <code>update-article/[articleId]</code>, <code>dashboard</code>, <code>profile</code></li>
+    <li><code>app/(admin)/</code> — admin panel (articles, comments, users, theme, site settings) wrapped by <code>AdminGuard.js</code></li>
+  </ul>
+  <p>Shared bits:</p>
+  <ul>
+    <li><code>app/_lib/api_callout.js</code> — fetch wrapper for every backend endpoint (one function per route)</li>
+    <li><code>app/_lib/theme.ts</code> — server-side fetchers for active theme + public site config, cached with <code>next: { revalidate: 60 }</code></li>
+    <li><code>app/_lib/utility.js</code> — JWT decoding (<code>getTokenFromLocalStorage</code>) and the date formatter the backend expects</li>
+    <li><code>app/context/AuthContext.tsx</code> — auth state. On mount, reads <code>access_token</code> from localStorage and verifies it against <code>GET /users/me</code>; clears the token on failure</li>
+  </ul>
+  <p><code>NEXT_PUBLIC_API_URL</code> defaults to <code>""</code> in <code>api_callout.js</code> so production single-image deploys use relative URLs (same-origin via nginx). Server-side fetchers in <code>theme.ts</code> and <code>(blog)/layout.tsx</code> default to <code>http://localhost:8000</code> for local dev.</p>
+</section>
+
+<section id="cg-architecture-auth">
+  <h3>Auth &amp; JWT Flow</h3>
+  <div class="code-block">
+    <div class="code-block-header"><span class="code-lang">flow</span></div>
+    <pre>1. POST /auth/register                  → user created
+2. UserManager.on_after_register        → is_active = False
+3. PATCH /api/v1/admin/users/{id}/activate (admin)
+4. POST /auth/jwt/login                  → { access_token, token_type }
+5. Frontend stores access_token in localStorage
+6. AuthContext.tsx GET /users/me on every mount
+   ─ 200 → context.user populated
+   ─ 401 → token cleared, redirect to /login</pre>
+  </div>
+  <p>JWT lifetime is <strong>3600 seconds (1 hour)</strong>, signed with the <code>SECRET</code> env var (default <code>dev-secret-change-me</code> — must override in prod). See <code>backend/app/core/users.py</code>.</p>
+  <p>Three guard layers, used as FastAPI <code>Depends(...)</code>:</p>
+  <ul>
+    <li><code>current_active_user</code> — any logged-in, active user</li>
+    <li><code>current_author_or_admin</code> — 403 unless <code>is_superuser</code> or <code>role in ("author", "admin")</code></li>
+    <li><code>current_superuser</code> — admin-only routes (<code>/api/v1/admin/*</code>)</li>
+  </ul>
+  <p>Ownership is then re-checked inside services — for example <code>services/articles.py</code>:</p>
+  <div class="code-block">
+    <div class="code-block-header"><span class="code-lang">python</span></div>
+    <pre>if not user.is_superuser and post.owner_id != user.id:
+    raise HTTPException(status_code=403, detail="Not your post")</pre>
+  </div>
+</section>
+
+<section id="cg-architecture-themes">
+  <h3>Theme System</h3>
+  <p>A "theme" is just a CSS file at a public URL. Admins register a row in the <code>ThemeConfig</code> table; one row at a time may be active. The flow:</p>
+  <ol>
+    <li><code>POST /api/v1/admin/themes</code> with <code>{ name, url }</code> — creates a row</li>
+    <li><code>PUT /api/v1/admin/themes/{id}/activate</code> — flips <code>is_active</code>, clears it on every other row</li>
+    <li>Frontend <code>app/_lib/theme.ts</code> server-fetches <code>/api/v1/theme/active</code> with <code>next: { revalidate: 60 }</code></li>
+    <li><code>(blog)/layout.tsx</code> renders <code>&lt;link rel="stylesheet" href={themeUrl} /&gt;</code> in the head</li>
+  </ol>
+  <p>A change reflects within ~60 seconds (cache TTL). Commit <code>f43db54</code> added a <code>--font-body</code> CSS variable (default <code>var(--font-serif)</code>) to each route group's <code>globals.css</code> so themes can override the body typography without touching every <code>.article-body</code> rule individually.</p>
+</section>
+
+<section id="cg-architecture-settings">
+  <h3>Site Settings &amp; Singletons</h3>
+  <p><code>SiteConfig</code> is a singleton row (id = 1). Fields: <code>site_name</code>, <code>site_description</code>, <code>site_url</code>, <code>logo_url</code>, <code>allow_registration</code>, <code>og_title</code>, <code>og_description</code>, <code>og_image_url</code>.</p>
+  <p>Two endpoints:</p>
+  <ul>
+    <li><code>GET /api/v1/settings</code> — public, returns the whole row, used by the frontend to generate <code>&lt;title&gt;</code>, OpenGraph tags, etc.</li>
+    <li><code>PUT /api/v1/admin/settings</code> — superuser-only, partial update (any field may be omitted)</li>
+  </ul>
+  <p>Logo uploads go through <code>POST /api/v1/admin/upload-logo</code> (multipart) which writes to <code>backend/uploads/logo_{uuid}.{ext}</code> and returns <code>{ url: "/uploads/..." }</code>. The backend mounts that directory at <code>/uploads/</code> via <code>StaticFiles</code>; nginx forwards <code>/uploads/</code> to the backend in single-image deploys.</p>
+</section>
+
+<section id="cg-architecture-deploy">
+  <h3>Single-Image Deploy Topology</h3>
+  <p>One container, three processes managed by supervisord. Only nginx is publicly bound; uvicorn and Next.js listen on loopback.</p>
+  <div class="code-block">
+    <div class="code-block-header"><span class="code-lang">topology</span></div>
+    <pre>           ┌──────────────────────────────────────────────┐
+           │           Container (single image)            │
+           │                                                │
+public  ──▶│  nginx :$PORT (default 8080)                  │
+($PORT)    │     │                                          │
+           │     ├── /api/v1/   ┐                           │
+           │     ├── /auth/     │                           │
+           │     ├── /users/    ├──▶ 127.0.0.1:8000        │
+           │     ├── /uploads/  │      uvicorn (FastAPI)   │
+           │     ├── /docs      │                           │
+           │     └── /openapi.json                          │
+           │                                                │
+           │     └── /  (catch-all) ──▶ 127.0.0.1:3000     │
+           │                              Next.js standalone│
+           └──────────────────────────────────────────────┘</pre>
+  </div>
+  <p>Boot sequence (<code>deploy/start.sh</code>):</p>
+  <ol>
+    <li><code>envsubst '$PORT'</code> renders <code>nginx.conf.template</code> → <code>/etc/nginx/nginx.conf</code></li>
+    <li><code>nginx -t</code> validates the rendered config (loud failure)</li>
+    <li><code>mkdir -p /app/backend/uploads</code></li>
+    <li><code>uv run --no-sync alembic upgrade head</code> (skipped if <code>DATABASE_URL</code> unset)</li>
+    <li><code>exec /usr/bin/supervisord -c /deploy/supervisord.conf</code></li>
+  </ol>
+</section>
+
+<section id="cg-setup">
+  <h2>Local Setup</h2>
+  <p>Two terminal flows: native (fastest hot-reload, recommended for dev) or <code>docker compose</code> (one command, mirrors production).</p>
+</section>
+
+<section id="cg-setup-prereqs">
+  <h3>Prerequisites</h3>
+  <ul>
+    <li><strong>Python 3.12+</strong> — managed automatically by <code>uv</code></li>
+    <li><strong>Node.js 20.9+</strong> — Next.js 16 refuses lower; install via <a href="https://github.com/nvm-sh/nvm" target="_blank" rel="noopener">nvm</a></li>
+    <li><strong>uv</strong> — <code>curl -LsSf https://astral.sh/uv/install.sh | sh</code></li>
+    <li><strong>Docker</strong> (optional) — only needed for the compose flow or for running Postgres locally</li>
+    <li><strong>PostgreSQL</strong> (optional) — SQLite is the default; Postgres is closer to production</li>
+  </ul>
+</section>
+
+<section id="cg-setup-backend">
+  <h3>Backend (Python + uv)</h3>
+  <div class="code-block">
+    <div class="code-block-header"><span class="code-lang">bash</span></div>
+    <pre>cd backend
+uv run uvicorn app.app:app --reload --host 0.0.0.0 --port 8000</pre>
+  </div>
+  <p>Or just <code>uv run python main.py</code>. <strong>Must be run from <code>backend/</code></strong> — that's where <code>pyproject.toml</code> lives, and <code>uv</code> walks up from the cwd to find it. Running from repo root fails with <code>ModuleNotFoundError: No module named 'uvicorn'</code>.</p>
+  <p>Defaults: <code>DATABASE_URL=sqlite+aiosqlite:///./test.db</code> (creates <code>backend/test.db</code> on first run), <code>SECRET=dev-secret-change-me</code>. <code>backend/.env</code> is auto-loaded via <code>python-dotenv</code> — drop overrides there.</p>
+  <div class="callout callout-info">
+    <span class="callout-icon">ℹ️</span>
+    <div class="callout-body">
+      Swagger UI at <code>http://localhost:8000/docs</code>, ReDoc at <code>/redoc</code>, raw OpenAPI at <code>/openapi.json</code>.
+    </div>
+  </div>
+</section>
+
+<section id="cg-setup-frontend">
+  <h3>Frontend (Node + Next.js)</h3>
+  <div class="code-block">
+    <div class="code-block-header"><span class="code-lang">bash</span></div>
+    <pre>source ~/.nvm/nvm.sh && nvm use 20  # or 24
+cd frontend
+npm install        # first time
+npm run dev        # turbopack on :3000</pre>
+  </div>
+  <p>The browser-side fetch wrapper (<code>app/_lib/api_callout.js</code>) defaults <code>NEXT_PUBLIC_API_URL</code> to <code>""</code>, producing relative URLs. In dev that means the browser tries <code>http://localhost:3000/api/v1/...</code> — which doesn't exist. Set <code>NEXT_PUBLIC_API_URL=http://localhost:8000</code> in <code>frontend/.env.local</code>:</p>
+  <div class="code-block">
+    <div class="code-block-header"><span class="code-lang">env</span></div>
+    <pre># frontend/.env.local
+NEXT_PUBLIC_API_URL=http://localhost:8000
+NEXT_PUBLIC_APP_URL=http://localhost:3000</pre>
+  </div>
+  <p>Server-side fetchers in <code>theme.ts</code> and <code>(blog)/layout.tsx</code> already default to <code>http://localhost:8000</code>, so SSR works without that env var. CORS is handled by the <code>FRONTEND_URL</code> env var on the backend (defaults to <code>http://localhost:3000</code>).</p>
+</section>
+
+<section id="cg-setup-db">
+  <h3>Database (SQLite or Postgres)</h3>
+  <p><strong>SQLite</strong> (default, zero setup). Stored in <code>backend/test.db</code>. Reset by deleting the file.</p>
+  <div class="code-block">
+    <div class="code-block-header"><span class="code-lang">env</span></div>
+    <pre>DATABASE_URL=sqlite+aiosqlite:///./test.db</pre>
+  </div>
+  <p><strong>Postgres</strong>. Spin one up with Docker:</p>
+  <div class="code-block">
+    <div class="code-block-header"><span class="code-lang">bash</span></div>
+    <pre>docker run -d --name blog-pg \
+  -e POSTGRES_USER=blog_user \
+  -e POSTGRES_PASSWORD=blog_pass \
+  -e POSTGRES_DB=blog_db \
+  -p 5432:5432 \
+  postgres:16</pre>
+  </div>
+  <div class="code-block">
+    <div class="code-block-header"><span class="code-lang">env</span></div>
+    <pre>DATABASE_URL=postgresql+asyncpg://blog_user:blog_pass@localhost:5432/blog_db</pre>
+  </div>
+  <p>The backend's URL normaliser (<code>_async_db_url()</code> in <code>database/db.py</code>) rewrites <code>postgres://</code> and <code>postgresql://</code> to <code>postgresql+asyncpg://</code> automatically, so a Render-style <code>postgres://</code> URL works as-is. It also strips <code>ssl=</code> and <code>sslmode=</code> query params (asyncpg mishandles them) and passes SSL via <code>connect_args</code> instead.</p>
+</section>
+
+<section id="cg-setup-docker">
+  <h3>Docker Compose (full stack)</h3>
+  <div class="code-block">
+    <div class="code-block-header"><span class="code-lang">bash</span></div>
+    <pre>docker compose up -d --build
+# open http://localhost:8080</pre>
+  </div>
+  <p>Spins up Postgres 16 plus the consolidated single-image app (nginx + uvicorn + Next.js) on port <strong>8080</strong>. The <code>app</code> service depends on <code>db</code> with a healthcheck (<code>pg_isready</code>); migrations run automatically inside the container on boot.</p>
+  <div class="callout callout-warning">
+    <span class="callout-icon">⚠️</span>
+    <div class="callout-body">
+      <strong>No hot-reload</strong>
+      Compose builds the production image — code changes require <code>docker compose up --build</code>. For active development, use the bare-metal flow above.
+    </div>
+  </div>
+</section>
+
+<section id="cg-tour">
+  <h2>Code Tour</h2>
+  <p>One-liner per directory. Read top-down.</p>
+  <ul>
+    <li><code>backend/app/app.py</code> — FastAPI entry; mounts auth routers, application routers, static <code>/uploads/</code>; lifespan promotes <code>FIRST_ADMIN_EMAIL</code> on startup</li>
+    <li><code>backend/app/api/v1/</code> — thin route handlers (<code>articles</code>, <code>admin</code>, <code>author</code>, <code>profile</code>)</li>
+    <li><code>backend/app/services/</code> — business logic, transactions, ownership checks</li>
+    <li><code>backend/app/database/db.py</code> — all SQLAlchemy models + async session factory + Postgres URL normalisation</li>
+    <li><code>backend/app/core/users.py</code> — fastapi-users wiring; defines guard dependencies</li>
+    <li><code>backend/app/models/</code> — Pydantic request/response schemas (not the SQLAlchemy models)</li>
+    <li><code>backend/alembic/</code> — migration scripts (<code>versions/</code>) + env config</li>
+    <li><code>frontend/app/(auth)/</code> — login, register, forgot-password</li>
+    <li><code>frontend/app/(blog)/</code> — public + author-facing blog pages, including <code>layout.tsx</code> which injects the active theme and generates metadata</li>
+    <li><code>frontend/app/(admin)/</code> — admin panel; gated by <code>AdminGuard.js</code></li>
+    <li><code>frontend/app/_lib/</code> — fetch wrappers, server-side theme/config fetchers, JWT/date utilities</li>
+    <li><code>frontend/app/context/AuthContext.tsx</code> — auth state provider</li>
+    <li><code>deploy/</code> — <code>start.sh</code>, <code>nginx.conf.template</code>, <code>supervisord.conf</code> — only used inside the production image</li>
+    <li><code>Dockerfile</code> — three-stage build (frontend builder, backend builder, runtime image)</li>
+    <li><code>docker-compose.yml</code> — local mirror of the Render single-image deploy + Postgres</li>
+    <li><code>render.yaml</code> — Render Blueprint (web service + Postgres)</li>
+  </ul>
+</section>
+
+<section id="cg-gotchas">
+  <h2>Gotchas — Must Read</h2>
+  <ul>
+    <li><strong>Run backend from <code>backend/</code></strong>, not the repo root. <code>uv</code> won't find <code>pyproject.toml</code> otherwise.</li>
+    <li><strong><code>Post.published</code> is a <code>String</code></strong> (<code>"true"</code>/<code>"false"</code>), not a boolean. Services call <code>str(post.published).lower()</code> before saving and compare with <code>Post.published == "true"</code>. Frontend handles both <code>"true"</code> and <code>true</code>.</li>
+    <li><strong><code>ArticleBase.created_date</code> is a string</strong> in <code>"%Y-%m-%d %H:%M:%S"</code> format. The service calls <code>datetime.strptime</code> with that exact format and 400s on mismatch. Use <code>getCurrentFormattedDate()</code> from <code>frontend/app/_lib/utility.js</code>.</li>
+    <li><strong>UUIDs use <code>fastapi_users_db_sqlalchemy.generics.GUID</code></strong> (native UUID on Postgres, <code>CHAR(32)</code> on SQLite). Don't replace with <code>UUID(as_uuid=True)</code> — you'll break SQLite.</li>
+    <li><strong>New registrations are inactive by default.</strong> <code>UserManager.on_after_register</code> sets <code>is_active=False</code>; an admin must <code>PATCH /api/v1/admin/users/{id}/activate</code> before the user can log in.</li>
+    <li><strong><code>reactStrictMode: false</code></strong> in <code>frontend/next.config.ts</code> is intentional — Editor.js double-init breaks under Strict Mode. Don't re-enable.</li>
+    <li><strong>Postgres SSL params are stripped</strong> from the URL and passed via <code>connect_args</code> instead. asyncpg ignores <code>sslmode=</code> and mishandles <code>ssl=</code> in URLs. If you switch DB drivers, replicate this.</li>
+    <li><strong><code>SECRET</code> defaults to <code>dev-secret-change-me</code></strong> — must be overridden in production.</li>
+    <li><strong><code>NEXT_PUBLIC_API_URL</code> is unset in the production single-image deploy</strong> — that's deliberate. The frontend bundle uses relative URLs which nginx routes to the backend on the same origin.</li>
+  </ul>
+</section>
+
+<section id="cg-howto">
+  <h2>How To</h2>
+</section>
+
+<section id="cg-howto-route">
+  <h3>Add a Backend Route</h3>
+  <p>Walk-through: add <code>GET /api/v1/articles/{id}/word-count</code>.</p>
+  <ol>
+    <li>Add a service function in <code>backend/app/services/articles.py</code>:</li>
+  </ol>
+  <div class="code-block">
+    <div class="code-block-header"><span class="code-lang">python</span></div>
+    <pre>async def get_word_count(session: AsyncSession, article_id: str) -&gt; dict:
+    post = await session.get(Post, article_id)
+    if not post:
+        raise HTTPException(status_code=404, detail="Article not found")
+    # naive — strip Editor.js JSON and split on whitespace
+    text = post.content or ""
+    return {"id": str(post.id), "count": len(text.split())}</pre>
+  </div>
+  <ol start="2">
+    <li>Wire the route in <code>backend/app/api/v1/articles.py</code>:</li>
+  </ol>
+  <div class="code-block">
+    <div class="code-block-header"><span class="code-lang">python</span></div>
+    <pre>from app.services.articles import get_word_count as svc_get_word_count
+
+@router.get("/articles/{id}/word-count")
+async def article_word_count(
+    id: str,
+    session: AsyncSession = Depends(get_async_session),
+    user: Optional[User] = Depends(current_optional_user),
+):
+    return await svc_get_word_count(session, id)</pre>
+  </div>
+  <ol start="3">
+    <li>Add a fetch wrapper in <code>frontend/app/_lib/api_callout.js</code>:</li>
+  </ol>
+  <div class="code-block">
+    <div class="code-block-header"><span class="code-lang">javascript</span></div>
+    <pre>export async function getWordCount(id) {
+    const res = await fetch(`${API}/api/v1/articles/${id}/word-count`);
+    const data = await res.json().catch(() =&gt; null);
+    return res.ok ? { success: true, detail: data } : { success: false, detail: data };
+}</pre>
+  </div>
+  <ol start="4">
+    <li>Use it from a component (<code>"use client"</code> page or effect):</li>
+  </ol>
+  <div class="code-block">
+    <div class="code-block-header"><span class="code-lang">javascript</span></div>
+    <pre>import { getWordCount } from "@/app/_lib/api_callout";
+
+const { detail } = await getWordCount(articleId);
+console.log(detail.count);</pre>
+  </div>
+  <p>The backend hot-reloads (<code>--reload</code>); the frontend hot-reloads via Turbopack. Verify in <code>/docs</code> first, then exercise from the UI.</p>
+</section>
+
+<section id="cg-howto-page">
+  <h3>Add a Frontend Page</h3>
+  <p>Create <code>frontend/app/(blog)/stats/page.js</code>:</p>
+  <div class="code-block">
+    <div class="code-block-header"><span class="code-lang">javascript</span></div>
+    <pre>"use client";
+import { useEffect, useState } from "react";
+import { getArticles } from "@/app/_lib/api_callout";
+
+export default function StatsPage() {
+  const [state, setState] = useState({ loading: true, error: null, total: 0 });
+
+  useEffect(() =&gt; {
+    getArticles({ skip: 0, limit: 1 }).then(({ success, detail }) =&gt; {
+      if (!success) return setState({ loading: false, error: "Failed", total: 0 });
+      setState({ loading: false, error: null, total: detail.total });
+    });
+  }, []);
+
+  if (state.loading) return &lt;p&gt;Loading…&lt;/p&gt;;
+  if (state.error)   return &lt;p&gt;{state.error}&lt;/p&gt;;
+  return &lt;h1&gt;{state.total} articles published&lt;/h1&gt;;
+}</pre>
+  </div>
+  <p>It's now live at <code>http://localhost:3000/stats</code>. Add a link to it from <code>frontend/app/(blog)/components/NavLinks.js</code> (or wherever your nav lives) if you want it discoverable.</p>
+</section>
+
+<section id="cg-howto-migration">
+  <h3>Write a Database Migration</h3>
+  <div class="code-block">
+    <div class="code-block-header"><span class="code-lang">bash</span></div>
+    <pre>cd backend
+# autogenerate based on model diff
+uv run alembic revision --autogenerate -m "add tag column to posts"
+# inspect the generated file under alembic/versions/
+# apply
+uv run alembic upgrade head
+# roll back the most recent
+uv run alembic downgrade -1</pre>
+  </div>
+  <p>Test against <strong>both SQLite and Postgres</strong> before committing — autogenerate occasionally misses dialect-specific quirks (default values, JSON columns, indexed nullables). Run <code>upgrade head</code> from a fresh DB on each.</p>
+  <div class="callout callout-info">
+    <span class="callout-icon">ℹ️</span>
+    <div class="callout-body">
+      <code>app/app.py</code> also calls <code>create_db_and_tables()</code> on startup as a safety net for fresh SQLite installs. That runs <code>metadata.create_all</code> — it will <em>not</em> alter existing tables. For schema changes against an existing DB, you must write a real migration.
+    </div>
+  </div>
+</section>
+
+<section id="cg-howto-theme">
+  <h3>Build &amp; Test a Theme</h3>
+  <p>A theme is a CSS file at any reachable URL. It overrides variables and selectors defined in <code>frontend/app/(blog)/globals.css</code> (and the equivalents in <code>(auth)</code> / <code>(admin)</code>).</p>
+  <ol>
+    <li>Author a CSS file. Override CSS variables (<code>--paper</code>, <code>--ink</code>, <code>--accent</code>, etc.) and the new typography variable <code>--font-body</code> (commit <code>f43db54</code>).</li>
+    <li>Host it where the browser can reach it: GitHub raw, jsDelivr (<code>https://cdn.jsdelivr.net/gh/&lt;you&gt;/&lt;repo&gt;@main/theme.css</code>), Cloudflare Pages, an S3 bucket, anywhere.</li>
+    <li>Register it via the admin panel (<code>/admin/theme</code>) or the API:</li>
+  </ol>
+  <div class="code-block">
+    <div class="code-block-header"><span class="code-lang">bash</span></div>
+    <pre>curl -X POST http://localhost:8000/api/v1/admin/themes \
+  -H "Authorization: Bearer $TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{"name":"my-theme","url":"https://cdn.example.com/theme.css"}'</pre>
+  </div>
+  <ol start="4">
+    <li>Activate it (UI button or <code>PUT /api/v1/admin/themes/{id}/activate</code>).</li>
+    <li>The browser sees the change after the next revalidation tick (~60s) — or a hard refresh.</li>
+  </ol>
+  <p>Tip: serve the CSS locally via <code>python -m http.server</code> while iterating, then publish once it's stable.</p>
+</section>
+
+<section id="cg-api">
+  <h2>API Reference</h2>
+  <p>Generated from <code>backend/app/app.py</code> + <code>backend/app/api/v1/*.py</code>. Auth column: <code>—</code> none, <code>active</code> = <code>current_active_user</code>, <code>author/admin</code> = <code>current_author_or_admin</code>, <code>superuser</code> = <code>current_superuser</code>. The full interactive reference is at <code>/docs</code>.</p>
+  <table>
+    <thead><tr><th>Method</th><th>Path</th><th>Auth</th><th>Description</th></tr></thead>
+    <tbody>
+      <tr><td>POST</td><td><code>/auth/register</code></td><td>—</td><td>Register a new user (created inactive)</td></tr>
+      <tr><td>POST</td><td><code>/auth/jwt/login</code></td><td>—</td><td>Form-encoded login, returns access_token</td></tr>
+      <tr><td>POST</td><td><code>/auth/jwt/logout</code></td><td>active</td><td>Invalidate the current token</td></tr>
+      <tr><td>POST</td><td><code>/auth/forgot-password</code></td><td>—</td><td>Request a password reset</td></tr>
+      <tr><td>POST</td><td><code>/auth/reset-password</code></td><td>—</td><td>Reset password with the emailed token</td></tr>
+      <tr><td>POST</td><td><code>/auth/request-verify-token</code></td><td>—</td><td>Request a verification email</td></tr>
+      <tr><td>POST</td><td><code>/auth/verify</code></td><td>—</td><td>Verify email with the emailed token</td></tr>
+      <tr><td>GET</td><td><code>/users/me</code></td><td>active</td><td>Current user payload (used by AuthContext)</td></tr>
+      <tr><td>PATCH</td><td><code>/users/me</code></td><td>active</td><td>Update current user (email, password)</td></tr>
+      <tr><td>GET</td><td><code>/users/{id}</code></td><td>superuser</td><td>Inspect any user</td></tr>
+      <tr><td>PATCH</td><td><code>/users/{id}</code></td><td>superuser</td><td>Update any user</td></tr>
+      <tr><td>DELETE</td><td><code>/users/{id}</code></td><td>superuser</td><td>Delete a user</td></tr>
+      <tr><td>POST</td><td><code>/api/v1/create-article</code></td><td>author/admin</td><td>Create an article</td></tr>
+      <tr><td>GET</td><td><code>/api/v1/get-articles</code></td><td>—</td><td>Paginated list of published articles (skip, limit, q)</td></tr>
+      <tr><td>GET</td><td><code>/api/v1/search-articles</code></td><td>—</td><td>Title-only partial search</td></tr>
+      <tr><td>GET</td><td><code>/api/v1/get-article/{id}</code></td><td>—</td><td>Fetch a single article</td></tr>
+      <tr><td>PUT</td><td><code>/api/v1/update-article/{id}</code></td><td>author/admin</td><td>Update an article (ownership re-checked)</td></tr>
+      <tr><td>DELETE</td><td><code>/api/v1/delete-article/{id}</code></td><td>active</td><td>Delete (ownership re-checked)</td></tr>
+      <tr><td>POST</td><td><code>/api/v1/articles/{id}/like</code></td><td>active</td><td>Toggle like</td></tr>
+      <tr><td>GET</td><td><code>/api/v1/articles/{id}/likes</code></td><td>optional</td><td>Like count + whether current user has liked</td></tr>
+      <tr><td>GET</td><td><code>/api/v1/articles/{id}/comments</code></td><td>—</td><td>List comments on an article</td></tr>
+      <tr><td>POST</td><td><code>/api/v1/articles/{id}/comments</code></td><td>active</td><td>Post a comment</td></tr>
+      <tr><td>DELETE</td><td><code>/api/v1/articles/{id}/comments/{comment_id}</code></td><td>active</td><td>Delete own comment (or any if admin)</td></tr>
+      <tr><td>GET</td><td><code>/api/v1/sitemap/articles</code></td><td>—</td><td>Paginated sitemap entries (cached 1h)</td></tr>
+      <tr><td>GET</td><td><code>/api/v1/sitemap/meta</code></td><td>—</td><td>Sitemap totals + lastmod</td></tr>
+      <tr><td>GET</td><td><code>/api/v1/settings</code></td><td>—</td><td>Public site config (used by frontend metadata)</td></tr>
+      <tr><td>GET</td><td><code>/api/v1/theme/active</code></td><td>—</td><td>Active theme URL (or null)</td></tr>
+      <tr><td>GET</td><td><code>/api/v1/admin/users</code></td><td>superuser</td><td>List users (skip, limit, q)</td></tr>
+      <tr><td>PATCH</td><td><code>/api/v1/admin/users/{id}/activate</code></td><td>superuser</td><td>Activate a user</td></tr>
+      <tr><td>PATCH</td><td><code>/api/v1/admin/users/{id}/deactivate</code></td><td>superuser</td><td>Deactivate a user</td></tr>
+      <tr><td>GET</td><td><code>/api/v1/admin/themes</code></td><td>superuser</td><td>List registered themes</td></tr>
+      <tr><td>POST</td><td><code>/api/v1/admin/themes</code></td><td>superuser</td><td>Register a theme URL</td></tr>
+      <tr><td>PUT</td><td><code>/api/v1/admin/themes/{id}/activate</code></td><td>superuser</td><td>Activate a theme</td></tr>
+      <tr><td>DELETE</td><td><code>/api/v1/admin/themes/{id}</code></td><td>superuser</td><td>Delete a theme</td></tr>
+      <tr><td>GET</td><td><code>/api/v1/admin/stats</code></td><td>superuser</td><td>Dashboard counts (articles, users)</td></tr>
+      <tr><td>GET</td><td><code>/api/v1/admin/settings</code></td><td>superuser</td><td>Read full site config</td></tr>
+      <tr><td>PUT</td><td><code>/api/v1/admin/settings</code></td><td>superuser</td><td>Update site config (partial)</td></tr>
+      <tr><td>GET</td><td><code>/api/v1/admin/articles</code></td><td>superuser</td><td>All articles (incl. drafts)</td></tr>
+      <tr><td>GET</td><td><code>/api/v1/admin/comments</code></td><td>superuser</td><td>All comments across the site</td></tr>
+      <tr><td>POST</td><td><code>/api/v1/admin/upload-logo</code></td><td>superuser</td><td>Upload logo (multipart) → returns <code>/uploads/...</code> URL</td></tr>
+      <tr><td>GET</td><td><code>/api/v1/author/stats</code></td><td>author/admin</td><td>Counts for the current author</td></tr>
+      <tr><td>GET</td><td><code>/api/v1/author/articles</code></td><td>author/admin</td><td>Current author's articles</td></tr>
+      <tr><td>GET</td><td><code>/api/v1/author/comments</code></td><td>author/admin</td><td>Comments on current author's articles</td></tr>
+      <tr><td>GET</td><td><code>/api/v1/profile/me</code></td><td>active</td><td>Full profile (basic info + experience + qualifications + school)</td></tr>
+      <tr><td>PUT</td><td><code>/api/v1/profile/me</code></td><td>active</td><td>Update basic info (name, headline, bio, etc.)</td></tr>
+      <tr><td>POST</td><td><code>/api/v1/profile/experience</code></td><td>active</td><td>Add experience entry</td></tr>
+      <tr><td>PUT</td><td><code>/api/v1/profile/experience/{id}</code></td><td>active</td><td>Update experience entry</td></tr>
+      <tr><td>DELETE</td><td><code>/api/v1/profile/experience/{id}</code></td><td>active</td><td>Remove experience entry</td></tr>
+      <tr><td>POST</td><td><code>/api/v1/profile/qualification</code></td><td>active</td><td>Add qualification</td></tr>
+      <tr><td>PUT</td><td><code>/api/v1/profile/qualification/{id}</code></td><td>active</td><td>Update qualification</td></tr>
+      <tr><td>DELETE</td><td><code>/api/v1/profile/qualification/{id}</code></td><td>active</td><td>Remove qualification</td></tr>
+      <tr><td>POST</td><td><code>/api/v1/profile/school</code></td><td>active</td><td>Upsert school education by grade</td></tr>
+      <tr><td>DELETE</td><td><code>/api/v1/profile/school/{id}</code></td><td>active</td><td>Delete school education</td></tr>
+    </tbody>
+  </table>
+</section>
+
+<section id="cg-cloud">
+  <h2>Cloud Deployment for Forks</h2>
+  <p>Two paths once you've forked the repo. Both build the consolidated single-image container.</p>
+
+  <h3>1. Render (managed Web Service)</h3>
+  <p>The full click-by-click is in the operator manual — see <strong>User Manual → Deploy on Render</strong> (<code>#um-deploy-render</code>). The only fork-specific step is pointing the Web Service at <em>your fork's</em> repo URL instead of the upstream. Everything else (envs, Postgres add-on, <code>FIRST_ADMIN_EMAIL</code>) is identical.</p>
+
+  <h3>2. Self-hosted Docker / VPS</h3>
+  <p>Any Linux VPS with Docker installed. Five commands:</p>
+  <div class="code-block">
+    <div class="code-block-header"><span class="code-lang">bash</span></div>
+    <pre>git clone https://github.com/&lt;you&gt;/blog.git
+cd blog
+# edit docker-compose.yml — at minimum override SECRET and FIRST_ADMIN_EMAIL
+docker compose up -d --build
+# verify
+curl http://localhost:8080/healthz</pre>
+  </div>
+  <p>Point your domain's A record at the VPS, then put a TLS-terminating reverse proxy in front. <a href="https://caddyserver.com" target="_blank" rel="noopener">Caddy</a> handles certs automatically:</p>
+  <div class="code-block">
+    <div class="code-block-header"><span class="code-lang">caddyfile</span></div>
+    <pre>blog.example.com {
+    reverse_proxy localhost:8080
+    encode gzip zstd
+}</pre>
+  </div>
+  <p>Set <code>FRONTEND_URL=https://blog.example.com</code> on the <code>app</code> service so CORS allows your real origin. Bind Postgres to a non-public network if you don't want it reachable from outside the host.</p>
+</section>
+
+<section id="cg-pr">
+  <h2>Submitting a Pull Request</h2>
+  <ol>
+    <li><strong>Fork</strong> the repo on GitHub.</li>
+    <li><strong>Branch</strong> off <code>master</code>: <code>feature/add-tag-support</code>, <code>fix/sitemap-cache-header</code>, <code>docs/&lt;…&gt;</code>. One concern per branch.</li>
+    <li><strong>Commit.</strong> Subject line ≤ 72 chars, imperative, lower-case verb. Examples: <code>add tag column to posts</code>, <code>fix sitemap cache TTL</code>. Body wraps at 72 cols and explains <em>why</em>, not what.</li>
+    <li><strong>Lint &amp; migrate before pushing.</strong></li>
+  </ol>
+  <div class="code-block">
+    <div class="code-block-header"><span class="code-lang">bash</span></div>
+    <pre>cd frontend && npm run lint
+cd ../backend && uv run alembic upgrade head    # against a fresh DB</pre>
+  </div>
+  <ol start="5">
+    <li><strong>Push</strong> to your fork and open a PR against <code>master</code>.</li>
+    <li><strong>PR body must include:</strong>
+      <ul>
+        <li>What changed (bullet list)</li>
+        <li>Why — what problem does this solve, what's the alternative</li>
+        <li>Screenshots / GIFs for any UI change</li>
+        <li>Test plan — a checkbox list of manual steps to verify the change</li>
+        <li>Migration impact (yes/no — if yes, link the alembic file)</li>
+      </ul>
+    </li>
+  </ol>
+  <p>Keep PRs small and focused. A 60-line PR will be reviewed today; a 600-line one may sit. If a refactor and a feature are tangled, split them.</p>
+  <div class="callout callout-info">
+    <span class="callout-icon">ℹ️</span>
+    <div class="callout-body">
+      <strong>No automated test suite yet</strong>
+      The repo currently relies on manual verification and CI lint only. Adding pytest for the backend and Playwright for the frontend is welcome — pick a slice and PR it.
+    </div>
+  </div>
+</section>
+
+<section id="cg-coc">
+  <h2>Code of Conduct</h2>
+  <p>We follow the <a href="https://www.contributor-covenant.org/version/2/1/code_of_conduct/" target="_blank" rel="noopener">Contributor Covenant 2.1</a> — see <code>CODE_OF_CONDUCT.md</code> at the repo root for the full text. <strong>TL;DR:</strong> be respectful, assume good faith, focus on the code. Disagreement is fine; personal attacks, harassment, and discriminatory language are not. Maintainers will enforce this; report incidents privately to the email listed in <code>CODE_OF_CONDUCT.md</code>.</p>
+</section>
+
+      <section id="cg-loading-placeholder" aria-labelledby="cg-loading-h">
+        <h1 id="cg-loading-h">Contribute</h1>
+        <p class="docs-lede">
+          The contributor guide will be spliced in here at integration time.
+        </p>
+        <div class="callout callout-tip">
+          <span class="callout-icon" aria-hidden="true">💡</span>
+          <div class="callout-body">
+            <strong>Loading…</strong>
+            <p>This panel is a placeholder. The lead will replace the
+            <code>&lt;!-- INSERT:CONTRIBUTE_CONTENT --&gt;</code> marker with the
+            real <code>&lt;section id="cg-…"&gt;</code> blocks shortly.</p>
           </div>
         </div>
-      </div>
-    </section>
-
-    <section id="configuration">
-      <h2>Environment Variables</h2>
-      <p>For local development, create a <code>backend/.env</code> file. On Render, all variables are set in the <strong>Environment</strong> tab of each service.</p>
-
-      <h3>Backend</h3>
-      <table>
-        <thead><tr><th>Variable</th><th>Default</th><th>Description</th></tr></thead>
-        <tbody>
-          <tr><td><code>DATABASE_URL</code></td><td><code>sqlite+aiosqlite:///./test.db</code></td><td>Auto-injected by Render from the managed DB. SQLite used locally.</td></tr>
-          <tr><td><code>SECRET</code></td><td>—</td><td>JWT signing secret. Auto-generated by Render on first deploy. <strong>Must be set manually for local prod.</strong></td></tr>
-          <tr><td><code>FRONTEND_URL</code></td><td><code>http://localhost:3000</code></td><td>Allowed CORS origin. Set to the full frontend URL after deploying.</td></tr>
-        </tbody>
-      </table>
-
-      <h3>Frontend</h3>
-      <table>
-        <thead><tr><th>Variable</th><th>Default</th><th>Description</th></tr></thead>
-        <tbody>
-          <tr><td><code>NEXT_PUBLIC_API_URL</code></td><td><code>http://localhost:8000</code></td><td>Backend API base URL. Baked into the Next.js bundle at build time — requires a rebuild after changing.</td></tr>
-          <tr><td><code>NODE_ENV</code></td><td><code>production</code></td><td>Set by <code>render.yaml</code>. Do not change.</td></tr>
-          <tr><td><code>HOSTNAME</code></td><td><code>0.0.0.0</code></td><td>Set by <code>render.yaml</code>. Ensures the Next.js standalone server binds to all interfaces so Render's proxy can reach it.</td></tr>
-        </tbody>
-      </table>
-
-      <div class="callout callout-danger">
-        <span class="callout-icon">🔴</span>
-        <div class="callout-body">
-          <strong>Never commit secrets.</strong> Do not commit <code>.env</code> files. Use Render's environment variable panel or a secrets manager in production.
-        </div>
-      </div>
-    </section>
-
-    <!-- REFERENCE ────────────────────────────────────────── -->
-    <section id="user-roles">
-      <h2>User Role Matrix</h2>
-      <table>
-        <thead><tr><th>Capability</th><th>Visitor</th><th>Author</th><th>Admin</th></tr></thead>
-        <tbody>
-          <tr><td>Read published articles</td><td>✓</td><td>✓</td><td>✓</td></tr>
-          <tr><td>Search articles</td><td>✓</td><td>✓</td><td>✓</td></tr>
-          <tr><td>Like &amp; comment</td><td>✓ (logged in)</td><td>✓</td><td>✓</td></tr>
-          <tr><td>Create articles</td><td>—</td><td>✓</td><td>✓</td></tr>
-          <tr><td>Edit own articles</td><td>—</td><td>✓</td><td>✓</td></tr>
-          <tr><td>Delete own articles</td><td>—</td><td>✓</td><td>✓</td></tr>
-          <tr><td>Edit any article</td><td>—</td><td>—</td><td>✓</td></tr>
-          <tr><td>Delete any article</td><td>—</td><td>—</td><td>✓</td></tr>
-          <tr><td>Manage users</td><td>—</td><td>—</td><td>✓</td></tr>
-          <tr><td>Manage themes</td><td>—</td><td>—</td><td>✓</td></tr>
-          <tr><td>Site settings</td><td>—</td><td>—</td><td>✓</td></tr>
-          <tr><td>Moderate comments</td><td>—</td><td>—</td><td>✓</td></tr>
-        </tbody>
-      </table>
-    </section>
-
-    <section id="api-overview">
-      <h2>API Overview</h2>
-      <p>All routes are documented interactively at <code>/docs</code>. Key route groups:</p>
-      <table>
-        <thead><tr><th>Prefix</th><th>Description</th></tr></thead>
-        <tbody>
-          <tr><td><code>POST /auth/jwt/login</code></td><td>Exchange email + password for a JWT token</td></tr>
-          <tr><td><code>POST /auth/register</code></td><td>Create a new (inactive) account</td></tr>
-          <tr><td><code>GET /users/me</code></td><td>Get the currently authenticated user</td></tr>
-          <tr><td><code>/api/v1/</code> (articles)</td><td>CRUD for articles, likes, comments</td></tr>
-          <tr><td><code>/api/v1/admin/</code></td><td>User management, theme CRUD, stats, site settings</td></tr>
-          <tr><td><code>/api/v1/profile/</code></td><td>Extended user profile (bio, experience, education)</td></tr>
-          <tr><td><code>GET /api/v1/theme/active</code></td><td>Public endpoint returning the active CSS URL</td></tr>
-          <tr><td><code>GET /api/v1/settings</code></td><td>Public site config (name, logo, allow_registration)</td></tr>
-          <tr><td><code>/uploads/</code></td><td>Static files for uploaded logos</td></tr>
-        </tbody>
-      </table>
-      <p>All protected endpoints require the header <code>Authorization: Bearer &lt;token&gt;</code>.</p>
-    </section>
-
-    <section id="troubleshooting">
-      <h2>Troubleshooting</h2>
-
-      <h3>ModuleNotFoundError: No module named 'uvicorn'</h3>
-      <p><strong>Cause:</strong> You ran <code>uv run</code> from the repo root instead of <code>backend/</code>.<br><strong>Fix:</strong> <code>cd backend</code> first, then <code>uv run python main.py</code>.</p>
-
-      <h3>Node.js version error on frontend start</h3>
-      <p><strong>Cause:</strong> System Node is v18 (below the required ≥ 20.9.0).<br><strong>Fix:</strong></p>
-      <div class="code-block">
-        <div class="code-block-header"><span class="code-lang">bash</span><button class="copy-btn" data-copy="source ~/.nvm/nvm.sh && nvm use 24"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2 2v1"/></svg> Copy</button></div>
-        <pre>source ~/.nvm/nvm.sh &amp;&amp; nvm use 24</pre>
-      </div>
-
-      <h3>CORS errors in the browser</h3>
-      <p><strong>Cause:</strong> The backend's <code>FRONTEND_URL</code> doesn't match the origin the browser is sending.<br><strong>Fix:</strong> Set <code>FRONTEND_URL</code> to your exact frontend origin (e.g. <code>https://blog-frontend-xxxx.onrender.com</code>) in the backend environment on Render.</p>
-
-      <h3>Login succeeds but I'm redirected back to login</h3>
-      <p><strong>Cause:</strong> The JWT token isn't being saved to <code>localStorage</code> — this can happen if CORS credentials are misconfigured or the token response format changed.<br><strong>Fix:</strong> Open browser DevTools → Network → check the <code>/auth/jwt/login</code> response. Ensure <code>access_token</code> is present in the JSON.</p>
-
-      <h3>Theme change not visible to visitors</h3>
-      <p><strong>Cause:</strong> The CSS URL is not publicly accessible or returned a non-200 status.<br><strong>Fix:</strong> Open the URL directly in a browser and confirm it returns valid CSS. Also ensure the URL is HTTPS in production.</p>
-
-      <h3>Render — backend migration fails on first deploy</h3>
-      <p><strong>Cause:</strong> The <code>DATABASE_URL</code> Render injects uses the <code>postgres://</code> scheme, but SQLAlchemy's async engine requires <code>postgresql+asyncpg://</code>. The app normalises this automatically.<br>If you see an SSL error (<em>"certificate verify failed: self-signed certificate"</em>), ensure you are on the latest commit — earlier versions passed <code>ssl=True</code> (boolean) which triggers strict verification. The fix uses an explicit <code>ssl.SSLContext</code> with <code>CERT_NONE</code>.</p>
-
-      <h3>Render — frontend returns 502 Bad Gateway</h3>
-      <p><strong>Cause:</strong> The Next.js standalone server is binding to <code>localhost</code> instead of <code>0.0.0.0</code>, so Render's reverse proxy can't reach it.<br><strong>Fix:</strong> Ensure <code>HOSTNAME=0.0.0.0</code> is set in the <strong>blog-frontend</strong> environment — this is already included in <code>render.yaml</code>. If you added the service manually, add this variable in the Render dashboard.</p>
-
-      <h3>Render — frontend build fails with "Cannot find module 'typescript'"</h3>
-      <p><strong>Cause:</strong> <code>npm ci</code> with <code>NODE_ENV=production</code> skips devDependencies. TypeScript is a devDependency required to transpile <code>next.config.ts</code>.<br><strong>Fix:</strong> The build command in <code>render.yaml</code> uses <code>npm ci --include=dev</code> to force devDependency installation. If you see this error, confirm your <code>render.yaml</code> build command includes the <code>--include=dev</code> flag.</p>
-
-      <h3>Render — API calls return 404 after deploying</h3>
-      <p><strong>Cause:</strong> <code>NEXT_PUBLIC_API_URL</code> is baked into the Next.js bundle at build time. If it was set after the initial build or points to the wrong backend URL, all client-side API calls will fail silently.<br><strong>Fix:</strong> Update <code>NEXT_PUBLIC_API_URL</code> in the frontend environment to match your actual backend URL (including any Render suffix), then save to trigger a rebuild.</p>
-
-      <h3>Render — free tier "cold start" delay</h3>
-      <p><strong>Cause:</strong> Render free services spin down after 15 minutes of inactivity. The first request after spin-down takes 30–60 seconds.<br><strong>Fix:</strong> This is expected on the free tier. Upgrade to a paid plan to keep the service always-on, or use an external uptime monitor to keep it warm.</p>
-    </section>
-
-    <!-- Page nav -->
-    <div class="docs-nav-pages">
-      <a href="index.html" class="docs-nav-page">
-        <span>← Back to</span>
-        <strong>Marketing page</strong>
-      </a>
-      <a href="#overview" class="docs-nav-page next">
-        <span>Jump to top</span>
-        <strong>Overview ↑</strong>
-      </a>
+      </section>
     </div>
 
   </main>
-</div><!-- /docs-layout -->
 
-<!-- Back to top -->
-<button class="back-top" id="backTop" aria-label="Back to top">
-  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="18 15 12 9 6 15"/></svg>
+</div>
+
+<!-- Back-to-top floating button -->
+<button class="back-top" id="backTop" aria-label="Back to top" type="button">
+  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="18 15 12 9 6 15"/></svg>
 </button>
 
-<script src="script.js"></script>
+<script src="script.js" defer></script>
 </body>
 </html>
