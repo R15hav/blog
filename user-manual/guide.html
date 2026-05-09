@@ -63,7 +63,7 @@
         aria-controls="modePanelUserManual"
         tabindex="0"
       >
-        <span class="mode-tab-icon" aria-hidden="true">📖</span>
+        <span class="mode-tab-icon" aria-hidden="true"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2zM22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg></span>
         <span class="mode-tab-label">User Manual</span>
       </button>
       <button
@@ -76,7 +76,7 @@
         aria-controls="modePanelContribute"
         tabindex="-1"
       >
-        <span class="mode-tab-icon" aria-hidden="true">🛠️</span>
+        <span class="mode-tab-icon" aria-hidden="true"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg></span>
         <span class="mode-tab-label">Contribute</span>
       </button>
     </div>
@@ -966,7 +966,7 @@ NEXT_PUBLIC_APP_URL=http://localhost:3000</pre>
   </div>
   <p>Spins up Postgres 16 plus the consolidated single-image app (nginx + uvicorn + Next.js) on port <strong>8080</strong>. The <code>app</code> service depends on <code>db</code> with a healthcheck (<code>pg_isready</code>); migrations run automatically inside the container on boot.</p>
   <div class="callout callout-warning">
-    <span class="callout-icon">⚠️</span>
+    <span class="callout-icon" aria-hidden="true"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg></span>
     <div class="callout-body">
       <strong>No hot-reload</strong>
       Compose builds the production image — code changes require <code>docker compose up --build</code>. For active development, use the bare-metal flow above.
@@ -1280,7 +1280,7 @@ cd ../backend && uv run alembic upgrade head    # against a fresh DB</pre>
           The contributor guide will be spliced in here at integration time.
         </p>
         <div class="callout callout-tip">
-          <span class="callout-icon" aria-hidden="true">💡</span>
+          <span class="callout-icon" aria-hidden="true"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="9" y1="18" x2="15" y2="18"/><line x1="10" y1="22" x2="14" y2="22"/><path d="M15.09 14c.18-.98.65-1.74 1.41-2.5A4.65 4.65 0 0 0 18 8 6 6 0 0 0 6 8c0 1 .23 2.23 1.5 3.5A4.61 4.61 0 0 1 8.91 14"/></svg></span>
           <div class="callout-body">
             <strong>Loading…</strong>
             <p>This panel is a placeholder. The lead will replace the
