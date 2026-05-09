@@ -1,0 +1,384 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  Sitemap / search-index for the Paper Blog user-manual.
+  Generated 2026-05-09. Update <loc> base when you change hosting.
+  Run from /user-manual:  python3 ../scripts/regen-sitemap.py  (if you add one)
+-->
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+  <url>
+    <loc>https://YOUR-DOMAIN.example.com/index.html</loc>
+    <lastmod>2026-05-09</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>1.0</priority>
+  </url>
+  <url>
+    <loc>https://YOUR-DOMAIN.example.com/guide.html</loc>
+    <lastmod>2026-05-09</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.9</priority>
+  </url>
+  <url>
+    <loc>https://YOUR-DOMAIN.example.com/guide.html#um-overview</loc>
+    <lastmod>2026-05-09</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+    <!-- User Manual -->
+  </url>
+  <url>
+    <loc>https://YOUR-DOMAIN.example.com/guide.html#um-quickstart</loc>
+    <lastmod>2026-05-09</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+    <!-- Quick Start -->
+  </url>
+  <url>
+    <loc>https://YOUR-DOMAIN.example.com/guide.html#um-visitors</loc>
+    <lastmod>2026-05-09</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+    <!-- For Readers -->
+  </url>
+  <url>
+    <loc>https://YOUR-DOMAIN.example.com/guide.html#um-visitors-reading</loc>
+    <lastmod>2026-05-09</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.5</priority>
+    <!-- Reading &amp; Article View -->
+  </url>
+  <url>
+    <loc>https://YOUR-DOMAIN.example.com/guide.html#um-visitors-search</loc>
+    <lastmod>2026-05-09</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.5</priority>
+    <!-- Search -->
+  </url>
+  <url>
+    <loc>https://YOUR-DOMAIN.example.com/guide.html#um-visitors-account</loc>
+    <lastmod>2026-05-09</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.5</priority>
+    <!-- Register &amp; Sign In -->
+  </url>
+  <url>
+    <loc>https://YOUR-DOMAIN.example.com/guide.html#um-authors</loc>
+    <lastmod>2026-05-09</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+    <!-- For Authors -->
+  </url>
+  <url>
+    <loc>https://YOUR-DOMAIN.example.com/guide.html#um-authors-approval</loc>
+    <lastmod>2026-05-09</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.5</priority>
+    <!-- Account Approval -->
+  </url>
+  <url>
+    <loc>https://YOUR-DOMAIN.example.com/guide.html#um-authors-write</loc>
+    <lastmod>2026-05-09</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.5</priority>
+    <!-- Writing with Editor.js -->
+  </url>
+  <url>
+    <loc>https://YOUR-DOMAIN.example.com/guide.html#um-authors-drafts</loc>
+    <lastmod>2026-05-09</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.5</priority>
+    <!-- Drafts vs Published -->
+  </url>
+  <url>
+    <loc>https://YOUR-DOMAIN.example.com/guide.html#um-authors-manage</loc>
+    <lastmod>2026-05-09</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.5</priority>
+    <!-- Editing &amp; Deleting -->
+  </url>
+  <url>
+    <loc>https://YOUR-DOMAIN.example.com/guide.html#um-authors-profile</loc>
+    <lastmod>2026-05-09</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.5</priority>
+    <!-- Your Profile -->
+  </url>
+  <url>
+    <loc>https://YOUR-DOMAIN.example.com/guide.html#um-admins</loc>
+    <lastmod>2026-05-09</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+    <!-- For Admins -->
+  </url>
+  <url>
+    <loc>https://YOUR-DOMAIN.example.com/guide.html#um-admins-dashboard</loc>
+    <lastmod>2026-05-09</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.5</priority>
+    <!-- Admin Dashboard -->
+  </url>
+  <url>
+    <loc>https://YOUR-DOMAIN.example.com/guide.html#um-admins-users</loc>
+    <lastmod>2026-05-09</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.5</priority>
+    <!-- User Management -->
+  </url>
+  <url>
+    <loc>https://YOUR-DOMAIN.example.com/guide.html#um-admins-themes</loc>
+    <lastmod>2026-05-09</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.5</priority>
+    <!-- Theme Management -->
+  </url>
+  <url>
+    <loc>https://YOUR-DOMAIN.example.com/guide.html#um-admins-settings</loc>
+    <lastmod>2026-05-09</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.5</priority>
+    <!-- Site Settings -->
+  </url>
+  <url>
+    <loc>https://YOUR-DOMAIN.example.com/guide.html#um-admins-moderation</loc>
+    <lastmod>2026-05-09</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.5</priority>
+    <!-- Content Moderation -->
+  </url>
+  <url>
+    <loc>https://YOUR-DOMAIN.example.com/guide.html#um-deploy</loc>
+    <lastmod>2026-05-09</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+    <!-- Deployment for Operators -->
+  </url>
+  <url>
+    <loc>https://YOUR-DOMAIN.example.com/guide.html#um-deploy-render</loc>
+    <lastmod>2026-05-09</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.5</priority>
+    <!-- Deploy on Render (Web Service) -->
+  </url>
+  <url>
+    <loc>https://YOUR-DOMAIN.example.com/guide.html#um-deploy-docker</loc>
+    <lastmod>2026-05-09</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.5</priority>
+    <!-- Self-host with Docker -->
+  </url>
+  <url>
+    <loc>https://YOUR-DOMAIN.example.com/guide.html#um-deploy-env</loc>
+    <lastmod>2026-05-09</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.5</priority>
+    <!-- Environment Variables -->
+  </url>
+  <url>
+    <loc>https://YOUR-DOMAIN.example.com/guide.html#um-deploy-admin</loc>
+    <lastmod>2026-05-09</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.5</priority>
+    <!-- Bootstrapping the First Admin -->
+  </url>
+  <url>
+    <loc>https://YOUR-DOMAIN.example.com/guide.html#um-deploy-uploads</loc>
+    <lastmod>2026-05-09</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.5</priority>
+    <!-- Persistent Uploads &amp; Backups -->
+  </url>
+  <url>
+    <loc>https://YOUR-DOMAIN.example.com/guide.html#um-deploy-trouble</loc>
+    <lastmod>2026-05-09</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.5</priority>
+    <!-- Troubleshooting Production -->
+  </url>
+  <url>
+    <loc>https://YOUR-DOMAIN.example.com/guide.html#um-faq</loc>
+    <lastmod>2026-05-09</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+    <!-- FAQ -->
+  </url>
+  <url>
+    <loc>https://YOUR-DOMAIN.example.com/guide.html#cg-overview</loc>
+    <lastmod>2026-05-09</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+    <!-- Project Overview -->
+  </url>
+  <url>
+    <loc>https://YOUR-DOMAIN.example.com/guide.html#cg-stack</loc>
+    <lastmod>2026-05-09</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+    <!-- Tech Stack -->
+  </url>
+  <url>
+    <loc>https://YOUR-DOMAIN.example.com/guide.html#cg-architecture</loc>
+    <lastmod>2026-05-09</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+    <!-- Architecture -->
+  </url>
+  <url>
+    <loc>https://YOUR-DOMAIN.example.com/guide.html#cg-architecture-be</loc>
+    <lastmod>2026-05-09</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.5</priority>
+    <!-- Backend Layering -->
+  </url>
+  <url>
+    <loc>https://YOUR-DOMAIN.example.com/guide.html#cg-architecture-fe</loc>
+    <lastmod>2026-05-09</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.5</priority>
+    <!-- Frontend Layering -->
+  </url>
+  <url>
+    <loc>https://YOUR-DOMAIN.example.com/guide.html#cg-architecture-auth</loc>
+    <lastmod>2026-05-09</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.5</priority>
+    <!-- Auth &amp; JWT Flow -->
+  </url>
+  <url>
+    <loc>https://YOUR-DOMAIN.example.com/guide.html#cg-architecture-themes</loc>
+    <lastmod>2026-05-09</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.5</priority>
+    <!-- Theme System -->
+  </url>
+  <url>
+    <loc>https://YOUR-DOMAIN.example.com/guide.html#cg-architecture-settings</loc>
+    <lastmod>2026-05-09</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.5</priority>
+    <!-- Site Settings &amp; Singletons -->
+  </url>
+  <url>
+    <loc>https://YOUR-DOMAIN.example.com/guide.html#cg-architecture-deploy</loc>
+    <lastmod>2026-05-09</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.5</priority>
+    <!-- Single-Image Deploy Topology -->
+  </url>
+  <url>
+    <loc>https://YOUR-DOMAIN.example.com/guide.html#cg-setup</loc>
+    <lastmod>2026-05-09</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+    <!-- Local Setup -->
+  </url>
+  <url>
+    <loc>https://YOUR-DOMAIN.example.com/guide.html#cg-setup-prereqs</loc>
+    <lastmod>2026-05-09</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.5</priority>
+    <!-- Prerequisites -->
+  </url>
+  <url>
+    <loc>https://YOUR-DOMAIN.example.com/guide.html#cg-setup-backend</loc>
+    <lastmod>2026-05-09</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.5</priority>
+    <!-- Backend (Python + uv) -->
+  </url>
+  <url>
+    <loc>https://YOUR-DOMAIN.example.com/guide.html#cg-setup-frontend</loc>
+    <lastmod>2026-05-09</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.5</priority>
+    <!-- Frontend (Node + Next.js) -->
+  </url>
+  <url>
+    <loc>https://YOUR-DOMAIN.example.com/guide.html#cg-setup-db</loc>
+    <lastmod>2026-05-09</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.5</priority>
+    <!-- Database (SQLite or Postgres) -->
+  </url>
+  <url>
+    <loc>https://YOUR-DOMAIN.example.com/guide.html#cg-setup-docker</loc>
+    <lastmod>2026-05-09</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.5</priority>
+    <!-- Docker Compose (full stack) -->
+  </url>
+  <url>
+    <loc>https://YOUR-DOMAIN.example.com/guide.html#cg-tour</loc>
+    <lastmod>2026-05-09</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+    <!-- Code Tour -->
+  </url>
+  <url>
+    <loc>https://YOUR-DOMAIN.example.com/guide.html#cg-gotchas</loc>
+    <lastmod>2026-05-09</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+    <!-- Gotchas — Must Read -->
+  </url>
+  <url>
+    <loc>https://YOUR-DOMAIN.example.com/guide.html#cg-howto</loc>
+    <lastmod>2026-05-09</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+    <!-- How To -->
+  </url>
+  <url>
+    <loc>https://YOUR-DOMAIN.example.com/guide.html#cg-howto-route</loc>
+    <lastmod>2026-05-09</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.5</priority>
+    <!-- Add a Backend Route -->
+  </url>
+  <url>
+    <loc>https://YOUR-DOMAIN.example.com/guide.html#cg-howto-page</loc>
+    <lastmod>2026-05-09</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.5</priority>
+    <!-- Add a Frontend Page -->
+  </url>
+  <url>
+    <loc>https://YOUR-DOMAIN.example.com/guide.html#cg-howto-migration</loc>
+    <lastmod>2026-05-09</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.5</priority>
+    <!-- Write a Database Migration -->
+  </url>
+  <url>
+    <loc>https://YOUR-DOMAIN.example.com/guide.html#cg-howto-theme</loc>
+    <lastmod>2026-05-09</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.5</priority>
+    <!-- Build &amp; Test a Theme -->
+  </url>
+  <url>
+    <loc>https://YOUR-DOMAIN.example.com/guide.html#cg-api</loc>
+    <lastmod>2026-05-09</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+    <!-- API Reference -->
+  </url>
+  <url>
+    <loc>https://YOUR-DOMAIN.example.com/guide.html#cg-cloud</loc>
+    <lastmod>2026-05-09</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+    <!-- Cloud Deployment for Forks -->
+  </url>
+  <url>
+    <loc>https://YOUR-DOMAIN.example.com/guide.html#cg-pr</loc>
+    <lastmod>2026-05-09</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+    <!-- Submitting a Pull Request -->
+  </url>
+  <url>
+    <loc>https://YOUR-DOMAIN.example.com/guide.html#cg-coc</loc>
+    <lastmod>2026-05-09</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+    <!-- Code of Conduct -->
+  </url>
+</urlset>

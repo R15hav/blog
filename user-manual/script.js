@@ -17,9 +17,11 @@
   /* Early theme application — runs synchronously to avoid FOUC          */
   /* -------------------------------------------------------------------- */
   try {
+    // Default to light. Honour user's saved preference if they've toggled before;
+    // otherwise ignore OS prefers-color-scheme so first-time visitors always
+    // land on the light theme.
     var saved = localStorage.getItem("paper-theme");
-    var prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
-    var theme = saved || (prefersDark ? "dark" : "light");
+    var theme = saved === "dark" ? "dark" : "light";
     document.documentElement.setAttribute("data-theme", theme);
   } catch (_) { /* localStorage may be unavailable */ }
 })();
@@ -507,5 +509,34 @@ document.addEventListener("DOMContentLoaded", function () {
       smoothScrollTo(id);
       setActiveLink(id);
     }
+  });
+
+  /* ── Home page (index.html) — reveal animations ──────────── */
+  var reveals = document.querySelectorAll(".reveal");
+  if (reveals.length && "IntersectionObserver" in window) {
+    var revealIO = new IntersectionObserver(function (entries) {
+      entries.forEach(function (e) {
+        if (e.isIntersecting) {
+          e.target.classList.add("visible");
+          revealIO.unobserve(e.target);
+        }
+      });
+    }, { threshold: 0.08 });
+    reveals.forEach(function (el) { revealIO.observe(el); });
+  }
+
+  /* ── Home page — role tabs ───────────────────────────────── */
+  var roleTabs = document.querySelectorAll(".role-tab");
+  roleTabs.forEach(function (tab) {
+    tab.addEventListener("click", function () {
+      var role = tab.dataset.role;
+      roleTabs.forEach(function (t) { t.classList.remove("active"); });
+      tab.classList.add("active");
+      document.querySelectorAll(".role-panel").forEach(function (p) {
+        p.classList.remove("active");
+      });
+      var panel = document.getElementById("role-" + role);
+      if (panel) panel.classList.add("active");
+    });
   });
 });
