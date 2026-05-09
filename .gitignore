@@ -16,3 +16,6 @@ node_modules/
 
 # Misc
 .DS_Store
+
+# Claude Code runtime state (memory, locks, project-local config)
+.claude/

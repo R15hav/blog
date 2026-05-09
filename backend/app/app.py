@@ -7,12 +7,14 @@ from fastapi.staticfiles import StaticFiles
 from sqlalchemy import update
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.models.users import UserRead, UserCreate, UserUpdate
+from app.models.users import UserRead, UserUpdate
 from app.models.theme import ThemeActiveResponse
 from app.api.v1.articles import router as articles_router
 from app.api.v1.admin import router as admin_router
 from app.api.v1.profile import router as profile_router
 from app.api.v1.author import router as author_router
+from app.api.v1.register import router as register_router
+from app.api.v1.login import router as login_router
 from app.database.db import create_db_and_tables, get_async_session, async_session_maker, User
 from app.core.users import fastapi_users, auth_backend
 from app.services.theme import get_active_theme
@@ -57,16 +59,12 @@ os.makedirs(_uploads_dir, exist_ok=True)
 app.mount("/uploads", StaticFiles(directory=_uploads_dir), name="uploads")
 
 # ── fastapi-users routes ───────────────────────────────────────────────────────
-app.include_router(
-    fastapi_users.get_auth_router(auth_backend),
-    prefix="/auth/jwt",
-    tags=["auth"],
-)
-app.include_router(
-    fastapi_users.get_register_router(UserRead, UserCreate),
-    prefix="/auth",
-    tags=["auth"],
-)
+# Custom login router replaces fastapi_users.get_auth_router entirely so that
+# /auth/jwt/login can be gated by hCaptcha. It also re-implements /auth/jwt/logout
+# to preserve parity with the built-in router without producing duplicate routes.
+app.include_router(login_router, prefix="/auth", tags=["auth"])
+# Custom register route gates self-registration behind hCaptcha; replaces fastapi_users.get_register_router.
+app.include_router(register_router, prefix="/auth", tags=["auth"])
 app.include_router(
     fastapi_users.get_reset_password_router(),
     prefix="/auth",

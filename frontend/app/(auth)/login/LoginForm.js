@@ -1,10 +1,12 @@
 "use client";
 
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { useRouter } from "next/navigation";
+import HCaptcha from "@hcaptcha/react-hcaptcha";
 import { verifyToken } from "../../_lib/api_callout";
 
 const API = process.env.NEXT_PUBLIC_API_URL || "";
+const SITE_KEY = process.env.NEXT_PUBLIC_HCAPTCHA_SITE_KEY;
 
 export default function LoginForm({ allowRegistration = true, siteName = "Blog" }) {
   const router = useRouter();
@@ -12,15 +14,27 @@ export default function LoginForm({ allowRegistration = true, siteName = "Blog" 
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
+  const [captchaToken, setCaptchaToken] = useState(null);
+  const captchaRef = useRef(null);
+
+  function resetCaptcha() {
+    captchaRef.current?.resetCaptcha();
+    setCaptchaToken(null);
+  }
 
   async function handleSubmit(e) {
     e.preventDefault();
+    if (SITE_KEY && !captchaToken) {
+      setError("Please complete the CAPTCHA.");
+      return;
+    }
     setLoading(true);
     setError(null);
     try {
       const body = new URLSearchParams();
       body.append("username", email);
       body.append("password", password);
+      if (SITE_KEY) body.append("hcaptcha_token", captchaToken);
 
       const res = await fetch(`${API}/auth/jwt/login`, {
         method: "POST",
@@ -30,22 +44,26 @@ export default function LoginForm({ allowRegistration = true, siteName = "Blog" 
       const data = await res.json().catch(() => null);
       if (!res.ok) {
         setError((data && (data.detail || JSON.stringify(data))) || `Login failed (${res.status})`);
+        if (SITE_KEY) resetCaptcha();
         return;
       }
       const token = data?.access_token ?? data?.token;
       if (!token) {
         setError("No access token returned by server.");
+        if (SITE_KEY) resetCaptcha();
         return;
       }
       const { valid, detail: userData } = await verifyToken(token);
       if (!valid) {
         setError("Token verification failed. Please try again.");
+        if (SITE_KEY) resetCaptcha();
         return;
       }
       localStorage.setItem("access_token", token);
       router.push(userData?.is_superuser ? "/admin/users" : "/");
     } catch (err) {
       setError(err?.message ?? String(err));
+      if (SITE_KEY) resetCaptcha();
     } finally {
       setLoading(false);
     }
@@ -104,6 +122,21 @@ export default function LoginForm({ allowRegistration = true, siteName = "Blog" 
               autoComplete="current-password"
             />
           </div>
+
+          {SITE_KEY && (
+            <div className="field">
+              <span id="hcaptcha-label">Verify you&rsquo;re human</span>
+              <div aria-labelledby="hcaptcha-label">
+                <HCaptcha
+                  ref={captchaRef}
+                  sitekey={SITE_KEY}
+                  onVerify={setCaptchaToken}
+                  onExpire={() => setCaptchaToken(null)}
+                  onError={() => setCaptchaToken(null)}
+                />
+              </div>
+            </div>
+          )}
 
           {error && <p className="form-error" role="alert">{String(error)}</p>}
 
