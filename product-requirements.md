@@ -11,10 +11,11 @@ A barebone skeleton blogging platform with intentionally minimal built-in CSS. T
 | Role | Entry | Capabilities |
 |---|---|---|
 | **Admin** | First user seeded via `FIRST_ADMIN_EMAIL` env (auto-promoted on startup), or `is_superuser` set in DB | Full control: user management, all articles, comment moderation, theme configuration, site settings, logo upload |
-| **Author** | Self-registers → account is inactive; admin approves; hCaptcha challenge on register and login when `HCAPTCHA_ENABLED=true` | Create/edit/delete own articles; like and comment on any article; manage own profile |
+| **Author** | Admin promotes a Guest via `PATCH /api/v1/admin/users/{id}/role` | Create/edit/delete own articles; like and comment on any article; manage own profile; access author dashboard |
+| **Guest** | Self-registers → admin activates (`is_active=True`); `role` stays `"guest"` | Read published articles; like and comment on any article; manage own profile. Cannot write articles or access the author dashboard |
 | **Visitor** | No account needed | Read published articles, view like counts and comments, use search |
 
-New registrations arrive as inactive (`is_active=False`). The admin explicitly approves each user from the dashboard before they can log in and write. The `allow_registration` site setting can disable the self-register form entirely.
+New registrations arrive as inactive (`is_active=False`) with `role="guest"`. The admin activates the user from the dashboard before they can log in. An activated user begins as a Guest; admin must separately promote them to Author for write access. The `allow_registration` site setting can disable the self-register form entirely.
 
 ---
 
@@ -46,6 +47,7 @@ New registrations arrive as inactive (`is_active=False`). The admin explicitly a
 | 2.5 | Logout clears token and redirects to home |
 | 2.6 | Password reset flow via fastapi-users built-in (`POST /auth/forgot-password`, `POST /auth/reset-password`); reset token returned in API response (no SMTP) |
 | 2.7 | `FIRST_ADMIN_EMAIL` env auto-promotes that account to `is_superuser=True`, `role="admin"`, `is_active=True` on every backend startup |
+| 2.8 | Newly activated users start as Guests (`role="guest"`); admin must explicitly promote to Author (`role="author"`) for write access via `PATCH /api/v1/admin/users/{id}/role` |
 
 ### 3. Article Editor (Authors)
 
@@ -62,9 +64,9 @@ New registrations arrive as inactive (`is_active=False`). The admin explicitly a
 
 | # | Requirement |
 |---|---|
-| 4.1 | Authenticated users can toggle a like on any article via `POST /api/v1/articles/{id}/like`; backend enforces per-user uniqueness |
+| 4.1 | Authenticated users (Guest and above) can toggle a like on any article via `POST /api/v1/articles/{id}/like`; backend enforces per-user uniqueness |
 | 4.2 | Like count publicly readable via `GET /api/v1/articles/{id}/likes` |
-| 4.3 | Authenticated users can post a comment on any article via `POST /api/v1/articles/{id}/comments` |
+| 4.3 | Authenticated users (Guest and above) can post a comment on any article via `POST /api/v1/articles/{id}/comments` |
 | 4.4 | Comments publicly readable via `GET /api/v1/articles/{id}/comments` |
 | 4.5 | Comment author or any superuser can delete a comment via `DELETE /api/v1/articles/{id}/comments/{comment_id}` |
 
@@ -94,6 +96,7 @@ New registrations arrive as inactive (`is_active=False`). The admin explicitly a
 |---|---|
 | 7.1 | List all registered users with email, status (active/inactive), and role via `GET /api/v1/admin/users` |
 | 7.2 | Activate or deactivate individual users via `PATCH /api/v1/admin/users/{id}/activate` and `/deactivate` |
+| 7.2a | Set a user's role via `PATCH /api/v1/admin/users/{id}/role` (body: `{"role":"guest"}` or `{"role":"author"}`). Accepted values are `guest` and `author` only — `admin` is rejected with 422. Self-change returns 400. Attempting to change a superuser's role via this endpoint returns 400 ("Cannot change role of a superuser via this endpoint."). Admin promotion stays a manual operation (`FIRST_ADMIN_EMAIL` startup env or direct DB update); this limits blast radius from a compromised admin account. |
 
 #### 7b. Article Management
 

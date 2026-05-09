@@ -9,7 +9,8 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.database.db import get_async_session, Post, User
 from app.core.users import fastapi_users
 from app.models.theme import ThemeBase, ThemeRead
-from app.services.admin import list_users, set_user_active, list_all_comments
+from app.models.users import UserRoleUpdate
+from app.services.admin import list_users, set_user_active, set_user_role, list_all_comments
 from app.services.articles import list_all_articles
 from app.services.site_settings import get_site_config, update_site_config
 from app.services.theme import (
@@ -68,6 +69,26 @@ async def deactivate_user(
 ):
     user = await set_user_active(session, user_id, active=False)
     return {"id": str(user.id), "email": user.email, "is_active": user.is_active}
+
+
+@router.patch("/users/{user_id}/role")
+async def change_user_role(
+    user_id: str,
+    body: UserRoleUpdate,
+    session: AsyncSession = Depends(get_async_session),
+    current_user: User = Depends(current_superuser),
+):
+    user = await set_user_role(
+        session, user_id, body.role, acting_user=current_user
+    )
+    return {
+        "id": str(user.id),
+        "email": user.email,
+        "is_active": user.is_active,
+        "is_superuser": user.is_superuser,
+        "is_verified": user.is_verified,
+        "role": user.role,
+    }
 
 
 # ── Theme management ───────────────────────────────────────────────────────────

@@ -1,5 +1,6 @@
 from fastapi_users import schemas
-from typing import Optional
+from pydantic import BaseModel
+from typing import Literal, Optional
 import uuid
 
 class UserRead(schemas.BaseUser[uuid.UUID]):
@@ -18,3 +19,6 @@ class UserCreateWithCaptcha(UserCreate):
 class UserUpdate(schemas.BaseUserUpdate):
     first_name: Optional[str] = None
     last_name: Optional[str] = None
+
+class UserRoleUpdate(BaseModel):
+    role: Literal["guest", "author"]
