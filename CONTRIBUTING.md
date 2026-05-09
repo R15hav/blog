@@ -33,6 +33,8 @@ npm run dev
 
 Backend serves at `http://localhost:8000`, frontend at `http://localhost:3000`. The default `DATABASE_URL` is SQLite (`backend/test.db`), so no Postgres setup is needed for first-run.
 
+hCaptcha is optional for local development — the widget is skipped entirely when `NEXT_PUBLIC_HCAPTCHA_SITE_KEY` is unset. If you want to test the full captcha flow locally, the official sandbox keys are documented in `backend/.env.example` and `frontend/.env.example`.
+
 > ⚠️ **Run the backend from `backend/`, not the repo root.** `uv` looks for `pyproject.toml` in the current directory; running from the root produces `ModuleNotFoundError: No module named 'uvicorn'`.
 
 ## Where things live

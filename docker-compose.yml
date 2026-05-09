@@ -31,6 +31,10 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
+      args:
+        # Public hCaptcha site key — must be a build arg because Next.js
+        # bakes NEXT_PUBLIC_* values into the client bundle at build time.
+        NEXT_PUBLIC_HCAPTCHA_SITE_KEY: ${NEXT_PUBLIC_HCAPTCHA_SITE_KEY:-}
     restart: unless-stopped
     depends_on:
       db:
@@ -45,6 +49,11 @@ services:
       FRONTEND_URL: http://localhost:8080
       # Optional: auto-promote this email to admin on every startup.
       FIRST_ADMIN_EMAIL: ${FIRST_ADMIN_EMAIL:-}
+      # hCaptcha — defaults keep registration open so `docker compose up`
+      # works without hCaptcha credentials. Flip ENABLED=true and set
+      # HCAPTCHA_SECRET to enforce captcha on /auth/register.
+      HCAPTCHA_ENABLED: ${HCAPTCHA_ENABLED:-false}
+      HCAPTCHA_SECRET: ${HCAPTCHA_SECRET:-}
       # Nginx inside the container listens on $PORT (default 8080).
       PORT: "8080"
     ports:

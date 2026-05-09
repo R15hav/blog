@@ -55,7 +55,7 @@ Layered FastAPI app: `api/v1/*` (routes) → `services/*` (business logic) → `
 - **[app/database/db.py](backend/app/database/db.py)** — all SQLAlchemy models (`User`, `Post`, `Like`, `Comment`, `UserProfile`, `Experience`, `Qualification`, `SchoolEducation`, `ThemeConfig`, `SiteConfig`), async engine, and `get_async_session` dependency. `_async_db_url()` rewrites Postgres URL schemes for asyncpg and strips `ssl=`/`sslmode=` query params (asyncpg mishandles them); SSL is passed via `connect_args` instead, with a 10s connect timeout to avoid silent 60s hangs.
 - **[app/core/users.py](backend/app/core/users.py)** — `fastapi-users` wiring. Defines `current_active_user`, `current_optional_user`, and `current_author_or_admin` (custom dependency that 403s unless `is_superuser` or `role in ("author", "admin")`). `UserManager.on_after_register` sets `is_active=False` so new self-registrations require admin approval.
 
-Auth: `POST /auth/jwt/login`, `POST /auth/register`, plus `fastapi-users` reset-password and verify routers under `/auth`. JWT lifetime is 1 hour, secret from `SECRET` env var (default `dev-secret-change-me`).
+Auth: `POST /auth/jwt/login`, `POST /auth/jwt/logout`, `POST /auth/register`, plus `fastapi-users` reset-password and verify routers under `/auth`. JWT lifetime is 1 hour, secret from `SECRET` env var (default `dev-secret-change-me`). Note: `/auth/jwt/login`, `/auth/jwt/logout`, and `/auth/register` are all **custom routes** ([app/api/v1/login.py](backend/app/api/v1/login.py), [app/api/v1/register.py](backend/app/api/v1/register.py)) — the built-in fastapi-users `get_auth_router(...)` is not mounted. The login route runs `verify_hcaptcha` before credential authentication; the register route does the same before user creation. The reset-password and verify routers remain the unmodified fastapi-users built-ins.
 
 ### Frontend ([frontend/app/](frontend/app/))
 
@@ -86,6 +86,9 @@ Admins can register external CSS URLs as `ThemeConfig` rows and activate one at 
 | `FIRST_ADMIN_EMAIL`   | (unset)                          | [app.py](backend/app/app.py) — auto-promotes that user to superuser/admin on every startup |
 | `NEXT_PUBLIC_API_URL` | varies (`""` or `http://localhost:8000`) | frontend fetchers                    |
 | `NEXT_PUBLIC_APP_URL` | `http://localhost:3000`          | [robots.js](frontend/app/robots.js), [sitemap.js](frontend/app/sitemap.js) |
+| `HCAPTCHA_ENABLED`    | `"false"`                        | [services/captcha.py](backend/app/services/captcha.py) — set `true`/`1`/`yes` (case-insensitive) to enable |
+| `HCAPTCHA_SECRET`     | (unset)                          | [services/captcha.py](backend/app/services/captcha.py) — required when `HCAPTCHA_ENABLED=true` |
+| `NEXT_PUBLIC_HCAPTCHA_SITE_KEY` | (unset)              | [RegisterForm.js](frontend/app/(auth)/register/RegisterForm.js) — **build-time** (Next.js `NEXT_PUBLIC_*`); changing it requires a rebuild, not just a restart |
 
 Backend reads `backend/.env` automatically via `python-dotenv`.
 
@@ -100,6 +103,9 @@ Backend reads `backend/.env` automatically via `python-dotenv`.
 - **Postgres SSL**: asyncpg ignores `sslmode=` and mishandles `ssl=` query params. The URL normaliser strips them and SSL is passed via `connect_args` instead. If switching engines, replicate this.
 - **Write access** uses three layers: `current_active_user` (logged-in), `current_author_or_admin` (role gate for create/update articles), `current_superuser` (admin-only routes). Ownership is then re-checked inside services (`if not user.is_superuser and obj.owner_id != user.id: 403`).
 - **`SECRET`** for JWT defaults to `dev-secret-change-me` — must be overridden in production.
+- **`NEXT_PUBLIC_HCAPTCHA_SITE_KEY`** is consumed at Next.js build time, not runtime — changing it requires a rebuild, not just a restart. On Render this means a fresh deploy.
+- **When `HCAPTCHA_ENABLED=true` but `HCAPTCHA_SECRET` is missing**, registration and login return 500 (misconfigured) — fail-loud rather than silently letting users through.
+- **Local-dev env split**: `HCAPTCHA_ENABLED` and `HCAPTCHA_SECRET` go in `backend/.env`; `NEXT_PUBLIC_HCAPTCHA_SITE_KEY` goes in `frontend/.env.local` (copy from `frontend/.env.example`). A root-level `.env` is read by `docker compose` only — `uv run` looks at `backend/.env` and `next dev` looks at `frontend/.env.local`. After editing the frontend file, restart `next dev`.
 
 ## Deployment Notes
 

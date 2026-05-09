@@ -23,6 +23,12 @@ RUN npm ci --include=dev
 # Copy source and build the standalone output
 COPY frontend/ ./
 
+# Public hCaptcha site key — baked into the client bundle at build time.
+# Empty default keeps the widget hidden when the operator hasn't configured
+# hCaptcha; the frontend treats unset as "no captcha".
+ARG NEXT_PUBLIC_HCAPTCHA_SITE_KEY=""
+ENV NEXT_PUBLIC_HCAPTCHA_SITE_KEY=$NEXT_PUBLIC_HCAPTCHA_SITE_KEY
+
 ENV NEXT_TELEMETRY_DISABLED=1
 RUN npm run build
 
