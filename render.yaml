@@ -66,6 +66,21 @@ services:
       # superuser/admin on every startup (see backend/app/app.py lifespan).
       - key: FIRST_ADMIN_EMAIL
         sync: false
+      # hCaptcha toggle — operator must set this to "true" in the Render
+      # dashboard to enforce captcha on /auth/register. Defaults to disabled.
+      - key: HCAPTCHA_ENABLED
+        sync: false
+      # hCaptcha secret key — sensitive. Operator must set this in the
+      # Render dashboard; never commit to the repo.
+      - key: HCAPTCHA_SECRET
+        sync: false
+      # Public hCaptcha site key — operator must set this in the Render
+      # dashboard. Render forwards predeclared env vars as Docker build args
+      # automatically, and the Dockerfile ARG/ENV in the frontend-builder
+      # stage bakes it into the Next.js client bundle. If a future Render
+      # change drops auto-forwarding, move this under a dockerBuildArgs block.
+      - key: NEXT_PUBLIC_HCAPTCHA_SITE_KEY
+        sync: false
       # Make Python logging unbuffered so Render's log viewer is live.
       - key: PYTHONUNBUFFERED
         value: "1"

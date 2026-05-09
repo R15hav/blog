@@ -1,8 +1,10 @@
 "use client";
 
-import { useState } from "react";
+import { useRef, useState } from "react";
+import HCaptcha from "@hcaptcha/react-hcaptcha";
 
 const API = process.env.NEXT_PUBLIC_API_URL || "";
+const SITE_KEY = process.env.NEXT_PUBLIC_HCAPTCHA_SITE_KEY;
 
 export default function RegisterForm({ siteName = "Blog" }) {
   const [firstName, setFirstName] = useState("");
@@ -13,6 +15,13 @@ export default function RegisterForm({ siteName = "Blog" }) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [done, setDone] = useState(false);
+  const [captchaToken, setCaptchaToken] = useState(null);
+  const captchaRef = useRef(null);
+
+  function resetCaptcha() {
+    captchaRef.current?.resetCaptcha();
+    setCaptchaToken(null);
+  }
 
   async function handleSubmit(e) {
     e.preventDefault();
@@ -20,13 +29,21 @@ export default function RegisterForm({ siteName = "Blog" }) {
       setError("Passwords do not match.");
       return;
     }
+    if (SITE_KEY && !captchaToken) {
+      setError("Please complete the CAPTCHA.");
+      return;
+    }
     setLoading(true);
     setError(null);
     try {
+      // Only include hcaptcha_token when captcha is enabled, so backend's
+      // captcha-disabled mode keeps the same wire shape as before.
+      const body = { email, password, first_name: firstName || null, last_name: lastName || null };
+      if (SITE_KEY) body.hcaptcha_token = captchaToken;
       const res = await fetch(`${API}/auth/register`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, password, first_name: firstName || null, last_name: lastName || null }),
+        body: JSON.stringify(body),
       });
       const data = await res.json().catch(() => null);
       if (!res.ok) {
@@ -34,11 +51,13 @@ export default function RegisterForm({ siteName = "Blog" }) {
           (data && (data.detail || JSON.stringify(data))) ||
           `Registration failed (${res.status})`
         );
+        if (SITE_KEY) resetCaptcha();
         return;
       }
       setDone(true);
     } catch (err) {
       setError(err?.message ?? String(err));
+      if (SITE_KEY) resetCaptcha();
     } finally {
       setLoading(false);
     }
@@ -149,6 +168,21 @@ export default function RegisterForm({ siteName = "Blog" }) {
                   autoComplete="new-password"
                 />
               </div>
+
+              {SITE_KEY && (
+                <div className="field">
+                  <span id="hcaptcha-label">Verify you&rsquo;re human</span>
+                  <div aria-labelledby="hcaptcha-label">
+                    <HCaptcha
+                      ref={captchaRef}
+                      sitekey={SITE_KEY}
+                      onVerify={setCaptchaToken}
+                      onExpire={() => setCaptchaToken(null)}
+                      onError={() => setCaptchaToken(null)}
+                    />
+                  </div>
+                </div>
+              )}
 
               {error && <p className="form-error" role="alert">{String(error)}</p>}
 

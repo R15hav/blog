@@ -323,6 +323,7 @@
   <p>Registration is at <code>/register</code>. You only need an email address and a password. There are no email-verification steps to clear, but there <em>is</em> an approval gate — see below.</p>
   <p><strong>New accounts are inactive by default.</strong> The backend's <code>UserManager.on_after_register</code> hook flips <code>is_active=false</code> the moment your row is created. Until an admin activates the account, the login page rejects you with an "inactive user" / 401 error. This is by design — it stops drive-by signups from posting comments.</p>
   <p>If the admin has switched off <code>allow_registration</code> in <strong>Site Settings</strong>, the registration link disappears and the form is hidden. Reach out to the operator if you need an account on a closed instance.</p>
+  <p>For added bot protection, the site can require a CAPTCHA on both the registration and login forms. When enabled by the operator, a CAPTCHA widget appears above the submit button on each form and must be solved before the form can be submitted. This is configured entirely in the deployment environment — there is nothing extra you need to do as a user.</p>
   <div class="callout callout-tip">
     <span class="callout-icon">+</span>
     <div class="callout-body">
@@ -577,6 +578,9 @@ docker compose up -d</pre>
       <tr><td><code>FRONTEND_URL</code></td><td><code>http://localhost:3000</code></td><td>CORS allow-origin. Optional in single-image mode because the browser hits the same origin as the API; set it for honesty if you front the service with a custom domain.</td></tr>
       <tr><td><code>PORT</code></td><td><code>8080</code></td><td>The public port nginx binds to. Render overrides this automatically; leave it alone otherwise.</td></tr>
       <tr><td><code>PYTHONUNBUFFERED</code></td><td>(unset)</td><td>Set to <code>1</code> so Python log output is live in the platform's log viewer.</td></tr>
+      <tr><td><code>HCAPTCHA_ENABLED</code></td><td><code>false</code></td><td>Set to <code>true</code>, <code>1</code>, or <code>yes</code> to enable CAPTCHA on the registration and login forms. Off by default — no keys needed for local dev.</td></tr>
+      <tr><td><code>HCAPTCHA_SECRET</code></td><td>(unset)</td><td>Server-side hCaptcha secret key. Required when <code>HCAPTCHA_ENABLED=true</code>; omitting it causes registration and login to return 500.</td></tr>
+      <tr><td><code>NEXT_PUBLIC_HCAPTCHA_SITE_KEY</code></td><td>(unset)</td><td>Public hCaptcha site key. <strong>Build-time only</strong> — changing it requires a full image rebuild (redeploy), not just a service restart.</td></tr>
     </tbody>
   </table>
   <div class="callout callout-info">

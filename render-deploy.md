@@ -270,6 +270,42 @@ These are **deliberately not set** in this deploy mode:
 
 ---
 
+## Enabling hCaptcha on register and login (optional)
+
+hCaptcha is off by default. When enabled, both the registration and login forms show a CAPTCHA widget and the backend verifies the token with hCaptcha's API before processing each request. The same three variables control both surfaces. To enable it:
+
+### Step 1 — Get your keys
+
+Sign in at [https://dashboard.hcaptcha.com/](https://dashboard.hcaptcha.com/) and create a site. You will get two values:
+
+- **Site key** — public, goes into the frontend bundle
+- **Secret key** — server-side only, never exposed to the browser
+
+For a staging environment, use the official hCaptcha sandbox keys:
+
+- Site key: `10000000-ffff-ffff-ffff-000000000001`
+- Secret key: `0x0000000000000000000000000000000000000000`
+
+### Step 2 — Set the environment variables in the Render dashboard
+
+All three variables are declared `sync: false` in `render.yaml`, meaning they are not committed to the repo — you must set them manually in the **Environment** tab of the `blog-app` Web Service:
+
+| Variable | Value | Notes |
+|---|---|---|
+| `HCAPTCHA_ENABLED` | `true` | Accepts `true`, `1`, or `yes` (case-insensitive) |
+| `HCAPTCHA_SECRET` | *(your secret key)* | Server-side only — never set as a `NEXT_PUBLIC_*` variable |
+| `NEXT_PUBLIC_HCAPTCHA_SITE_KEY` | *(your site key)* | **Build-time** — see Step 3 |
+
+### Step 3 — Redeploy (required for the site key)
+
+`NEXT_PUBLIC_HCAPTCHA_SITE_KEY` is baked into the Next.js bundle during the Docker build. Setting it in the dashboard and **restarting** the service is not enough — you must trigger a full redeploy so the `frontend-builder` stage picks it up. Click **Manual Deploy** → **Deploy latest commit** after saving the env vars.
+
+`HCAPTCHA_ENABLED` and `HCAPTCHA_SECRET` are read at runtime and take effect on the next restart; they do not require a rebuild.
+
+> If `HCAPTCHA_ENABLED=true` but `HCAPTCHA_SECRET` is not set, every registration and login attempt returns a 500 error. Set both together.
+
+---
+
 ## Troubleshooting
 
 ### `socket.gaierror: [Errno -2] Name or service not known` during alembic migrations

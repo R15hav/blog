@@ -23,6 +23,7 @@ An open-source blog platform with **live theme switching**, **rich Editor.js con
 - **Admin panel** — users, articles, comments, themes, site settings, stats
 - **Theme switching** — paste a CSS URL into the admin panel, every visitor sees it within 60s. No redeploy
 - **SEO** — server-rendered metadata, OG tags, sitemap, robots.txt
+- **Anti-bot protection (hCaptcha)** — optional, env-gated CAPTCHA on the registration and login forms; off by default so local dev needs no keys
 - **Single-container deploy** — one image runs nginx + FastAPI + Next.js + supervisord; works on Render, any Docker host, or `docker compose up`
 
 ---
@@ -97,6 +98,31 @@ For a deep-dive into each subsystem (auth flow, theme system, SiteConfig, single
 | `FRONTEND_URL` | `http://localhost:3000` | [`backend/app/app.py`](backend/app/app.py) (CORS allow-origin; optional in single-image since same-origin) |
 | `FIRST_ADMIN_EMAIL` | (unset) | [`backend/app/app.py`](backend/app/app.py) — auto-promotes that user to superuser+admin on every startup |
 | `PORT` | `8080` | nginx public listen port (Render overrides) |
+
+### Anti-bot protection (hCaptcha)
+
+The CAPTCHA is off by default. When enabled, it gates both the **registration** and **login** forms — the same three variables control both surfaces. The sandbox keys below work for local testing without a real hCaptcha account:
+
+```bash
+# backend — server-side, secret
+HCAPTCHA_ENABLED=true
+HCAPTCHA_SECRET=0x0000000000000000000000000000000000000000   # sandbox
+
+# frontend — baked into the Next.js bundle at build time
+NEXT_PUBLIC_HCAPTCHA_SITE_KEY=10000000-ffff-ffff-ffff-000000000001  # sandbox
+```
+
+**Local development — which file each variable goes in:**
+
+```
+backend/.env          ← HCAPTCHA_ENABLED=true
+                         HCAPTCHA_SECRET=0x0000000000000000000000000000000000000000
+frontend/.env.local   ← NEXT_PUBLIC_HCAPTCHA_SITE_KEY=10000000-ffff-ffff-ffff-000000000001
+```
+
+`frontend/.env.local` does not exist by default — copy it from `frontend/.env.example`. After editing it, restart `next dev` (Next.js reads `NEXT_PUBLIC_*` vars once at startup).
+
+`NEXT_PUBLIC_HCAPTCHA_SITE_KEY` is a build-time variable — changing it requires a full rebuild (redeploy on Render, not just a restart). See `.env.example` files in `backend/` and `frontend/` for details.
 
 `backend/.env` is auto-loaded by `python-dotenv` for local dev. In production, env vars come from the orchestrator (Render dashboard, `docker run -e`, or `docker-compose.yml`).
 
