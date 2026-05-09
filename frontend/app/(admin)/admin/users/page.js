@@ -2,7 +2,7 @@
 
 import { useEffect, useState, useMemo } from "react";
 import { useAuth } from "../../../context/AuthContext";
-import { getUsers, activateUser, deactivateUser, getAdminStats } from "../../../_lib/api_callout";
+import { getUsers, activateUser, deactivateUser, setUserRole, getAdminStats } from "../../../_lib/api_callout";
 
 const PAGE_SIZE = 20;
 
@@ -22,7 +22,7 @@ function SortIcon({ active, dir }) {
 }
 
 export default function UsersPage() {
-  const { token } = useAuth();
+  const { token, user: currentUser } = useAuth();
 
   const [users, setUsers] = useState([]);
   const [total, setTotal] = useState(0);
@@ -97,11 +97,13 @@ export default function UsersPage() {
     else { setSortKey(key); setSortDir("desc"); }
   }
 
+  const roleRank = (u) => (u.is_superuser ? 2 : u.role === "author" ? 1 : 0);
+
   const sortedUsers = useMemo(() => {
     if (!sortKey) return users;
     return [...users].sort((a, b) => {
-      const av = sortKey === "status" ? (a.is_active ? 1 : 0) : (a.is_superuser ? 1 : 0);
-      const bv = sortKey === "status" ? (b.is_active ? 1 : 0) : (b.is_superuser ? 1 : 0);
+      const av = sortKey === "status" ? (a.is_active ? 1 : 0) : roleRank(a);
+      const bv = sortKey === "status" ? (b.is_active ? 1 : 0) : roleRank(b);
       return sortDir === "asc" ? av - bv : bv - av;
     });
   }, [users, sortKey, sortDir]);
@@ -111,6 +113,16 @@ export default function UsersPage() {
     const { success, detail } = await fn(userId, token);
     if (!success) { setError(detail?.detail ?? "Action failed."); return; }
     setUsers((prev) => prev.map((u) => u.id === userId ? { ...u, is_active: !currentlyActive } : u));
+  }
+
+  async function changeRole(user, nextRole) {
+    setError(null);
+    const { success, detail } = await setUserRole(user.id, nextRole, token);
+    if (!success) { setError(detail?.detail ?? "Failed to change role."); return; }
+    setUsers((prev) => prev.map((u) => {
+      if (u.id !== user.id) return u;
+      return { ...u, ...detail, role: detail?.role ?? nextRole };
+    }));
   }
 
   const kpiTotal   = stats?.users?.total  ?? total;
@@ -200,33 +212,54 @@ export default function UsersPage() {
               </tr>
             </thead>
             <tbody>
-              {sortedUsers.map((u) => (
-                <tr key={u.id}>
-                  <td style={{ fontFamily: "var(--font-mono)", fontSize: 13 }}>{u.email}</td>
-                  <td>
-                    {u.is_active ? (
-                      <span className="status ok"><span className="dot" />Active</span>
-                    ) : (
-                      <span className="status warn"><span className="dot" />Pending</span>
-                    )}
-                  </td>
-                  <td>
-                    {u.is_superuser ? (
-                      <span className="status accent">Admin</span>
-                    ) : (
-                      <span style={{ color: "var(--ink-4)", fontFamily: "var(--font-sans)", fontSize: 13 }}>Writer</span>
-                    )}
-                  </td>
-                  <td>
-                    <button
-                      className="btn btn-ghost btn-sm"
-                      onClick={() => toggle(u.id, u.is_active)}
-                    >
-                      {u.is_active ? "Deactivate" : "Activate"}
-                    </button>
-                  </td>
-                </tr>
-              ))}
+              {sortedUsers.map((u) => {
+                const isSelf = currentUser?.id === u.id;
+                const displayRole = u.is_superuser ? "admin" : (u.role ?? "guest");
+                return (
+                  <tr key={u.id}>
+                    <td style={{ fontFamily: "var(--font-mono)", fontSize: 13 }}>{u.email}</td>
+                    <td>
+                      {u.is_active ? (
+                        <span className="status ok"><span className="dot" />Active</span>
+                      ) : (
+                        <span className="status warn"><span className="dot" />Pending</span>
+                      )}
+                    </td>
+                    <td>
+                      {u.is_superuser ? (
+                        <span className="status accent">admin</span>
+                      ) : (
+                        <span style={{ color: "var(--ink-4)", fontFamily: "var(--font-sans)", fontSize: 13 }}>{displayRole}</span>
+                      )}
+                    </td>
+                    <td>
+                      <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
+                        <button
+                          className="btn btn-ghost btn-sm"
+                          onClick={() => toggle(u.id, u.is_active)}
+                        >
+                          {u.is_active ? "Deactivate" : "Activate"}
+                        </button>
+                        {!isSelf && u.is_superuser && (
+                          <span style={{ color: "var(--ink-4)", fontFamily: "var(--font-sans)", fontSize: 13 }}>
+                            locked
+                          </span>
+                        )}
+                        {!isSelf && !u.is_superuser && u.role === "author" && (
+                          <button className="btn btn-ghost btn-sm" onClick={() => changeRole(u, "guest")}>
+                            Make guest
+                          </button>
+                        )}
+                        {!isSelf && !u.is_superuser && u.role !== "author" && (
+                          <button className="btn btn-ghost btn-sm" onClick={() => changeRole(u, "author")}>
+                            Make author
+                          </button>
+                        )}
+                      </div>
+                    </td>
+                  </tr>
+                );
+              })}
               {sortedUsers.length === 0 && (
                 <tr>
                   <td colSpan={4} style={{ textAlign: "center", color: "var(--ink-4)", fontFamily: "var(--font-sans)", fontSize: 13, padding: "24px 0" }}>

@@ -355,7 +355,7 @@
     <span class="callout-icon">!</span>
     <div class="callout-body">
       <strong>Activation alone is not enough.</strong>
-      Clicking "Activate" in the admin user list only sets <code>is_active=true</code>. It does <strong>not</strong> change your role from <code>guest</code> to <code>author</code>. If you can log in but the dashboard 403s, ask your admin to bump your role — see the User Management section below for the exact path.
+      Clicking "Activate" in the admin user list only sets <code>is_active=true</code>. It does <strong>not</strong> change your role from <code>guest</code> to <code>author</code>. If you can log in but the Write link is missing and the dashboard 403s, ask your admin to promote your role using the <strong>Make author</strong> button in <strong>/admin/users</strong> — see the User Management section below.
     </div>
   </div>
 </section>
@@ -452,23 +452,19 @@
 <section id="um-admins-users">
   <h3>User Management</h3>
   <p>Open <strong>/admin/users</strong>. You will see a paginated table (20 per page) with email, status (Active / Pending), role badge, and an action button. The search box filters by email substring and is case-insensitive; <code>GET /api/v1/admin/users?q=…</code> does the work.</p>
-  <p>Two actions are exposed in the UI:</p>
+  <p>Three actions are exposed in the UI:</p>
   <ul>
-    <li><strong>Activate</strong> — calls <code>PATCH /api/v1/admin/users/{id}/activate</code>. Sets <code>is_active=true</code>. The user can now log in.</li>
+    <li><strong>Activate</strong> — calls <code>PATCH /api/v1/admin/users/{id}/activate</code>. Sets <code>is_active=true</code>. The user can now log in as a Guest.</li>
     <li><strong>Deactivate</strong> — calls <code>PATCH /api/v1/admin/users/{id}/deactivate</code>. Sets <code>is_active=false</code>. The user's data is kept but they can no longer authenticate.</li>
+    <li><strong>Make author / Make guest</strong> — calls <code>PATCH /api/v1/admin/users/{id}/role</code>. The button label reflects the opposite of the user's current role: a Guest row shows <strong>Make author</strong>; an Author row shows <strong>Make guest</strong>. Superuser rows show a muted locked indicator instead. The role button is hidden on your own row.</li>
   </ul>
   <div class="callout callout-warning">
     <span class="callout-icon">!</span>
     <div class="callout-body">
-      <strong>Role assignment is not in the UI.</strong>
-      The Users page does not currently expose a way to change a user's <code>role</code> from <code>guest</code> to <code>author</code>. The activate flow does not change the role either. To promote a reader to an author, run SQL directly against the database:
+      <strong>Activation and role promotion are separate steps.</strong>
+      The Activate button only sets <code>is_active=true</code>; the user starts as a Guest. Use <strong>Make author</strong> as a second step if they need write access.
     </div>
   </div>
-  <div class="code-block">
-    <div class="code-block-header"><span class="code-lang">sql</span></div>
-    <pre>UPDATE users SET role = 'author' WHERE email = 'someone@example.com';</pre>
-  </div>
-  <p>Use <code>psql</code>, TablePlus, DBeaver, or the connection string from your hosting provider's database panel. Pair this with Activate in the UI, and the user becomes a fully working author.</p>
 </section>
 
 <section id="um-admins-themes">
@@ -667,10 +663,10 @@ WHERE email = 'you@example.com';</pre>
   <p>By design. <code>UserManager.on_after_register</code> sets <code>is_active=false</code> on every new account so admins can vet who joins. Ask the admin to activate you, or — if you are the operator — see the bootstrap section.</p>
 
   <h3>I was activated but still can't write articles.</h3>
-  <p>You have <code>is_active=true</code> but probably still have <code>role='guest'</code>. The "Activate" button does not change role. Get an admin to run <code>UPDATE users SET role='author' WHERE email='you@example.com';</code> against the database.</p>
+  <p>You have <code>is_active=true</code> but still have <code>role='guest'</code>. Activation and role promotion are two separate steps. Ask your admin to click <strong>Make author</strong> next to your account in <strong>/admin/users</strong>.</p>
 
   <h3>How do I change a user's role from the UI?</h3>
-  <p>You can't, today. The Users panel only exposes Activate/Deactivate. Role assignment is a direct database edit. The brief on this UX has been raised; for now, SQL is the answer.</p>
+  <p>Open <strong>/admin/users</strong> and find the user's row. The row shows one role button — <strong>Make author</strong> if the user is currently a Guest, or <strong>Make guest</strong> if they are currently an Author. The button is hidden on your own row and on superuser rows. To grant admin access, set <code>FIRST_ADMIN_EMAIL</code> to that user's email and restart the service, or update <code>is_superuser</code> directly in the database.</p>
 
   <h3>Can I run this on SQLite in production?</h3>
   <p>It works, but it's not recommended. SQLite cannot handle concurrent writers as well as Postgres, and the SQLite file lives <em>inside</em> the container by default — a stateless redeploy will erase it unless you mount the file onto a persistent disk. Use Postgres for any deployment you care about.</p>
