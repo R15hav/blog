@@ -2,6 +2,7 @@
 import dynamic from "next/dynamic";
 import { useEffect, useState } from "react";
 import { getArticle } from "../../../_lib/api_callout";
+import { getTokenFromLocalStorage } from "../../../_lib/utility";
 
 const DynamicEditorjs = dynamic(() => import("../../../components/Editorjs"), { ssr: false });
 
@@ -16,7 +17,9 @@ export default function UpdateArticlePage({ params }) {
 
     useEffect(() => {
         if (!articleId) return;
-        getArticle(articleId)
+        // Send the owner's token so their own drafts can be loaded for editing.
+        const { token } = getTokenFromLocalStorage();
+        getArticle(articleId, token)
             .then(({ success, detail }) => {
                 const article = detail?.article?.[0];
                 if (success && article) setArticleData(article);

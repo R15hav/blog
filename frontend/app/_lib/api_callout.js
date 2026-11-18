@@ -24,8 +24,11 @@ export async function getArticles({ skip = 0, limit = 10, search = "" } = {}) {
     return res.ok ? { success: true, detail: data } : { success: false, detail: data };
 }
 
-export async function getArticle(id) {
-    const res = await fetch(`${API}/api/v1/get-article/${id}`);
+export async function getArticle(id, token = null) {
+    // Drafts are only returned to their owner or an admin, so pass the token when available.
+    const res = await fetch(`${API}/api/v1/get-article/${id}`, {
+        headers: token ? { Authorization: `Bearer ${token}` } : {},
+    });
     const data = await res.json().catch(() => null);
     return res.ok ? { success: true, detail: data } : { success: false, detail: data };
 }

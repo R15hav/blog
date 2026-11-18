@@ -56,8 +56,13 @@ async def search_articles(
 
 
 @router.get("/get-article/{id}")
-async def get_article(id: str, session: AsyncSession = Depends(get_async_session)):
-    article = await svc_get_article_by_id(session, id)
+async def get_article(
+    id: str,
+    session: AsyncSession = Depends(get_async_session),
+    user: Optional[User] = Depends(current_optional_user),
+):
+    # Drafts are returned only to their owner or a superuser; everyone else gets 404.
+    article = await svc_get_article_by_id(session, id, user)
     return {"article": article}
 
 
@@ -90,7 +95,7 @@ async def like_article(
     user: User = Depends(current_active_user),
     session: AsyncSession = Depends(get_async_session),
 ):
-    return await svc_toggle_like(session, id, user.id)
+    return await svc_toggle_like(session, id, user)
 
 
 @router.get("/articles/{id}/likes")
@@ -99,8 +104,7 @@ async def article_likes(
     session: AsyncSession = Depends(get_async_session),
     user: Optional[User] = Depends(current_optional_user),
 ):
-    user_id = getattr(user, "id", None)
-    return await svc_get_like_status(session, id, user_id)
+    return await svc_get_like_status(session, id, user)
 
 
 # ── Comments ───────────────────────────────────────────────────────────────────
@@ -109,8 +113,9 @@ async def article_likes(
 async def article_comments(
     id: str,
     session: AsyncSession = Depends(get_async_session),
+    user: Optional[User] = Depends(current_optional_user),
 ):
-    return await svc_list_comments(session, id)
+    return await svc_list_comments(session, id, user)
 
 
 @router.post("/articles/{id}/comments", status_code=201)
@@ -120,7 +125,7 @@ async def post_comment(
     user: User = Depends(current_active_user),
     session: AsyncSession = Depends(get_async_session),
 ):
-    return await svc_add_comment(session, id, user.id, data.body)
+    return await svc_add_comment(session, id, user, data.body)
 
 
 @router.delete("/articles/{id}/comments/{comment_id}")

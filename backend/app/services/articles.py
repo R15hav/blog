@@ -38,6 +38,30 @@ def _post_opts():
     )
 
 
+# ── Visibility ─────────────────────────────────────────────────────────────────
+#
+# A published article is visible to everyone. An unpublished article (draft) is
+# visible only to its owner and to superusers. Every endpoint that reads or
+# writes an article by ID on behalf of a caller must go through this check;
+# callers who may not see a draft get the same 404 as for a missing article, so
+# draft IDs are not confirmed to exist.
+
+def can_view_post(post: Post, user=None) -> bool:
+    if str(post.published).lower() == "true":
+        return True
+    if user is None:
+        return False
+    return bool(user.is_superuser) or post.owner_id == user.id
+
+
+async def get_visible_post(session: AsyncSession, post_id: uuid.UUID, user=None) -> Post:
+    """Return the post if `user` may see it; otherwise raise 404."""
+    post = (await session.execute(select(Post).where(Post.id == post_id))).scalars().first()
+    if post is None or not can_view_post(post, user):
+        raise HTTPException(status_code=404, detail="Article not found")
+    return post
+
+
 async def create_article(session: AsyncSession, user, post):
     try:
         datetime_object = datetime.strptime(post.created_date, "%Y-%m-%d %H:%M:%S")
@@ -95,15 +119,18 @@ async def list_all_articles(session: AsyncSession, skip: int = 0, limit: int = 2
 
 
 async def search_articles(session: AsyncSession, title: str):
+    """Public endpoint — only published articles. Owners and admins reach drafts
+    through the author dashboard and the admin article list instead."""
     result = await session.execute(
         select(Post)
         .options(*_post_opts())
+        .where(Post.published == "true")
         .where(Post.title.ilike(f"%{title}%"))
     )
     return [_post_to_dict(p) for p in result.scalars().all()]
 
 
-async def get_article_by_id(session: AsyncSession, id_str: str):
+async def get_article_by_id(session: AsyncSession, id_str: str, user=None):
     try:
         article_id = uuid.UUID(id_str)
         result = await session.execute(
@@ -112,7 +139,7 @@ async def get_article_by_id(session: AsyncSession, id_str: str):
             .where(Post.id == article_id)
         )
         post = result.scalars().first()
-        if not post:
+        if not post or not can_view_post(post, user):
             raise HTTPException(status_code=404, detail="Article not found")
         return [_post_to_dict(post)]
     except HTTPException:
@@ -126,7 +153,8 @@ async def delete_article(session: AsyncSession, user, id_str: str):
         article_id = uuid.UUID(id_str)
         result = await session.execute(select(Post).where(Post.id == article_id))
         article = result.scalars().first()
-        if not article:
+        # A draft the caller may not see is reported as missing, not forbidden.
+        if not article or not can_view_post(article, user):
             raise HTTPException(status_code=404, detail="Article not found")
         if not user.is_superuser and article.owner_id != user.id:
             raise HTTPException(status_code=403, detail="Not authorized to delete this article")
@@ -144,7 +172,8 @@ async def update_article(session: AsyncSession, user, id_str: str, post):
         article_id = uuid.UUID(id_str)
         result = await session.execute(select(Post).where(Post.id == article_id))
         article = result.scalars().first()
-        if not article:
+        # A draft the caller may not see is reported as missing, not forbidden.
+        if not article or not can_view_post(article, user):
             raise HTTPException(status_code=404, detail="Article not found")
         if not user.is_superuser and article.owner_id != user.id:
             raise HTTPException(status_code=403, detail="Not authorized to update this article")
@@ -165,8 +194,10 @@ async def update_article(session: AsyncSession, user, id_str: str, post):
 
 # ── Likes ──────────────────────────────────────────────────────────────────────
 
-async def toggle_like(session: AsyncSession, post_id_str: str, user_id) -> dict:
+async def toggle_like(session: AsyncSession, post_id_str: str, user) -> dict:
     post_id = uuid.UUID(post_id_str)
+    await get_visible_post(session, post_id, user)
+    user_id = user.id
     result = await session.execute(
         select(Like).where(Like.post_id == post_id, Like.user_id == user_id)
     )
@@ -184,8 +215,10 @@ async def toggle_like(session: AsyncSession, post_id_str: str, user_id) -> dict:
     return {"count": count, "user_liked": liked}
 
 
-async def get_like_status(session: AsyncSession, post_id_str: str, user_id=None) -> dict:
+async def get_like_status(session: AsyncSession, post_id_str: str, user=None) -> dict:
     post_id = uuid.UUID(post_id_str)
+    await get_visible_post(session, post_id, user)
+    user_id = getattr(user, "id", None)
     count = (await session.execute(
         select(func.count()).select_from(Like).where(Like.post_id == post_id)
     )).scalar()
@@ -244,8 +277,9 @@ async def list_comments_for_author(session: AsyncSession, owner_id, skip: int = 
 
 # ── Comments ───────────────────────────────────────────────────────────────────
 
-async def list_comments(session: AsyncSession, post_id_str: str) -> list:
+async def list_comments(session: AsyncSession, post_id_str: str, user=None) -> list:
     post_id = uuid.UUID(post_id_str)
+    await get_visible_post(session, post_id, user)
     result = await session.execute(
         select(Comment)
         .options(selectinload(Comment.author))
@@ -264,9 +298,10 @@ async def list_comments(session: AsyncSession, post_id_str: str) -> list:
     ]
 
 
-async def add_comment(session: AsyncSession, post_id_str: str, author_id, body: str) -> dict:
+async def add_comment(session: AsyncSession, post_id_str: str, user, body: str) -> dict:
     post_id = uuid.UUID(post_id_str)
-    comment = Comment(post_id=post_id, author_id=author_id, body=body)
+    await get_visible_post(session, post_id, user)
+    comment = Comment(post_id=post_id, author_id=user.id, body=body)
     session.add(comment)
     await session.commit()
     await session.refresh(comment)

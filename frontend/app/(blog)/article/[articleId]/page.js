@@ -1,3 +1,4 @@
+import { notFound } from "next/navigation";
 import ReadingProgress from "../../components/ReadingProgress";
 import TableOfContents from "../../components/TableOfContents";
 import ArticleInteractions from "../../components/ArticleInteractions";
@@ -9,7 +10,9 @@ const _APP_URL = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
 
 async function _fetchArticleForMeta(articleId) {
   try {
-    const res = await fetch(`${_API}/api/v1/get-article/${articleId}`, { next: { revalidate: 30 } });
+    // no-store: Next's data cache never replaces a cached 200 with a later 404, so a
+    // cached copy of an article that became a draft would keep being served.
+    const res = await fetch(`${_API}/api/v1/get-article/${articleId}`, { cache: "no-store" });
     const data = await res.json().catch(() => null);
     return res.ok ? (data?.article?.[0] ?? null) : null;
   } catch {
@@ -237,18 +240,22 @@ export default async function ArticlePage({ params }) {
 
   let article = null;
   let fetchError = null;
+  let missing = false;
 
   try {
-    const res = await fetch(`${apiUrl}/api/v1/get-article/${articleId}`, { next: { revalidate: 30 } });
+    // Uncached for the same reason as _fetchArticleForMeta: visibility must be re-checked per request.
+    const res = await fetch(`${apiUrl}/api/v1/get-article/${articleId}`, { cache: "no-store" });
     const data = await res.json().catch(() => null);
-    if (!res.ok) fetchError = data?.detail ?? `Failed to fetch article (${res.status})`;
+    // 404 covers both missing articles and drafts the (anonymous) server request may not see.
+    if (res.status === 404) missing = true;
+    else if (!res.ok) fetchError = data?.detail ?? `Failed to fetch article (${res.status})`;
     else article = data?.article?.[0] ?? null;
   } catch (err) {
     fetchError = err?.message ?? String(err);
   }
 
+  if (missing || (!fetchError && !article)) notFound();
   if (fetchError) return <p role="alert" style={{ padding: "2rem" }}>Error: {fetchError}</p>;
-  if (!article) return <p style={{ padding: "2rem" }}>Article not found.</p>;
 
   let blocks = null;
   let rawContent = null;
