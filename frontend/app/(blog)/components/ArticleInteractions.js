@@ -9,8 +9,8 @@ import {
     deleteComment,
 } from "../../_lib/api_callout";
 
-function initials(email) {
-    return email ? email[0].toUpperCase() : "?";
+function initials(name) {
+    return name ? name.trim()[0].toUpperCase() : "?";
 }
 
 function countWords(blocks) {
@@ -30,7 +30,7 @@ function countWords(blocks) {
     return n;
 }
 
-export default function ArticleInteractions({ articleId, authorEmail, blocks, createdDate, hideByline = false }) {
+export default function ArticleInteractions({ articleId, authorName, blocks, createdDate, hideByline = false }) {
     const { user, token } = useAuth();
 
     const [likeCount, setLikeCount] = useState(0);
@@ -107,9 +107,9 @@ export default function ArticleInteractions({ articleId, authorEmail, blocks, cr
             {/* Author byline */}
             {!hideByline && (
                 <div className="article-author">
-                    <div className="article-author__avatar">{initials(authorEmail)}</div>
+                    <div className="article-author__avatar">{initials(authorName)}</div>
                     <div>
-                        <div className="article-author__name">{authorEmail ?? "Unknown"}</div>
+                        <div className="article-author__name">{authorName ?? "Unknown"}</div>
                         <div className="article-author__meta">{readTime} min read · {dateStr}</div>
                     </div>
                 </div>
@@ -144,14 +144,15 @@ export default function ArticleInteractions({ articleId, authorEmail, blocks, cr
                     )}
                     {comments.map((c) => (
                         <div key={c.id} className="comment">
-                            <div className="comment__avatar">{initials(c.author_email)}</div>
+                            <div className="comment__avatar">{initials(c.author_name)}</div>
                             <div className="comment__body">
-                                <strong>{c.author_email}</strong>
+                                <strong>{c.author_name}</strong>
                                 <p>{c.body}</p>
                                 <span className="comment__date">
                                     {new Date(c.created_at).toLocaleDateString()}
                                 </span>
-                                {(user?.email === c.author_email || user?.is_superuser) && (
+                                {/* Ownership by stable user ID; the server enforces the same rule. */}
+                                {((user?.id && String(user.id) === c.author_id) || user?.is_superuser) && (
                                     <button
                                         className="comment__delete"
                                         onClick={() => handleDeleteComment(c.id)}

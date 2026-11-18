@@ -7,22 +7,13 @@ Run from backend/:
 Each test run uses a fresh, throwaway SQLite database in a temporary directory.
 No external services, real data or network access are required.
 """
-import logging
 import os
-import tempfile
+import sys
 import unittest
 import uuid
 
-# IsolatedAsyncioTestCase runs the loop in debug mode, which logs a warning for
-# every callback slower than 100 ms (password hashing is). That is noise here.
-logging.getLogger("asyncio").setLevel(logging.ERROR)
-
-# Point the app at an isolated database *before* any app module is imported:
-# app.database.db builds its engine from DATABASE_URL at import time.
-_TMP = tempfile.TemporaryDirectory()
-os.environ["DATABASE_URL"] = f"sqlite+aiosqlite:///{_TMP.name}/visibility-test.db"
-os.environ["HCAPTCHA_ENABLED"] = "false"
-os.environ.pop("FIRST_ADMIN_EMAIL", None)
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+import _isolated_db  # noqa: E402,F401  (must run before any app import)
 
 import httpx  # noqa: E402
 from sqlalchemy import update  # noqa: E402
@@ -72,6 +63,7 @@ class ArticleVisibilityTests(unittest.IsolatedAsyncioTestCase):
 
     async def asyncTearDown(self):
         await self.client.aclose()
+        await engine.dispose()  # close pooled connections before this test's event loop ends
 
     # ── helpers ────────────────────────────────────────────────────────────────
 
@@ -245,12 +237,6 @@ class ArticleVisibilityTests(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(r.status_code, 200, r.text)
         r = await self.client.get(f"/api/v1/get-article/{self.draft_id}")
         self.assertEqual(r.status_code, 200, r.text)  # once published, it is public
-
-
-def tearDownModule():
-    import asyncio
-    asyncio.run(engine.dispose())
-    _TMP.cleanup()
 
 
 if __name__ == "__main__":

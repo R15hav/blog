@@ -333,7 +333,7 @@ function CommentsTab({ token }) {
         {comments.map((c) => (
           <div key={c.id} className="comment-card">
             <div className="comment-card-meta">
-              <span className="comment-card-author">{c.author_email}</span>
+              <span className="comment-card-author">{c.author_name}</span>
               <span className="comment-card-dot">·</span>
               <a className="comment-card-article" href={`/article/${c.post_id}`}>
                 {c.post_title || "Article"}

@@ -69,8 +69,8 @@ export default async function SearchPage({ searchParams }) {
               </p>
             )}
             <div className="byline-meta">
-              {a.author_email && <span style={{ color: "var(--ink-2)", fontWeight: 500 }}>{a.author_email}</span>}
-              {a.author_email && date && <span className="dot-sep" />}
+              {a.author_name && <span style={{ color: "var(--ink-2)", fontWeight: 500 }}>{a.author_name}</span>}
+              {a.author_name && date && <span className="dot-sep" />}
               {date && <span>{date}</span>}
             </div>
           </article>

@@ -9,13 +9,30 @@ from sqlalchemy.orm import selectinload
 from app.database.db import Post, Like, Comment, User
 
 
+# Public article and comment payloads identify people by user ID and display
+# name only. Email addresses are never included: they are private to the user
+# and to admin-only views (see services/admin.py).
+DISPLAY_NAME_FALLBACK = "Member"
+
+
+def display_name(user) -> str | None:
+    """First and last name, or a neutral label. Never derived from the email."""
+    if user is None:
+        return None
+    return " ".join(p for p in (user.first_name, user.last_name) if p) or DISPLAY_NAME_FALLBACK
+
+
+def _comment_to_dict(c: Comment) -> dict:
+    return {
+        "id": str(c.id),
+        "author_id": str(c.author_id),
+        "author_name": display_name(c.author),
+        "body": c.body,
+        "created_at": c.created_at,
+    }
+
+
 def _post_to_dict(post: Post) -> dict:
-    owner = post.owner
-    if owner:
-        parts = [owner.first_name, owner.last_name]
-        author_name = " ".join(p for p in parts if p) or owner.email
-    else:
-        author_name = None
     return {
         "id": str(post.id),
         "owner_id": str(post.owner_id),
@@ -23,8 +40,7 @@ def _post_to_dict(post: Post) -> dict:
         "content": post.content,
         "published": post.published,
         "created_date": post.created_date,
-        "author_email": owner.email if owner else None,
-        "author_name": author_name,
+        "author_name": display_name(post.owner),
         "like_count": len(post.likes),
         "comment_count": len(post.comments),
     }
@@ -262,14 +278,12 @@ async def list_comments_for_author(session: AsyncSession, owner_id, skip: int = 
     )
     total = (await session.execute(count_q)).scalar() or 0
     comments = (await session.execute(rows_q)).scalars().all()
+    # Authors see who commented on their articles by name, not by email.
     return [
         {
-            "id": str(c.id),
+            **_comment_to_dict(c),
             "post_id": str(c.post_id),
             "post_title": c.post.title if c.post else "",
-            "author_email": c.author.email if c.author else "unknown",
-            "body": c.body,
-            "created_at": c.created_at,
         }
         for c in comments
     ], total
@@ -286,16 +300,7 @@ async def list_comments(session: AsyncSession, post_id_str: str, user=None) -> l
         .where(Comment.post_id == post_id)
         .order_by(Comment.created_at.asc())
     )
-    comments = result.scalars().all()
-    return [
-        {
-            "id": str(c.id),
-            "author_email": c.author.email if c.author else "unknown",
-            "body": c.body,
-            "created_at": c.created_at,
-        }
-        for c in comments
-    ]
+    return [_comment_to_dict(c) for c in result.scalars().all()]
 
 
 async def add_comment(session: AsyncSession, post_id_str: str, user, body: str) -> dict:
@@ -308,13 +313,7 @@ async def add_comment(session: AsyncSession, post_id_str: str, user, body: str) 
     result = await session.execute(
         select(Comment).options(selectinload(Comment.author)).where(Comment.id == comment.id)
     )
-    c = result.scalars().first()
-    return {
-        "id": str(c.id),
-        "author_email": c.author.email if c.author else "unknown",
-        "body": c.body,
-        "created_at": c.created_at,
-    }
+    return _comment_to_dict(result.scalars().first())
 
 
 async def delete_comment(session: AsyncSession, comment_id_str: str, user) -> dict:

@@ -61,7 +61,7 @@ export async function generateMetadata({ params }) {
     : null;
   const ogImage = _firstImageUrl(blocks) ?? absoluteLogoUrl;
   const canonicalUrl = `${siteUrl}/article/${articleId}`;
-  const authorDisplay = article.author_name ?? article.author_email ?? null;
+  const authorDisplay = article.author_name ?? null;
 
   return {
     title,
@@ -271,7 +271,7 @@ export default async function ArticlePage({ params }) {
   const dateStr = article.created_date
     ? new Date(article.created_date).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })
     : "";
-  const authorDisplay = article.author_name ?? article.author_email ?? "Unknown";
+  const authorDisplay = article.author_name ?? "Unknown";
   const authorInitials = authorDisplay.split(" ").map((w) => w[0]).join("").slice(0, 2).toUpperCase() || "?";
 
   const settings = await _fetchSiteSettings();
@@ -331,7 +331,7 @@ export default async function ArticlePage({ params }) {
           {/* Reactions + comments */}
           <ArticleInteractions
             articleId={articleId}
-            authorEmail={article.author_email ?? null}
+            authorName={article.author_name ?? null}
             blocks={blocks}
             createdDate={article.created_date ?? null}
             hideByline={true}
