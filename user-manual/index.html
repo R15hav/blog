@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Paper Blog — Open-Source Blog Platform with Live Theme Switching</title>
+  <title>Paper — Open-Source Blog Platform with Live Theme Switching</title>
   <meta name="description" content="FastAPI + Next.js blog platform with live theme switching, Editor.js rich content, role-based access, and one-command deployment." />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -64,7 +64,7 @@
       </div>
       <div class="hero-social-item">
         <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 7H4a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2z"/><path d="M12 12h.01"/></svg>
-        Docker · Render ready
+        Docker · Render blueprint
       </div>
     </div>
   </div>
@@ -79,19 +79,19 @@
       </div>
       <div class="terminal-body">
         <pre><span class="t-prompt">$</span> <span class="t-cmd">docker compose up</span>
-<span class="t-out"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="vertical-align:-2px"><polyline points="20 6 9 17 4 12"/></svg> backend    healthy  :8000</span>
-<span class="t-out"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="vertical-align:-2px"><polyline points="20 6 9 17 4 12"/></svg> frontend   healthy  :3000</span>
+<span class="t-out"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="vertical-align:-2px"><polyline points="20 6 9 17 4 12"/></svg> db         healthy</span>
+<span class="t-out"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="vertical-align:-2px"><polyline points="20 6 9 17 4 12"/></svg> app        healthy  :8080</span>
 <span class="t-ok"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="vertical-align:-2px"><polyline points="20 6 9 17 4 12"/></svg> All services running.</span>
 
 <span class="t-prompt">admin &gt;</span> <span class="t-cmd">paste CSS URL…</span>
 <span class="t-accent">→ https://cdn.example.com/dark.css</span>
-<span class="t-ok"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="vertical-align:-2px"><polyline points="20 6 9 17 4 12"/></svg> Theme activated instantly.</span>
-<span class="t-out">  All visitors see the new look.</span>
-<span class="t-out">  Zero redeploy. Zero CDN flush.</span>
+<span class="t-ok"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="vertical-align:-2px"><polyline points="20 6 9 17 4 12"/></svg> Theme activated.</span>
+<span class="t-out">  Visitors see it within about a minute.</span>
+<span class="t-out">  No redeploy. No rebuild.</span>
 <span class="t-prompt">_</span><span class="t-cursor"></span></pre>
       </div>
       <div class="theme-pills">
-        <p class="theme-pills-label">Saved themes</p>
+        <p class="theme-pills-label">Example themes</p>
         <div class="theme-pill active">
           <span class="theme-pill-dot" style="background: oklch(0.22 0.015 60)"></span>
           Dark Ink
@@ -125,7 +125,7 @@
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14M4.93 4.93a10 10 0 0 0 0 14.14M12 2v2M12 20v2M2 12H4M20 12h2"/></svg>
         </div>
         <h3 class="feature-title">Live Theme Switching</h3>
-        <p class="feature-desc">Paste any external CSS URL in the admin panel. Every visitor instantly sees the new look. No redeploy, no CDN flush — server-side injection on every page load.</p>
+        <p class="feature-desc">Paste any external CSS URL in the admin panel and activate it. Activation is immediate; visitors see the new look within about a minute as cached pages refresh. No redeploy, no rebuild.</p>
         <a href="guide.html#um-admins-themes" class="feature-learn">Learn how it works →</a>
       </div>
 
@@ -134,7 +134,7 @@
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
         </div>
         <h3 class="feature-title">Editor.js Rich Content</h3>
-        <p class="feature-desc">Block-structured editing with headers, ordered &amp; unordered lists, inline code, fenced code blocks, images, embeds, and checklists. Content stored as portable JSON.</p>
+        <p class="feature-desc">Block-structured editing with headers, lists, quotes, tables, code blocks, inline code, embeds and images by URL. Content stored as portable JSON.</p>
         <a href="guide.html#um-authors-write" class="feature-learn">See the editor →</a>
       </div>
 
@@ -143,7 +143,7 @@
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
         </div>
         <h3 class="feature-title">Role-Based Workflow</h3>
-        <p class="feature-desc">Three roles: <strong>Admin</strong> controls everything, <strong>Author</strong> writes after approval, <strong>Visitor</strong> reads without an account. Registration flows through admin approval.</p>
+        <p class="feature-desc"><strong>Admins</strong> manage the platform. <strong>Authors</strong> manage their own articles. <strong>Visitors</strong> browse and read without an account; approved members can like and comment. New accounts need admin approval.</p>
         <a href="guide.html#um-authors-approval" class="feature-learn">See role matrix →</a>
       </div>
 
@@ -152,7 +152,7 @@
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M9 9h.01M15 9h.01M9 15h.01M15 15h.01M12 12h.01"/></svg>
         </div>
         <h3 class="feature-title">Admin Panel</h3>
-        <p class="feature-desc">Manage users, moderate all articles, review comments, switch themes, and configure site settings (name, logo, open/closed registration) — all from one dashboard.</p>
+        <p class="feature-desc">Manage users, moderate all articles, review comments, switch themes, and configure site settings (name, logo, sign-up visibility) — all from one dashboard.</p>
         <a href="guide.html#um-admins-dashboard" class="feature-learn">Explore admin →</a>
       </div>
 
@@ -170,7 +170,7 @@
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/></svg>
         </div>
         <h3 class="feature-title">Deploy Anywhere</h3>
-        <p class="feature-desc">Docker Compose (three services) for self-hosted setups. Or use the single-container Dockerfile — Nginx + FastAPI + Next.js + Supervisor — for Render and other PaaS providers.</p>
+        <p class="feature-desc">Docker Compose runs PostgreSQL and a single Paper application container. The application image bundles Nginx, FastAPI, Next.js and Supervisor; a Render blueprint is included.</p>
         <a href="guide.html#um-deploy-render" class="feature-learn">Deployment guide →</a>
       </div>
     </div>
@@ -190,17 +190,17 @@
       <div class="step">
         <div class="step-num">01</div>
         <h3 class="step-title">Deploy</h3>
-        <p class="step-desc">Run <code>docker compose up</code> locally or push to Render with the included single-container <code>Dockerfile</code>. The database schema is created automatically on first start.</p>
+        <p class="step-desc">Run <code>docker compose up</code> locally, or deploy the same single-container <code>Dockerfile</code> with the included Render blueprint. The database schema is created on first start; set <code>FIRST_ADMIN_EMAIL</code> to choose your first admin.</p>
       </div>
       <div class="step">
         <div class="step-num">02</div>
         <h3 class="step-title">Write</h3>
-        <p class="step-desc">Register an account, get approved by the admin, then create rich articles using the Editor.js block editor. Toggle between draft and published with one click.</p>
+        <p class="step-desc">Register an account, wait for admin approval, and receive the author role from an admin. Then write and manage articles in the Editor.js block editor, toggling between draft and published.</p>
       </div>
       <div class="step">
         <div class="step-num">03</div>
         <h3 class="step-title">Style</h3>
-        <p class="step-desc">Paste any CSS URL into the admin theme panel. Click "Activate". Every visitor instantly sees the new design — no redeploy, no cache invalidation needed.</p>
+        <p class="step-desc">Paste any CSS URL into the admin theme panel. Click "Activate". Activation is immediate, and visitors see the new design within about a minute — no redeploy, no rebuild.</p>
       </div>
     </div>
   </div>
@@ -226,14 +226,14 @@
       <div class="role-panel active" id="role-admin">
         <div>
           <span class="tag tag-accent" style="margin-bottom: 16px">Full control</span>
-          <p class="role-panel-desc">The first user to register automatically becomes the admin, or you can set <code>is_superuser = true</code> in the database. Admins have complete control over the platform.</p>
+          <p class="role-panel-desc">Set <code>FIRST_ADMIN_EMAIL</code>, register with that address, then restart: the startup process promotes that account to admin. Admins have complete control over the platform.</p>
           <ul class="role-capabilities">
-            <li>Approve or deactivate any user account</li>
+            <li>Approve, deactivate or make any user an author</li>
             <li>Edit or delete any article (not just own)</li>
             <li>Manage and activate CSS themes from a URL</li>
-            <li>Configure site name, logo, and registration toggle</li>
+            <li>Configure site name, logo, and sign-up visibility</li>
             <li>Moderate comments across all articles</li>
-            <li>View stats: total users, articles, and comments</li>
+            <li>View stats: articles, published, drafts and users</li>
           </ul>
         </div>
         <div class="role-mockup">
@@ -273,14 +273,14 @@
       <div class="role-panel" id="role-author">
         <div>
           <span class="tag tag-blue" style="margin-bottom: 16px">Write &amp; publish</span>
-          <p class="role-panel-desc">Authors register via the public form and are activated by an admin. Once approved they can create and manage their own articles from a personal dashboard.</p>
+          <p class="role-panel-desc">Authors register via the public form, wait for an admin to approve the account, and receive the author role separately. They then create and manage their own articles from a personal dashboard.</p>
           <ul class="role-capabilities">
             <li>Create articles with the Editor.js block editor</li>
             <li>Toggle articles between draft and published</li>
             <li>Edit or delete their own articles</li>
             <li>View per-article like and comment counts</li>
             <li>Manage personal profile and biography</li>
-            <li>Cannot access other authors' articles</li>
+            <li>Cannot edit other authors' articles</li>
           </ul>
         </div>
         <div class="role-mockup">
@@ -315,14 +315,14 @@
       <div class="role-panel" id="role-visitor">
         <div>
           <span class="tag tag-green" style="margin-bottom: 16px">No account needed</span>
-          <p class="role-panel-desc">Visitors can browse, search, read, and interact with published articles without an account. The reading experience is clean and distraction-free.</p>
+          <p class="role-panel-desc">Visitors can browse, search by article title and read published articles without an account. Liking and commenting need an approved account. The reading experience is clean and distraction-free.</p>
           <ul class="role-capabilities">
             <li>Browse all published articles on the home feed</li>
             <li>Search articles by title (partial, case-insensitive)</li>
             <li>Read articles with table of contents navigation</li>
-            <li>Like articles and leave comments (when logged in)</li>
-            <li>Register to become an author</li>
-            <li>Site look changes in real-time with active theme</li>
+            <li>Like articles and leave comments (with an approved account)</li>
+            <li>Register for an account (approved by an admin)</li>
+            <li>Site look follows the active theme</li>
           </ul>
         </div>
         <div class="role-mockup">
@@ -427,7 +427,7 @@
   </div>
   <div class="footer-bottom">
     <div class="footer-bottom-inner">
-      <p class="footer-copy">© 2026 Paper Blog — Open-source under the <a href="https://github.com/R15hav/blog/blob/master/LICENSE" target="_blank" rel="noopener">MIT License</a></p>
+      <p class="footer-copy">© 2026 Paper — Open-source under the <a href="https://github.com/R15hav/blog/blob/master/LICENSE" target="_blank" rel="noopener">MIT License</a></p>
       <div class="footer-tech">
         <span>FastAPI 0.124</span>
         <span>·</span>

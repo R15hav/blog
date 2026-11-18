@@ -46,7 +46,7 @@ Writers compose articles in a block-based **Editor.js** editor. New accounts sta
 
 ### 💬 Community
 - Readers can like and comment on articles
-- Search articles by title or author name
+- Search articles by title
 - Account settings for each user: bio, work experience, qualifications and education
 - Three roles: **guest** (read, like, comment), **author** (write and manage own articles), **admin** (everything)
 

@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  Sitemap / search-index for the Paper Blog user-manual.
+  Sitemap / search-index for the Paper user-manual.
   Generated 2026-05-09. Update <loc> base when you change hosting.
   Run from /user-manual:  python3 ../scripts/regen-sitemap.py  (if you add one)
 -->

@@ -3,8 +3,8 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Documentation — Paper Blog</title>
-  <meta name="description" content="Paper Blog documentation: a user manual for readers, authors, admins and operators, plus a contributor guide for developers." />
+  <title>Documentation — Paper</title>
+  <meta name="description" content="Paper documentation: a user manual for readers, authors, admins and operators, plus a contributor guide for developers." />
   <meta name="color-scheme" content="light dark" />
 
   <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -267,13 +267,13 @@
     >
       <section id="um-overview">
   <h1>User Manual</h1>
-  <p>Paper Blog is an open-source blog platform built on <strong>FastAPI</strong> and <strong>Next.js 16</strong>. It ships with a rich block editor (Editor.js), role-based authentication, live theme switching, and a built-in admin panel — all packaged so a single operator can run a small publication without writing code.</p>
+  <p>Paper is an open-source blog platform built on <strong>FastAPI</strong> and <strong>Next.js 16</strong>. It ships with a rich block editor (Editor.js), role-based authentication, live theme switching, and a built-in admin panel — all packaged so a single operator can run a small publication without writing code.</p>
   <p>This manual is for people <em>using</em> a deployed instance. It is split into four parts: <strong>Readers</strong> (anyone visiting the site), <strong>Authors</strong> (people writing posts), <strong>Admins</strong> (the people approving authors and configuring the site), and <strong>Operators</strong> (the person who deployed the thing). Pick the section that matches your hat.</p>
 </section>
 
 <section id="um-quickstart">
   <h2>Quick Start</h2>
-  <p>If you have just landed on a deployed Paper Blog, here is the shortest path to participating.</p>
+  <p>If you have just landed on a deployed Paper site, here is the shortest path to participating.</p>
   <ol>
     <li>Open the site URL — the home page lists the most recent published articles.</li>
     <li>Click any title to read the full article. No account needed.</li>
@@ -514,7 +514,7 @@
 
 <section id="um-deploy">
   <h2>Deployment for Operators</h2>
-  <p>Paper Blog deploys as a single Docker image: nginx + supervisord fronting the FastAPI backend and the Next.js frontend in one container. The same image runs in <code>docker compose</code> locally and on Render. Pick whichever path matches where you want the site to live.</p>
+  <p>Paper deploys as a single Docker image: nginx + supervisord fronting the FastAPI backend and the Next.js frontend in one container. The same image runs in <code>docker compose</code> locally and on Render. Pick whichever path matches where you want the site to live.</p>
 </section>
 
 <section id="um-deploy-render">
