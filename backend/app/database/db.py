@@ -1,5 +1,4 @@
 import os
-import ssl
 import uuid
 from collections.abc import AsyncGenerator
 from datetime import datetime
@@ -11,32 +10,12 @@ from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, relationship
 from fastapi_users.db import SQLAlchemyUserDatabase, SQLAlchemyBaseUserTableUUID
 from fastapi_users_db_sqlalchemy.generics import GUID
 
-def _async_db_url(url: str) -> str:
-    """Normalise scheme for SQLAlchemy async engine. SSL is handled via connect_args."""
-    from urllib.parse import urlparse, urlencode, parse_qs, urlunparse
-    if url.startswith("postgres://"):
-        url = url.replace("postgres://", "postgresql+asyncpg://", 1)
-    elif url.startswith("postgresql://"):
-        url = url.replace("postgresql://", "postgresql+asyncpg://", 1)
-    else:
-        return url
-    # Strip SSL query params — asyncpg ignores sslmode and mishandles ssl= in URLs;
-    # we pass ssl via connect_args instead.
-    parsed = urlparse(url)
-    params = {k: v[0] for k, v in parse_qs(parsed.query, keep_blank_values=True).items()
-              if k not in ("ssl", "sslmode")}
-    return urlunparse(parsed._replace(query=urlencode(params)))
+from app.database.connection import database_settings
 
-DATABASE_URL = _async_db_url(os.getenv("DATABASE_URL", "sqlite+aiosqlite:///./test.db"))
-
-# Pass SSL and a fast connection timeout via connect_args so asyncpg
-# fails quickly with a real error instead of a silent 60-second hang.
-_pg_connect_args: dict = {}
-if not DATABASE_URL.startswith("sqlite"):
-    _ssl_ctx = ssl.create_default_context()
-    _ssl_ctx.check_hostname = False
-    _ssl_ctx.verify_mode = ssl.CERT_NONE
-    _pg_connect_args = {"ssl": _ssl_ctx, "timeout": 10}
+# URL normalisation, sslmode handling and the connect timeout live in
+# app/database/connection.py, shared with alembic/env.py.
+DATABASE_SETTINGS = database_settings(os.getenv("DATABASE_URL", "sqlite+aiosqlite:///./test.db"))
+DATABASE_URL = DATABASE_SETTINGS.url
 
 class Base(DeclarativeBase):
     pass
@@ -160,7 +139,7 @@ class SiteConfig(Base):
     og_image_url = Column(String, nullable=True)
 
 
-engine = create_async_engine(DATABASE_URL, connect_args=_pg_connect_args)
+engine = create_async_engine(DATABASE_URL, connect_args=DATABASE_SETTINGS.connect_args)
 async_session_maker = async_sessionmaker(engine, expire_on_commit=False)
 
 async def create_db_and_tables():

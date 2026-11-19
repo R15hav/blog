@@ -42,7 +42,9 @@ services:
     environment:
       # asyncpg-flavoured URL — the backend's URL normaliser also accepts
       # postgres:// / postgresql://, but the explicit driver removes any doubt.
-      DATABASE_URL: postgresql+asyncpg://blog_user:blog_pass@db:5432/blog_db
+      # sslmode=disable: the local postgres container does not serve SSL, and
+      # the backend requires SSL when sslmode is absent (hosted default).
+      DATABASE_URL: postgresql+asyncpg://blog_user:blog_pass@db:5432/blog_db?sslmode=disable
       # Dev-only secret. Override in production / Render via env vars.
       SECRET: dev-secret-change-me
       # Same-origin in compose; nginx serves both backend and frontend on :8080.
