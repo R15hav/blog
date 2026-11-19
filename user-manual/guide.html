@@ -315,20 +315,20 @@
 <section id="um-visitors-search">
   <h3>Search</h3>
   <p>The search page lives at <code>/search-article</code>. It is a <strong>title-only</strong>, case-insensitive substring match — typing <code>fast</code> matches an article called "FastAPI Tips" but not one whose title is "Speedy Servers".</p>
-  <p>Under the hood it calls <code>GET /api/v1/search-articles?title=…</code>. Search returns up to a single page of matching published articles in one shot — there is no pagination on the search endpoint, so very broad queries on a large site will be capped server-side.</p>
+  <p>Under the hood it calls <code>GET /api/v1/search-articles?title=…</code>. It returns every matching published article in one response: there is no pagination and no server-side result limit. (The article-list endpoint, <code>GET /api/v1/get-articles?q=…</code>, also matches author first and last names, but the search page does not use it.)</p>
 </section>
 
 <section id="um-visitors-account">
   <h3>Register &amp; Sign In</h3>
   <p>Registration is at <code>/register</code>. You only need an email address and a password. There are no email-verification steps to clear, but there <em>is</em> an approval gate — see below.</p>
-  <p><strong>New accounts are inactive by default.</strong> The backend's <code>UserManager.on_after_register</code> hook flips <code>is_active=false</code> the moment your row is created. Until an admin activates the account, the login page rejects you with an "inactive user" / 401 error. This is by design — it stops drive-by signups from posting comments.</p>
-  <p>If the admin has switched off <code>allow_registration</code> in <strong>Site Settings</strong>, the registration link disappears and the form is hidden. Reach out to the operator if you need an account on a closed instance.</p>
+  <p><strong>New accounts are inactive by default.</strong> Every new account is created with <code>is_active=false</code> (the default on the user model). Until an admin activates the account, the login page rejects you with an "inactive user" / 401 error. This is by design — it stops drive-by signups from posting comments.</p>
+  <p>If the admin has switched off <code>allow_registration</code> in <strong>Site Settings</strong>, the registration link disappears, the form is hidden, and the backend rejects new sign-ups with HTTP 403. Reach out to the operator if you need an account on a closed instance.</p>
   <p>For added bot protection, the site can require a CAPTCHA on both the registration and login forms. When enabled by the operator, a CAPTCHA widget appears above the submit button on each form and must be solved before the form can be submitted. This is configured entirely in the deployment environment — there is nothing extra you need to do as a user.</p>
   <div class="callout callout-tip">
     <span class="callout-icon">+</span>
     <div class="callout-body">
       <strong>Forgot password.</strong>
-      Use the link on the login page. In a default install, the reset token is returned in the API response (no email is sent) — the operator wires up SMTP themselves.
+      Password reset is not implemented yet. The forgot-password page is a placeholder and no reset email is sent. If you are locked out, contact the site operator.
     </div>
   </div>
 </section>
@@ -402,7 +402,7 @@
   <h3>Drafts vs Published</h3>
   <p>The <strong>Published</strong> checkbox in the editor toolbar is the visibility switch. Internally it is a string column — <code>"true"</code> or <code>"false"</code> — not a boolean, so the backend does string comparisons everywhere. From your side, it is just a checkbox.</p>
   <ul>
-    <li><strong>Draft</strong> (unchecked): visible only to you and to admins. Will not appear on <code>/</code>, in search, in the sitemap, or in RSS.</li>
+    <li><strong>Draft</strong> (unchecked): visible only to you and to admins. Will not appear on <code>/</code>, in search, or in the sitemap.</li>
     <li><strong>Published</strong> (checked): visible to everyone, included in the home feed, search results, and <code>sitemap.xml</code>.</li>
   </ul>
   <p>You can flip the toggle as many times as you like — un-publishing pulls the article straight back to draft.</p>
@@ -431,7 +431,7 @@
       <tr><td><strong>School Education</strong></td><td>One row per <code>grade</code> (e.g. "10th", "12th"). Saving the same grade twice updates the existing row — it is an upsert keyed on grade.</td></tr>
     </tbody>
   </table>
-  <p>Profile data is not exposed on the article byline today — only your email-derived display name and avatar initials show up there — but it is stored and available via the API for future use.</p>
+  <p>Profile data is not exposed on the article byline today — only your display name (first and last name, or "Member" if neither is set) and its initials show up there; author email addresses are never included in public responses — but it is stored and available via the API for future use.</p>
 </section>
 
 <section id="um-admins">
@@ -495,7 +495,7 @@
       <tr><td><code>site_description</code></td><td>Default meta description.</td></tr>
       <tr><td><code>site_url</code></td><td>Canonical site origin used by <code>sitemap.xml</code> and <code>robots.txt</code>.</td></tr>
       <tr><td><code>logo_url</code></td><td>Image shown in the navbar instead of the wordmark. Either an external URL or one returned by the upload endpoint below.</td></tr>
-      <tr><td><code>allow_registration</code></td><td>When false, the registration page and "Get started" links are hidden.</td></tr>
+      <tr><td><code>allow_registration</code></td><td>When false, the registration page and "Get started" links are hidden and the backend rejects new registrations with HTTP 403.</td></tr>
       <tr><td><code>og_title</code> / <code>og_description</code> / <code>og_image_url</code></td><td>OpenGraph metadata for social link previews. Falls back to the site name / description if blank.</td></tr>
     </tbody>
   </table>
@@ -509,7 +509,7 @@
     <li><strong>/admin/articles</strong> — every article on the site, regardless of author or publish status. Search, paginate, edit, delete. Any deletion here is permanent.</li>
     <li><strong>/admin/comments</strong> — every comment on every article. Search by comment body or article title; delete with one click. Sorted newest first.</li>
   </ul>
-  <p>There is currently no spam filter or rate-limit. If a deployed instance starts attracting drive-by comments, the practical mitigation is to flip <code>allow_registration</code> off and only invite the people you trust.</p>
+  <p>There is currently no spam filter or rate-limit. If a deployed instance starts attracting drive-by comments, the practical mitigation is to flip <code>allow_registration</code> off, which stops all new sign-ups, and deactivate unwanted accounts.</p>
 </section>
 
 <section id="um-deploy">
@@ -568,7 +568,7 @@ docker compose up -d</pre>
   <table>
     <thead><tr><th>Variable</th><th>Default</th><th>Purpose</th></tr></thead>
     <tbody>
-      <tr><td><code>DATABASE_URL</code></td><td><code>sqlite+aiosqlite:///./test.db</code></td><td>Postgres or SQLite URL. Backend normalises <code>postgres://</code> / <code>postgresql://</code> to <code>postgresql+asyncpg://</code> and strips <code>ssl=</code>/<code>sslmode=</code> query params.</td></tr>
+      <tr><td><code>DATABASE_URL</code></td><td><code>sqlite+aiosqlite:///./test.db</code></td><td>Postgres or SQLite URL. Backend normalises <code>postgres://</code> / <code>postgresql://</code> to <code>postgresql+asyncpg://</code> and turns <code>sslmode</code> into the driver's SSL setting. Without <code>sslmode</code>, SSL is required; use <code>sslmode=disable</code> for a database without SSL (Docker Compose does this).</td></tr>
       <tr><td><code>SECRET</code></td><td><code>dev-secret-change-me</code></td><td>JWT signing secret. <strong>Must be overridden in production.</strong> Rotating invalidates every existing token.</td></tr>
       <tr><td><code>FIRST_ADMIN_EMAIL</code></td><td>(unset)</td><td>If set, the user with this email is promoted to <code>is_superuser=true</code>, <code>is_active=true</code>, <code>role='admin'</code> on every container start.</td></tr>
       <tr><td><code>FRONTEND_URL</code></td><td><code>http://localhost:3000</code></td><td>CORS allow-origin. Optional in single-image mode because the browser hits the same origin as the API; set it for honesty if you front the service with a custom domain.</td></tr>
@@ -660,7 +660,7 @@ WHERE email = 'you@example.com';</pre>
   <h2>FAQ</h2>
 
   <h3>Why was my registration not approved automatically?</h3>
-  <p>By design. <code>UserManager.on_after_register</code> sets <code>is_active=false</code> on every new account so admins can vet who joins. Ask the admin to activate you, or — if you are the operator — see the bootstrap section.</p>
+  <p>By design. Every new account is created inactive so admins can vet who joins. Ask the admin to activate you, or — if you are the operator — see the bootstrap section.</p>
 
   <h3>I was activated but still can't write articles.</h3>
   <p>You have <code>is_active=true</code> but still have <code>role='guest'</code>. Activation and role promotion are two separate steps. Ask your admin to click <strong>Make author</strong> next to your account in <strong>/admin/users</strong>.</p>
@@ -681,7 +681,7 @@ WHERE email = 'you@example.com';</pre>
   <p>One hour. The JWT carries a 3600-second lifetime, and the frontend stores it in <code>localStorage</code> as <code>access_token</code>. There is no refresh-token flow today; users sign in again after expiry.</p>
 
   <h3>How do I disable new registrations entirely?</h3>
-  <p><strong>Admin → Site Settings</strong>, untick <strong>Allow Registration</strong>, save. The register links disappear from the navigation and the form is hidden. The endpoint is still reachable directly, but the UI no longer advertises it.</p>
+  <p><strong>Admin → Site Settings</strong>, untick <strong>Allow Registration</strong>, save. The register links disappear from the navigation, the form is hidden, and <code>POST /auth/register</code> returns 403 ("Registration is currently closed."). One exception: until an admin account exists, the address in <code>FIRST_ADMIN_EMAIL</code> can still register, so a closed site can be bootstrapped.</p>
 
   <h3>The theme I activated isn't showing for visitors.</h3>
   <p>Either the CSS URL returned a non-200, or the URL is not HTTPS while the site is HTTPS (mixed content gets blocked). Open the URL in a browser and confirm it returns valid CSS, then give the server-side cache up to 60 seconds to revalidate.</p>
@@ -805,7 +805,7 @@ database/db.py         ← async SQLAlchemy models + session factory</pre>
   <div class="code-block">
     <div class="code-block-header"><span class="code-lang">flow</span></div>
     <pre>1. POST /auth/register                  → user created
-2. UserManager.on_after_register        → is_active = False
+2. User.is_active model default         → is_active = False (inserted inactive)
 3. PATCH /api/v1/admin/users/{id}/activate (admin)
 4. POST /auth/jwt/login                  → { access_token, token_type }
 5. Frontend stores access_token in localStorage
@@ -906,7 +906,7 @@ public  ──▶│  nginx :$PORT (default 8080)                  │
 uv run uvicorn app.app:app --reload --host 0.0.0.0 --port 8000</pre>
   </div>
   <p>Or just <code>uv run python main.py</code>. <strong>Must be run from <code>backend/</code></strong> — that's where <code>pyproject.toml</code> lives, and <code>uv</code> walks up from the cwd to find it. Running from repo root fails with <code>ModuleNotFoundError: No module named 'uvicorn'</code>.</p>
-  <p>Defaults: <code>DATABASE_URL=sqlite+aiosqlite:///./test.db</code> (creates <code>backend/test.db</code> on first run), <code>SECRET=dev-secret-change-me</code>. <code>backend/.env</code> is auto-loaded via <code>python-dotenv</code> — drop overrides there.</p>
+  <p>Defaults: <code>DATABASE_URL=sqlite+aiosqlite:///./test.db</code> (creates <code>backend/test.db</code> on first run), <code>SECRET=dev-secret-change-me</code>. <code>backend/.env</code> is <strong>not</strong> loaded automatically; pass it explicitly, e.g. <code>uv run --env-file .env uvicorn app.app:app --reload --port 8000</code>.</p>
   <div class="callout callout-info">
     <span class="callout-icon">ℹ️</span>
     <div class="callout-body">
@@ -955,7 +955,7 @@ NEXT_PUBLIC_APP_URL=http://localhost:3000</pre>
     <div class="code-block-header"><span class="code-lang">env</span></div>
     <pre>DATABASE_URL=postgresql+asyncpg://blog_user:blog_pass@localhost:5432/blog_db</pre>
   </div>
-  <p>The backend's URL normaliser (<code>_async_db_url()</code> in <code>database/db.py</code>) rewrites <code>postgres://</code> and <code>postgresql://</code> to <code>postgresql+asyncpg://</code> automatically, so a Render-style <code>postgres://</code> URL works as-is. It also strips <code>ssl=</code> and <code>sslmode=</code> query params (asyncpg mishandles them) and passes SSL via <code>connect_args</code> instead.</p>
+  <p>Database URL handling lives in <code>backend/app/database/connection.py</code> and is shared by the app and Alembic, so both connect with identical settings. It rewrites <code>postgres://</code> and <code>postgresql://</code> to <code>postgresql+asyncpg://</code>, so a Render-style <code>postgres://</code> URL works as-is. asyncpg does not accept <code>sslmode</code> in the URL, so it is removed and translated into asyncpg's <code>ssl</code> connect argument: <code>disable</code> (no SSL), <code>prefer</code> (SSL if the server offers it), <code>require</code> (SSL mandatory, certificate not verified). A URL without <code>sslmode</code> behaves like <code>require</code>. Unknown or conflicting values stop startup with an error instead of falling back to plain text.</p>
 </section>
 
 <section id="cg-setup-docker">
@@ -1005,9 +1005,9 @@ NEXT_PUBLIC_APP_URL=http://localhost:3000</pre>
     <li><strong><code>Post.published</code> is a <code>String</code></strong> (<code>"true"</code>/<code>"false"</code>), not a boolean. Services call <code>str(post.published).lower()</code> before saving and compare with <code>Post.published == "true"</code>. Frontend handles both <code>"true"</code> and <code>true</code>.</li>
     <li><strong><code>ArticleBase.created_date</code> is a string</strong> in <code>"%Y-%m-%d %H:%M:%S"</code> format. The service calls <code>datetime.strptime</code> with that exact format and 400s on mismatch. Use <code>getCurrentFormattedDate()</code> from <code>frontend/app/_lib/utility.js</code>.</li>
     <li><strong>UUIDs use <code>fastapi_users_db_sqlalchemy.generics.GUID</code></strong> (native UUID on Postgres, <code>CHAR(32)</code> on SQLite). Don't replace with <code>UUID(as_uuid=True)</code> — you'll break SQLite.</li>
-    <li><strong>New registrations are inactive by default.</strong> <code>UserManager.on_after_register</code> sets <code>is_active=False</code>; an admin must <code>PATCH /api/v1/admin/users/{id}/activate</code> before the user can log in.</li>
+    <li><strong>New registrations are inactive by default.</strong> the user model's <code>is_active</code> column defaults to <code>False</code>; an admin must <code>PATCH /api/v1/admin/users/{id}/activate</code> before the user can log in.</li>
     <li><strong><code>reactStrictMode: false</code></strong> in <code>frontend/next.config.ts</code> is intentional — Editor.js double-init breaks under Strict Mode. Don't re-enable.</li>
-    <li><strong>Postgres SSL params are stripped</strong> from the URL and passed via <code>connect_args</code> instead. asyncpg ignores <code>sslmode=</code> and mishandles <code>ssl=</code> in URLs. If you switch DB drivers, replicate this.</li>
+    <li><strong>Postgres SSL defaults to required.</strong> <code>sslmode</code> is translated into asyncpg's <code>ssl</code> connect argument by <code>app/database/connection.py</code>; a URL without it requires SSL. A database without SSL (like the Compose one) needs <code>?sslmode=disable</code>. If you switch DB drivers, replicate this.</li>
     <li><strong><code>SECRET</code> defaults to <code>dev-secret-change-me</code></strong> — must be overridden in production.</li>
     <li><strong><code>NEXT_PUBLIC_API_URL</code> is unset in the production single-image deploy</strong> — that's deliberate. The frontend bundle uses relative URLs which nginx routes to the backend on the same origin.</li>
   </ul>
@@ -1264,8 +1264,8 @@ cd ../backend && uv run alembic upgrade head    # against a fresh DB</pre>
   <div class="callout callout-info">
     <span class="callout-icon">ℹ️</span>
     <div class="callout-body">
-      <strong>No automated test suite yet</strong>
-      The repo currently relies on manual verification and CI lint only. Adding pytest for the backend and Playwright for the frontend is welcome — pick a slice and PR it.
+      <strong>Backend tests, but no CI yet</strong>
+      The backend has a unittest suite (<code>cd backend &amp;&amp; uv run python -m unittest discover -s tests</code>, 68 tests). Three live PostgreSQL tests are skipped unless <code>PAPER_TEST_POSTGRES_URL</code> points at a disposable PostgreSQL server without SSL. Nothing runs automatically: there is no CI or lint workflow, and the only GitHub Actions workflow publishes this documentation site. Frontend tests (for example Playwright) are welcome — pick a slice and PR it.
     </div>
   </div>
 </section>
