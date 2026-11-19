@@ -1,7 +1,6 @@
 import os
 import uuid
-from typing import Optional
-from fastapi import Depends, HTTPException, Request, status
+from fastapi import Depends, HTTPException, status
 from fastapi_users import BaseUserManager, FastAPIUsers, UUIDIDMixin
 from fastapi_users.authentication import (
         AuthenticationBackend,
@@ -17,9 +16,9 @@ class UserManager(UUIDIDMixin, BaseUserManager[User, uuid.UUID]):
     reset_password_token_secret = SECRET
     verification_token_secret = SECRET
 
-    async def on_after_register(self, user: User, request: Optional[Request] = None):
-        # New self-registrations are inactive until an admin approves them.
-        await self.user_db.update(user, {"is_active": False})
+    # No on_after_register override: new self-registrations are already inserted
+    # with is_active=False (see User.is_active in app/database/db.py), so there is
+    # no second "deactivate" commit that could fail and leave an active account.
 
 async def get_user_manager(user_db: SQLAlchemyUserDatabase = Depends(get_user_db)):
     yield UserManager(user_db)

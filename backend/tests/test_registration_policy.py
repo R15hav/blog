@@ -263,12 +263,10 @@ class RegistrationPolicyTests(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(r.status_code, 500, r.text)
         self.assertNotIn(DUPLICATE, r.text)
         # Database state after the failure: fastapi-users committed the row before
-        # the hook runs, and the hook is what deactivates new accounts, so the row
-        # remains and is still active. This is the pre-existing lifecycle issue
-        # (accounts are not created inactive in the initial INSERT), tracked as a
-        # separate follow-up; update this assertion when that is fixed.
+        # the hook runs. New accounts are inserted inactive (User.is_active
+        # default), so a failing hook cannot leave an active, unapproved account.
         [user] = await self._users_matching(email)
-        self.assertTrue(user.is_active)
+        self.assertFalse(user.is_active)
         self.assertFalse(user.is_superuser)
 
     # ── hCaptcha interaction ───────────────────────────────────────────────────

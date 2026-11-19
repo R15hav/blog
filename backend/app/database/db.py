@@ -7,7 +7,7 @@ from datetime import datetime
 from fastapi import Depends
 from sqlalchemy import Boolean, Column, DateTime, Integer, String, ForeignKey, UniqueConstraint
 from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine, async_sessionmaker
-from sqlalchemy.orm import DeclarativeBase, relationship
+from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, relationship
 from fastapi_users.db import SQLAlchemyUserDatabase, SQLAlchemyBaseUserTableUUID
 from fastapi_users_db_sqlalchemy.generics import GUID
 
@@ -43,6 +43,13 @@ class Base(DeclarativeBase):
 
 class User(Base, SQLAlchemyBaseUserTableUUID):
     __tablename__ = "users"
+    # Overrides the fastapi-users mixin column (default=True). Self-registration
+    # creates users with safe=True, which leaves is_active out of the INSERT, so
+    # this default is what the initial row gets: new accounts are inactive from
+    # the first commit until an admin approves them (or FIRST_ADMIN_EMAIL
+    # promotion activates the first admin). Python-side default only; the
+    # column itself (NOT NULL, no server default) is unchanged, so no migration.
+    is_active: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
     role = Column(String, nullable=False, default="guest", server_default="guest")
     first_name = Column(String, nullable=True)
     last_name = Column(String, nullable=True)
