@@ -1,4 +1,7 @@
+import logging
 import os
+import re
+import urllib.parse
 import uuid as _uuid
 
 from fastapi import APIRouter, Depends, HTTPException, Query, UploadFile, File
@@ -26,6 +29,11 @@ current_superuser = fastapi_users.current_user(active=True, superuser=True)
 
 UPLOADS_DIR = os.path.normpath(os.path.join(os.path.dirname(__file__), "..", "..", "..", "uploads"))
 LOGO_MAX_BYTES = 5 * 1024 * 1024
+
+logger = logging.getLogger(__name__)
+
+# Names written by upload_logo(); legacy uploads may have any alphanumeric extension.
+_MANAGED_UPLOAD = re.compile(r"^logo_[0-9a-f]{32}\.[A-Za-z0-9]{1,10}$")
 
 # Detector -> stored extension. Types are detected from content, never from the client.
 _IMAGE_SIGNATURES = (
@@ -204,6 +212,41 @@ def _config_response(config):
     }
 
 
+def _managed_upload_name(url: str | None) -> str | None:
+    """Return the upload file name if `url` points at a managed upload, else None."""
+    if not url:
+        return None
+    path = urllib.parse.urlsplit(url).path
+    if not path.startswith("/uploads/"):
+        return None
+    name = path[len("/uploads/"):]
+    if "/" in name or not _MANAGED_UPLOAD.fullmatch(name):
+        return None
+    return name
+
+
+def _delete_unreferenced_uploads(old_values, new_values) -> None:
+    """Delete managed uploads referenced by old_values but not by new_values.
+
+    Never raises: failing to clean up must not fail the settings save.
+    """
+    old = {_managed_upload_name(v) for v in old_values} - {None}
+    keep = {_managed_upload_name(v) for v in new_values} - {None}
+    for name in old - keep:
+        try:
+            path = os.path.join(UPLOADS_DIR, name)
+            root = os.path.realpath(UPLOADS_DIR)
+            if os.path.commonpath([os.path.realpath(path), root]) != root:
+                logger.warning("Refusing to delete upload outside uploads directory: %s", name)
+                continue
+            os.remove(path)
+            logger.info("Deleted replaced upload %s", name)
+        except FileNotFoundError:
+            pass
+        except (OSError, ValueError) as exc:
+            logger.warning("Could not delete replaced upload %s: %s", name, exc)
+
+
 @router.get("/settings")
 async def get_settings(
     session: AsyncSession = Depends(get_async_session),
@@ -219,6 +262,8 @@ async def put_settings(
     session: AsyncSession = Depends(get_async_session),
     _=Depends(current_superuser),
 ):
+    current = await get_site_config(session)
+    old_values = (current.logo_url, current.og_image_url)
     config = await update_site_config(
         session,
         site_name=data.site_name,
@@ -230,6 +275,7 @@ async def put_settings(
         og_description=data.og_description,
         og_image_url=data.og_image_url,
     )
+    _delete_unreferenced_uploads(old_values, (config.logo_url, config.og_image_url))
     return _config_response(config)
 
 
