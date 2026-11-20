@@ -66,7 +66,9 @@ Don't duplicate that content here. This file is the GitHub-discoverable entry po
    - `fix race in alembic migration on cold start`
    - `docs: clarify FIRST_ADMIN_EMAIL env var`
 4. **Test** locally before pushing:
-   - `cd frontend && npm run lint` — must pass
+   - `cd backend && uv run python -m unittest discover -s tests` — must pass (CI runs this)
+   - `cd frontend && npm run build` — must succeed (CI runs this)
+   - `cd frontend && npm run lint` — don't add new problems; `master` has known lint errors, so CI doesn't enforce lint yet
    - `cd backend && uv run alembic upgrade head` against a fresh DB (delete `backend/test.db` first) — must apply cleanly
    - For UI changes, click through the affected pages in a browser
    - For backend changes, hit the affected endpoints (curl or `/docs`)

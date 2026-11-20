@@ -22,7 +22,9 @@ The "How to test" section is the single most useful one — please don't skip it
 ## Testing
 
 - [ ] Tested locally (steps below)
-- [ ] `cd frontend && npm run lint` passes
+- [ ] `cd backend && uv run python -m unittest discover -s tests` passes
+- [ ] `cd frontend && npm run build` succeeds
+- [ ] No new `npm run lint` problems in the files I changed
 - [ ] `cd backend && uv run alembic upgrade head` applies cleanly on a fresh DB
 - [ ] For UI changes: clicked through the affected pages in a browser
 

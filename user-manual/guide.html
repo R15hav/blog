@@ -1264,8 +1264,8 @@ cd ../backend && uv run alembic upgrade head    # against a fresh DB</pre>
   <div class="callout callout-info">
     <span class="callout-icon">ℹ️</span>
     <div class="callout-body">
-      <strong>Backend tests, but no CI yet</strong>
-      The backend has a unittest suite (<code>cd backend &amp;&amp; uv run python -m unittest discover -s tests</code>, 68 tests). Three live PostgreSQL tests are skipped unless <code>PAPER_TEST_POSTGRES_URL</code> points at a disposable PostgreSQL server without SSL. Nothing runs automatically: there is no CI or lint workflow, and the only GitHub Actions workflow publishes this documentation site. Frontend tests (for example Playwright) are welcome — pick a slice and PR it.
+      <strong>CI runs backend tests and the frontend build</strong>
+      The backend has a unittest suite (<code>cd backend &amp;&amp; uv run python -m unittest discover -s tests</code>, 68 tests). Three live PostgreSQL tests are skipped unless <code>PAPER_TEST_POSTGRES_URL</code> points at a disposable PostgreSQL server without SSL. GitHub Actions (<code>.github/workflows/ci.yml</code>) runs the suite, including the live tests against a disposable PostgreSQL service, plus the frontend production build on every pull request and push to <code>master</code>. There are no frontend tests, and lint is not enforced yet because <code>npm run lint</code> reports existing errors. Frontend tests (for example Playwright) are welcome — pick a slice and PR it.
     </div>
   </div>
 </section>
