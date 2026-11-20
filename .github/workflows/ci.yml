@@ -1,0 +1,91 @@
+name: CI
+
+on:
+  pull_request:
+    branches: [master]
+  push:
+    branches: [master]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+jobs:
+  backend:
+    name: Backend tests
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    defaults:
+      run:
+        working-directory: backend
+
+    # Disposable PostgreSQL for the three live SSL tests in
+    # tests/test_db_ssl_config.py. The official image runs without SSL, which
+    # is what those tests expect (disable and prefer connect, require fails).
+    # Credentials are throwaway CI values, not secrets.
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: paper_ci
+          POSTGRES_PASSWORD: paper_ci
+          POSTGRES_DB: paper_ci
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U paper_ci -d paper_ci"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+
+    env:
+      PAPER_TEST_POSTGRES_URL: postgresql://paper_ci:paper_ci@localhost:5432/paper_ci
+
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - uses: astral-sh/setup-uv@68559e99cc807c1eb7e9238fd43a15bba460eec2 # v10.3.3
+        with:
+          version: "0.9.17"
+          python-version: "3.12"
+          cache-dependency-glob: backend/uv.lock
+
+      - name: Install dependencies (locked)
+        run: uv sync --frozen
+
+      - name: Run test suite
+        run: uv run --frozen python -m unittest discover -s tests -v
+
+  frontend:
+    name: Frontend production build
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    defaults:
+      run:
+        working-directory: frontend
+    env:
+      NEXT_TELEMETRY_DISABLED: "1"
+
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      # Node 20 matches the production image (Dockerfile: node:20-alpine).
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: "20"
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Install dependencies (locked)
+        run: npm ci
+
+      - name: Build
+        run: npm run build

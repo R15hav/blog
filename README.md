@@ -259,7 +259,7 @@ Paper is still in development. These are known gaps today:
 
 - **Password reset isn't implemented.** The forgot-password page is a placeholder and no reset emails are sent.
 - **Articles can't upload images.** Article images are embedded by external URL. The site logo is the only file you can upload.
-- **There's no CI.** The backend has a test suite (run `uv run python -m unittest discover -s tests` from `backend/`), but nothing runs it automatically. There are no frontend tests, and the only GitHub Actions workflow publishes the documentation site.
+- **No frontend tests, and lint isn't enforced.** CI ([`.github/workflows/ci.yml`](.github/workflows/ci.yml)) runs the backend test suite and the frontend production build on every pull request and push to `master`. There are no frontend tests, and `npm run lint` reports existing errors on `master`, so it isn't part of CI yet.
 - **Admin → Users shows authors as guests.** The user list doesn't receive each user's role, so the role column and buttons can be wrong until you change a role on that page ([#25](https://github.com/R15hav/blog/issues/25)).
 - **The bundled theme stylesheet is out of date.** `frontend/public/themes/default.css` predates the current CSS variables and only partly applies if you activate it ([#28](https://github.com/R15hav/blog/issues/28)). Themes written against the current variables work.
 
