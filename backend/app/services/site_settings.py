@@ -1,5 +1,6 @@
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
+from sqlalchemy.exc import IntegrityError
 
 from app.database.db import SiteConfig
 
@@ -10,7 +11,17 @@ async def get_site_config(session: AsyncSession) -> SiteConfig:
     if not config:
         config = SiteConfig(id=1, site_name="My Blog", logo_url=None, allow_registration=True)
         session.add(config)
-        await session.commit()
+        try:
+            await session.commit()
+        except IntegrityError:
+            # Concurrent first requests on an empty database can all see "no row"
+            # and race on this INSERT; the losers land here. Use the winner's row.
+            await session.rollback()
+            result = await session.execute(select(SiteConfig).where(SiteConfig.id == 1))
+            existing = result.scalars().first()
+            if existing is None:
+                raise  # not the lost race: some other integrity problem
+            return existing
         await session.refresh(config)
     return config
 

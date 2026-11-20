@@ -30,8 +30,8 @@ _PROBE = textwrap.dedent("""
     import httpx
     from sqlalchemy import func, select, text
     from app.app import app, _promote_first_admin
-    from app.database.db import User, async_session_maker
-    from app.services.site_settings import get_site_config, update_site_config
+    from app.database.db import SiteConfig, User, async_session_maker
+    from app.services.site_settings import update_site_config
     from fastapi_users_db_sqlalchemy import SQLAlchemyUserDatabase
 
     PASSWORD = "Concurrency-Test-Passw0rd!"
@@ -57,12 +57,6 @@ _PROBE = textwrap.dedent("""
 
     async def main():
         out = {}
-        # Create the singleton site_configs row first, as on any instance that has
-        # served a request. get_site_config() creates it lazily, and concurrent
-        # first requests on a brand-new database race on that INSERT (a separate,
-        # pre-existing issue); these tests are about email uniqueness only.
-        async with async_session_maker() as s:
-            await get_site_config(s)
         # raise_app_exceptions=False: an unhandled error becomes a visible 500 instead of a test crash.
         client = httpx.AsyncClient(transport=httpx.ASGITransport(app=app, raise_app_exceptions=False),
                                    base_url="http://test")
@@ -80,6 +74,11 @@ _PROBE = textwrap.dedent("""
                 with mock.patch.object(SQLAlchemyUserDatabase, "get_by_email", lookup_misses), \\
                      mock.patch.object(SQLAlchemyUserDatabase, "create", synchronized_create):
                     out["responses"] = await burst(client, variants(email))
+            elif scenario == "settings_burst":
+                rs = await asyncio.gather(*(client.get("/api/v1/settings") for _ in range(10)))
+                out["statuses"] = [r.status_code for r in rs]
+                async with async_session_maker() as s:
+                    out["site_config_rows"] = (await s.execute(select(func.count()).select_from(SiteConfig))).scalar_one()
             elif scenario == "natural_burst":
                 out["responses"] = await burst(client, variants(email))
             elif scenario == "closed_and_bootstrap":
@@ -145,6 +144,11 @@ class ConcurrentRegistrationPostgresTests(unittest.TestCase):
         out = self._run("natural_burst", "Burst.Signup@Example.com")
         self.assertExactlyOneCreated(out["responses"])
         self.assertEqual(len(out["accounts"]), 1, out)
+
+    def test_concurrent_first_settings_requests_create_one_row(self):
+        out = self._run("settings_burst", "unused@example.com")
+        self.assertEqual(out["statuses"], [200] * 10, out)
+        self.assertEqual(out["site_config_rows"], 1, out)
 
     def test_registration_policy_and_first_admin_bootstrap_on_postgres(self):
         email = "Founder@Example.com"
