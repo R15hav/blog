@@ -10,7 +10,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.models.users import UserRead, UserUpdate
 from app.models.theme import ThemeActiveResponse
 from app.api.v1.articles import router as articles_router
-from app.api.v1.admin import router as admin_router
+from app.api.v1.admin import router as admin_router, UPLOADS_DIR
 from app.api.v1.profile import router as profile_router
 from app.api.v1.author import router as author_router
 from app.api.v1.register import router as register_router
@@ -54,9 +54,18 @@ app.add_middleware(
 )
 
 # ── Static file serving for uploaded logos ─────────────────────────────────────
-_uploads_dir = os.path.join(os.path.dirname(__file__), "..", "uploads")
-os.makedirs(_uploads_dir, exist_ok=True)
-app.mount("/uploads", StaticFiles(directory=_uploads_dir), name="uploads")
+class UploadsStaticFiles(StaticFiles):
+    """Serve uploads with headers that stop browsers sniffing or running them as documents."""
+
+    def file_response(self, *args, **kwargs):
+        response = super().file_response(*args, **kwargs)
+        response.headers["X-Content-Type-Options"] = "nosniff"
+        response.headers["Content-Security-Policy"] = "default-src 'none'; sandbox"
+        return response
+
+
+os.makedirs(UPLOADS_DIR, exist_ok=True)
+app.mount("/uploads", UploadsStaticFiles(directory=UPLOADS_DIR), name="uploads")
 
 # ── fastapi-users routes ───────────────────────────────────────────────────────
 # Custom login router replaces fastapi_users.get_auth_router entirely so that

@@ -499,7 +499,7 @@
       <tr><td><code>og_title</code> / <code>og_description</code> / <code>og_image_url</code></td><td>OpenGraph metadata for social link previews. Falls back to the site name / description if blank.</td></tr>
     </tbody>
   </table>
-  <p>To upload a logo, use the upload control on the settings page. It POSTs to <code>/api/v1/admin/upload-logo</code> and saves the file to <code>backend/uploads/</code> on the server's filesystem (served at <code>/uploads/{filename}</code>). The upload returns a path that you then save into <code>logo_url</code>.</p>
+  <p>To upload a logo, use the upload control on the settings page. It POSTs to <code>/api/v1/admin/upload-logo</code> and saves the file to <code>backend/uploads/</code> on the server's filesystem (served at <code>/uploads/{filename}</code>). The upload returns a path that you then save into <code>logo_url</code>. Uploads must be PNG, JPEG or WebP images of at most 5 MB; SVG and GIF are not accepted.</p>
 </section>
 
 <section id="um-admins-moderation">
