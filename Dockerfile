@@ -12,7 +12,7 @@
 # We intentionally do NOT pass NEXT_PUBLIC_API_URL here. The browser bundle
 # in frontend/app/_lib/api_callout.js falls back to "" when unset, producing
 # relative URLs that nginx routes to the backend on the same origin.
-FROM node:20-alpine AS frontend-builder
+FROM node:24-alpine AS frontend-builder
 
 WORKDIR /app/frontend
 
@@ -72,7 +72,7 @@ ENV PYTHONUNBUFFERED=1 \
     PATH=/app/backend/.venv/bin:$PATH \
     DEBIAN_FRONTEND=noninteractive
 
-# Install nginx + supervisor + curl (healthcheck) + Node 20 (NodeSource).
+# Install nginx + supervisor + curl (healthcheck) + Node 24 LTS (NodeSource).
 # Node is required to run the Next.js standalone server.js. We use NodeSource
 # rather than copying alpine binaries because libc differs (musl vs glibc).
 RUN set -eux; \
@@ -84,7 +84,7 @@ RUN set -eux; \
         nginx \
         supervisor \
         gettext-base; \
-    curl -fsSL https://deb.nodesource.com/setup_20.x | bash -; \
+    curl -fsSL https://deb.nodesource.com/setup_24.x | bash -; \
     apt-get install -y --no-install-recommends nodejs; \
     apt-get purge -y --auto-remove gnupg; \
     apt-get clean; \

@@ -11,7 +11,7 @@ By participating you agree to follow our [Code of Conduct](CODE_OF_CONDUCT.md). 
 You'll need:
 
 - **Python 3.12+** — `python --version`
-- **Node 20.9+** — `node -v` (use [nvm](https://github.com/nvm-sh/nvm); the system Node on Debian/Ubuntu is often v18 and won't work with Next.js 16)
+- **Node 24 (LTS)** — `node -v` (use [nvm](https://github.com/nvm-sh/nvm); CI and the Docker image use Node 24, and the system Node on Debian/Ubuntu is often too old for Next.js 16)
 - **uv** — Python package manager: `curl -LsSf https://astral.sh/uv/install.sh | sh`
 - **Docker** — optional, only if you want to run the full single-image stack
 

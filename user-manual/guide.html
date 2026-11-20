@@ -728,7 +728,7 @@ WHERE email = 'you@example.com';</pre>
     <thead><tr><th>Layer</th><th>Component</th><th>Version</th></tr></thead>
     <tbody>
       <tr><td>Backend runtime</td><td>Python</td><td>3.12+</td></tr>
-      <tr><td>Backend framework</td><td>FastAPI</td><td>0.124+</td></tr>
+      <tr><td>Backend framework</td><td>FastAPI</td><td>0.165+</td></tr>
       <tr><td>Auth</td><td>fastapi-users[sqlalchemy]</td><td>15.0.1+</td></tr>
       <tr><td>ORM</td><td>SQLAlchemy (async)</td><td>2.x</td></tr>
       <tr><td>DB driver (Postgres)</td><td>asyncpg</td><td>0.30+</td></tr>
@@ -736,8 +736,8 @@ WHERE email = 'you@example.com';</pre>
       <tr><td>Migrations</td><td>Alembic</td><td>1.18+</td></tr>
       <tr><td>ASGI server</td><td>uvicorn[standard]</td><td>0.34+</td></tr>
       <tr><td>Package manager</td><td>uv</td><td>latest</td></tr>
-      <tr><td>Frontend runtime</td><td>Node.js</td><td>20.9+</td></tr>
-      <tr><td>Frontend framework</td><td>Next.js</td><td>16.1.0</td></tr>
+      <tr><td>Frontend runtime</td><td>Node.js</td><td>24 LTS</td></tr>
+      <tr><td>Frontend framework</td><td>Next.js</td><td>16.4.6</td></tr>
       <tr><td>UI</td><td>React</td><td>19.2.3</td></tr>
       <tr><td>Types</td><td>TypeScript</td><td>5.x</td></tr>
       <tr><td>Styling</td><td>Tailwind CSS</td><td>4.x</td></tr>
@@ -891,7 +891,7 @@ public  ──▶│  nginx :$PORT (default 8080)                  │
   <h3>Prerequisites</h3>
   <ul>
     <li><strong>Python 3.12+</strong> — managed automatically by <code>uv</code></li>
-    <li><strong>Node.js 20.9+</strong> — Next.js 16 refuses lower; install via <a href="https://github.com/nvm-sh/nvm" target="_blank" rel="noopener">nvm</a></li>
+    <li><strong>Node.js 24 (LTS)</strong> — what CI and the Docker image use (Next.js 16 refuses anything below 20.9); install via <a href="https://github.com/nvm-sh/nvm" target="_blank" rel="noopener">nvm</a></li>
     <li><strong>uv</strong> — <code>curl -LsSf https://astral.sh/uv/install.sh | sh</code></li>
     <li><strong>Docker</strong> (optional) — only needed for the compose flow or for running Postgres locally</li>
     <li><strong>PostgreSQL</strong> (optional) — SQLite is the default; Postgres is closer to production</li>
