@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState, useMemo } from "react";
+import { useRouter } from "next/navigation";
 import { useAuth } from "../../../context/AuthContext";
 import { getUsers, activateUser, deactivateUser, setUserRole, getAdminStats } from "../../../_lib/api_callout";
 
@@ -22,7 +23,9 @@ function SortIcon({ active, dir }) {
 }
 
 export default function UsersPage() {
-  const { token, user: currentUser } = useAuth();
+  const { token, user: currentUser, loading: authLoading } = useAuth();
+  const router = useRouter();
+  const isSuperuser = !!currentUser?.is_superuser;
 
   const [users, setUsers] = useState([]);
   const [total, setTotal] = useState(0);
@@ -40,6 +43,13 @@ export default function UsersPage() {
 
   const isSearchMode = debouncedQuery.trim().length > 0;
   const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE));
+
+  // Admin-only page: send non-superusers away before any request is made
+  useEffect(() => {
+    if (!authLoading && currentUser && !currentUser.is_superuser) {
+      router.replace("/admin/articles");
+    }
+  }, [authLoading, currentUser, router]);
 
   // Debounce
   useEffect(() => {
@@ -67,16 +77,16 @@ export default function UsersPage() {
   }
 
   useEffect(() => {
-    if (!token) return;
+    if (!token || !isSuperuser) return;
     if (isSearchMode) return;
     loadUsers(page, "");
-  }, [page, token, isSearchMode]);
+  }, [page, token, isSearchMode, isSuperuser]);
 
   useEffect(() => {
-    if (!token) return;
+    if (!token || !isSuperuser) return;
     if (!isSearchMode) return;
     loadUsers(1, debouncedQuery.trim());
-  }, [debouncedQuery, token]);
+  }, [debouncedQuery, token, isSuperuser]);
 
   // Reset page + sort when switching modes
   useEffect(() => {
@@ -86,11 +96,11 @@ export default function UsersPage() {
 
   // Stats for KPI cards
   useEffect(() => {
-    if (!token) return;
+    if (!token || !isSuperuser) return;
     getAdminStats(token).then(({ success, detail }) => {
       if (success) setStats(detail);
     });
-  }, [token]);
+  }, [token, isSuperuser]);
 
   function toggleSort(key) {
     if (sortKey === key) setSortDir((d) => (d === "asc" ? "desc" : "asc"));
@@ -130,6 +140,8 @@ export default function UsersPage() {
   const kpiPending = stats?.users?.total != null ? stats.users.total - stats.users.active : "—";
   const kpiAdmins  = users.filter((u) => u.is_superuser).length || "—";
   const isLoading  = loading || searching;
+
+  if (authLoading || !isSuperuser) return null;
 
   return (
     <>

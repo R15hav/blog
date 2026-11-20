@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 import { useAuth } from "../../../context/AuthContext";
 import {
   getThemes,
@@ -10,7 +11,9 @@ import {
 } from "../../../_lib/api_callout";
 
 export default function ThemePage() {
-  const { token } = useAuth();
+  const { token, user, loading: authLoading } = useAuth();
+  const router = useRouter();
+  const isSuperuser = !!user?.is_superuser;
   const [themes, setThemes] = useState([]);
   const [name, setName] = useState("");
   const [url, setUrl] = useState("");
@@ -24,9 +27,16 @@ export default function ThemePage() {
     setLoading(false);
   }
 
+  // Admin-only page: send non-superusers away before any request is made
   useEffect(() => {
-    if (token) load();
-  }, [token]);
+    if (!authLoading && user && !user.is_superuser) {
+      router.replace("/admin/articles");
+    }
+  }, [authLoading, user, router]);
+
+  useEffect(() => {
+    if (token && isSuperuser) load();
+  }, [token, isSuperuser]);
 
   async function handleAdd(e) {
     e.preventDefault();
@@ -57,6 +67,8 @@ export default function ThemePage() {
     if (!success) { setError(detail?.detail ?? "Failed to delete theme."); return; }
     setThemes((prev) => prev.filter((t) => t.id !== themeId));
   }
+
+  if (authLoading || !isSuperuser) return null;
 
   if (loading) return (
     <p style={{ fontFamily: "var(--font-sans)", color: "var(--ink-3)", fontSize: 14, paddingTop: 24 }}>Loading themes…</p>
