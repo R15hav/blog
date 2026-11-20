@@ -1,7 +1,7 @@
 import os
 import uuid as _uuid
 
-from fastapi import APIRouter, Depends, Query, UploadFile, File
+from fastapi import APIRouter, Depends, HTTPException, Query, UploadFile, File
 from pydantic import BaseModel
 from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -23,6 +23,23 @@ from app.services.theme import (
 router = APIRouter(prefix="/admin")
 
 current_superuser = fastapi_users.current_user(active=True, superuser=True)
+
+UPLOADS_DIR = os.path.normpath(os.path.join(os.path.dirname(__file__), "..", "..", "..", "uploads"))
+LOGO_MAX_BYTES = 5 * 1024 * 1024
+
+# Detector -> stored extension. Types are detected from content, never from the client.
+_IMAGE_SIGNATURES = (
+    (lambda data: data.startswith(b"\x89PNG\r\n\x1a\n"), ".png"),
+    (lambda data: data.startswith(b"\xff\xd8\xff"), ".jpg"),
+    (lambda data: data.startswith(b"RIFF") and data[8:12] == b"WEBP", ".webp"),
+)
+
+
+def _detect_image_extension(data: bytes) -> str | None:
+    for matches, ext in _IMAGE_SIGNATURES:
+        if matches(data):
+            return ext
+    return None
 
 
 # ── User management ────────────────────────────────────────────────────────────
@@ -245,12 +262,14 @@ async def upload_logo(
     file: UploadFile = File(...),
     _=Depends(current_superuser),
 ):
-    uploads_dir = os.path.join(os.path.dirname(__file__), "..", "..", "..", "uploads")
-    os.makedirs(uploads_dir, exist_ok=True)
-    ext = os.path.splitext(file.filename or "logo")[1] or ".png"
+    data = await file.read(LOGO_MAX_BYTES + 1)
+    if len(data) > LOGO_MAX_BYTES:
+        raise HTTPException(status_code=413, detail="Logo must be 5 MB or smaller.")
+    ext = _detect_image_extension(data)
+    if ext is None:
+        raise HTTPException(status_code=415, detail="Upload a PNG, JPEG or WebP image.")
     filename = f"logo_{_uuid.uuid4().hex}{ext}"
-    dest = os.path.join(uploads_dir, filename)
-    content = await file.read()
-    with open(dest, "wb") as f:
-        f.write(content)
+    os.makedirs(UPLOADS_DIR, exist_ok=True)
+    with open(os.path.join(UPLOADS_DIR, filename), "xb") as f:
+        f.write(data)
     return {"url": f"/uploads/{filename}"}

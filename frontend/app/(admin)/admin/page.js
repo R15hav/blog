@@ -211,7 +211,7 @@ export default function AdminDashboard() {
           <input
             ref={fileInputRef}
             type="file"
-            accept="image/*"
+            accept="image/png,image/jpeg,image/webp"
             onChange={handleLogoUpload}
           />
           {uploadingLogo && <span className="msg-success" style={{ fontSize: 12 }}>Uploading…</span>}
@@ -309,12 +309,12 @@ export default function AdminDashboard() {
             <input
               ref={ogImageInputRef}
               type="file"
-              accept="image/*"
+              accept="image/png,image/jpeg,image/webp"
               onChange={handleOgImageUpload}
             />
             {uploadingOgImage && <span className="msg-success" style={{ fontSize: 12 }}>Uploading…</span>}
             <p style={{ fontFamily: "var(--font-sans)", fontSize: 12, color: "var(--ink-4)", marginTop: 5 }}>
-              Recommended: 1200 × 630 px, under 1 MB. JPEG or PNG.
+              Recommended: 1200 × 630 px, under 1 MB. PNG, JPEG or WebP, up to 5 MB.
             </p>
           </div>
 
