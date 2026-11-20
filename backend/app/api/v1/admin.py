@@ -44,6 +44,7 @@ async def get_users(
                 "is_active": u.is_active,
                 "is_superuser": u.is_superuser,
                 "is_verified": u.is_verified,
+                "role": u.role,
             }
             for u in users
         ],
