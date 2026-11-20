@@ -255,7 +255,7 @@ If you outgrow 1 GB on the free tier, bump `disk.sizeGB` (paid plans only above 
 
 | Variable | Set by | Description |
 |---|---|---|
-| `DATABASE_URL` | You (Step 3) or `render.yaml` for Blueprint | PostgreSQL connection string. The backend normaliser converts it to `postgresql+asyncpg://` and strips `ssl=` / `sslmode=` query params (asyncpg mishandles them). SSL is added via `connect_args` instead. |
+| `DATABASE_URL` | You (Step 3) or `render.yaml` for Blueprint | PostgreSQL connection string. The backend converts it to `postgresql+asyncpg://`, and `backend/app/database/connection.py` turns any `sslmode` in the URL into the driver's SSL setting (`disable`, `prefer` or `require`). Without `sslmode`, SSL is required. |
 | `SECRET` | You (Step 3) or `render.yaml` (`generateValue: true`) | JWT signing secret. Rotating it invalidates every issued token. |
 | `FIRST_ADMIN_EMAIL` | You (Step 3 or 7) | If set, the matching user is promoted to admin on every boot. Idempotent — safe to leave on. |
 | `FRONTEND_URL` | You (optional) | CORS allow-origin. **Not needed** for the consolidated single-origin deploy; set it only if you add a custom domain or external client. |
