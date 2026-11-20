@@ -1,0 +1,162 @@
+# ai-pipeline project profile for Paper. Validated against the engine's project.schema.json.
+# Everything project-specific lives here; the engine has no Paper knowledge.
+# Extracted from the former in-repo ai-pipeline/config.toml and its prompts (2026-11-20).
+schema_version = 1
+
+[project]
+id = "paper"
+name = "Paper"
+description = "Self-hosted multi-author blogging platform: FastAPI backend + Next.js frontend, shipped as a single container (nginx + supervisord) or via docker compose with PostgreSQL."
+domain = """Users register (inactive until an admin activates them) and have a role: guest (like, comment, profile), \
+author (write and manage own articles, author dashboard) or admin (superuser, full access). Articles (Post) are \
+Editor.js documents with a published flag; readers like and comment. Admins manage users, themes (external CSS URLs, \
+one active), and a singleton site configuration (name, logo, OpenGraph metadata, allow_registration)."""
+
+[repository]
+github = "R15hav/blog"
+base_branch = "master"
+push_remote = "origin"
+branch_template = "ai/issue-{number}-{slug}"
+protected_branches = ["master"]
+commit_trailer = "Co-Authored-By: Claude <noreply@anthropic.com>"
+pr_footer = "🤖 Generated with [Claude Code](https://claude.com/claude-code)"
+
+[stack]
+languages = ["Python 3.12", "JavaScript", "TypeScript"]
+frameworks = ["FastAPI", "fastapi-users", "SQLAlchemy (async)", "Alembic", "Next.js 16 App Router", "React 19", "Editor.js", "Tailwind CSS 4"]
+databases = ["PostgreSQL (asyncpg) in production", "SQLite (aiosqlite) in development and tests"]
+package_managers = ["uv (backend/)", "npm (frontend/, Node 24 LTS)"]
+notes = ["Production is one image: nginx on $PORT proxies /api/v1, /auth, /users, /uploads, /docs to uvicorn and everything else to Next.js standalone."]
+
+[context]
+architecture_docs = ["CLAUDE.md"]
+conventions = [
+  "Backend is layered: api/v1/* routes are thin and call services/*; services own transactions, ownership checks and date parsing; models live in app/database/db.py.",
+  "Backend commands run from backend/ with `uv run` (uv run from the repo root fails).",
+  "Schema changes need an Alembic migration (create_all does not alter existing tables). Generate with `uv run alembic revision --autogenerate -m \"...\"` from backend/ against a local SQLite file, then review and hand-edit.",
+  "Use fastapi_users_db_sqlalchemy.generics.GUID for UUID PKs/FKs (cross-dialect); do not replace it with UUID(as_uuid=True).",
+  "Post.published is a String ('true'/'false'), not a boolean; created_date strings use '%Y-%m-%d %H:%M:%S' (getCurrentFormattedDate() on the frontend).",
+  "Frontend fetch wrappers live in frontend/app/_lib/api_callout.js; the browser uses relative URLs (NEXT_PUBLIC_API_URL defaults to '').",
+  "reactStrictMode stays false (Editor.js double-init).",
+  "Commit messages follow Conventional Commits.",
+]
+domain_rules = [
+  "New registrations are inactive (User.is_active defaults to False) until an admin activates them.",
+  "PATCH /api/v1/admin/users/{id}/role accepts only guest or author; it rejects self-changes and changes to superusers. Granting admin is manual.",
+  "Ownership is re-checked in services: `if not user.is_superuser and obj.owner_id != user.id: 403`.",
+]
+security_requirements = [
+  "Write access uses three layers: current_active_user, current_author_or_admin (create/update articles), current_superuser (admin routes), plus service-level ownership checks. Never weaken them.",
+  "Login and registration verify hCaptcha first when HCAPTCHA_ENABLED is true; a missing HCAPTCHA_SECRET must fail loudly (500), never let users through.",
+  "PostgreSQL connections require TLS unless sslmode=disable is explicit (app/database/connection.py). Keep that behaviour if touching DB URLs.",
+  "SECRET defaults to a dev value and must never be relied on in production paths.",
+  "Malformed IDs and bad input should be client errors (4xx), not 500s.",
+]
+review_checklist = [
+  "Migrations exist for schema changes and work on both SQLite and PostgreSQL.",
+  "Auth dependencies and service ownership checks are present on every changed endpoint.",
+  "Backend tests use unittest and the isolated database helper (backend/tests/_isolated_db.py).",
+  "Frontend changes build (`npm run build`) and do not add new ESLint errors beyond the baseline.",
+  "Docs (CLAUDE.md, README, render-deploy.md) are updated when behaviour or configuration changes.",
+]
+testing_notes = [
+  "Backend: `uv run --frozen python -m unittest discover -s tests` from backend/. Live PostgreSQL SSL tests run only when PAPER_TEST_POSTGRES_URL is set (CI provides it).",
+  "Frontend: `npm run build` and `npm run lint` from frontend/.",
+]
+known_baselines = ["frontend ESLint has a pre-existing baseline of errors on master (issue #67)."]
+
+[issues]
+trusted_authors = ["R15hav"]
+skip_labels = ["epic", "ai-skip", "wontfix", "duplicate"]
+manual_labels = []
+milestone_order = ["v0.1.0", "Post-v0.1.0"]
+priority_labels = ["P0", "P1", "P2", "P3"]
+
+[execution]
+max_issues = 10
+max_review_cycles = 2
+stop_on_blocker = true
+stack_dependent_branches = true
+
+[models]
+triage = "claude-opus-5-5"
+planner = "claude-opus-5-5"
+coder = "claude-sonnet-5-5"
+reviewer = "claude-opus-5-5"
+effort = { triage = "medium", planner = "medium", coder = "high", reviewer = "medium" }
+
+[budgets]
+max_run_cost_usd = 150.0
+
+[agents]
+web_research = true   # public repository
+allowed_commands = [
+  "uv run --frozen python -m unittest", "uv run python -m unittest", "uv run --frozen python -m compileall",
+  "uv sync --frozen", "npm run lint", "npm run build", "npm ci", "npx eslint",
+]
+coder_only_commands = [
+  "uv run --frozen alembic revision", "uv run alembic revision",
+  "uv run --frozen alembic upgrade", "uv run alembic upgrade",
+  "uv run --frozen alembic check", "uv run alembic check",
+  "uv add", "uv remove", "uv lock", "npm install", "npm uninstall",
+]
+
+[changes]
+code_paths = ["backend/app/", "backend/alembic/", "frontend/app/", "frontend/lib/", "frontend/components/"]
+test_markers = ["backend/tests/", ".test.", ".spec.", "__tests__/", "frontend/e2e/", "frontend/tests/"]
+dependency_files = ["backend/pyproject.toml", "backend/uv.lock", "frontend/package.json", "frontend/package-lock.json"]
+deploy_paths = ["Dockerfile", "*/Dockerfile", "deploy/*", "deploy/**", "docker-compose.yml", "render.yaml", ".dockerignore"]
+allow_dependency_changes = true
+allow_workflow_changes = true
+allow_deploy_changes = true
+
+[[validators]]
+name = "backend-compile"
+type = "python"
+paths = ["backend/"]
+cwd = "backend"
+runner = "uv run --frozen python"
+compile_dirs = ["app"]
+
+[[validators]]
+name = "backend-tests"
+type = "command"
+paths = ["backend/"]
+cwd = "backend"
+command = "uv run --frozen python -m unittest discover -s tests"
+timeout = 1200
+
+[[validators]]
+name = "alembic-migrations"
+type = "migrations"
+paths = ["backend/app/database/", "backend/alembic/"]
+cwd = "backend"
+migration_globs = ["backend/alembic/versions/*.py"]
+model_paths = ["backend/app/database/db.py"]
+gate = true
+
+[[validators]]
+name = "frontend-lint"
+type = "node"
+paths = ["frontend/"]
+cwd = "frontend"
+scripts = ["lint"]
+gate = false     # known baseline (#67): reported, not gated
+timeout = 600
+
+[[validators]]
+name = "frontend-build"
+type = "node"
+paths = ["frontend/"]
+cwd = "frontend"
+scripts = ["build"]
+timeout = 1200
+
+[[validators]]
+name = "docker-config"
+type = "docker"
+paths = ["Dockerfile", "docker-compose.yml", "deploy/"]
+dockerfiles = ["Dockerfile"]
+compose_files = ["docker-compose.yml"]
+gate = true
+timeout = 300

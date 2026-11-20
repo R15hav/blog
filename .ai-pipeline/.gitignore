@@ -1,0 +1,2 @@
+# Local-only values for validators (never committed, never given to agents)
+local.env
