@@ -209,7 +209,7 @@ npm run dev
 New accounts are created **inactive**. The backend promotes and activates the `FIRST_ADMIN_EMAIL` account **when it starts**, so do it in this order:
 
 1. Set `FIRST_ADMIN_EMAIL` in `backend/.env` (done in step 1).
-2. Register at http://localhost:3000/register using that email.
+2. Register at http://localhost:3000/register using that email (letter case doesn't matter).
 3. Restart the backend (stop with `Ctrl+C`, then run the `uv run --env-file .env …` command again).
 4. Log in and open http://localhost:3000/admin to confirm you have administrator access.
 
