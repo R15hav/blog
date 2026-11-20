@@ -4,7 +4,7 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI, Depends
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
-from sqlalchemy import update
+from sqlalchemy import func, update
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.models.users import UserRead, UserUpdate
@@ -26,9 +26,10 @@ async def _promote_first_admin() -> None:
     if not email:
         return
     async with async_session_maker() as session:
+        # Case-insensitive, like registration and login; ix_users_email_lower guarantees at most one match.
         await session.execute(
             update(User)
-            .where(User.email == email)
+            .where(func.lower(User.email) == email.lower())
             .values(is_superuser=True, is_active=True, role="admin")
         )
         await session.commit()
