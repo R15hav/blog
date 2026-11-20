@@ -152,6 +152,16 @@ class _MigrationCases:
             self.assertIn("must return no rows", proc.stdout)
             self.assertIn("ix_users_email_lower", proc.stdout)
 
+    def test_alembic_check_reports_no_drift(self):
+        # The models and migrations must match on every dialect. On SQLite,
+        # alembic/env.py ignores the cosmetic GUID (CHAR(36)) vs sa.Uuid()
+        # (CHAR(32)) difference (#89); all other drift is still reported.
+        with self.database() as url:
+            self.assertOk(alembic(url, "upgrade", "head"))
+            proc = alembic(url, "check")
+            self.assertOk(proc)
+            self.assertIn("No new upgrade operations detected", proc.stdout + proc.stderr)
+
 
 class SqliteMigrationTests(_MigrationCases, unittest.TestCase):
 
@@ -166,15 +176,6 @@ class PostgresMigrationTests(_MigrationCases, unittest.TestCase):
 
     def database(self):
         return _pg_temp.temp_database()
-
-    def test_alembic_check_reports_no_drift(self):
-        # On PostgreSQL the models and migrations must match exactly. (SQLite
-        # reports long-standing GUID/CHAR(32) type differences unrelated to #55.)
-        with self.database() as url:
-            self.assertOk(alembic(url, "upgrade", "head"))
-            proc = alembic(url, "check")
-            self.assertOk(proc)
-            self.assertIn("No new upgrade operations detected", proc.stdout + proc.stderr)
 
 
 if __name__ == "__main__":

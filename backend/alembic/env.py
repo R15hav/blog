@@ -1,7 +1,7 @@
 import asyncio
 from logging.config import fileConfig
 
-from sqlalchemy import pool
+from sqlalchemy import CHAR, pool
 from sqlalchemy.engine import Connection
 from sqlalchemy.ext.asyncio import async_engine_from_config
 
@@ -9,6 +9,11 @@ from alembic import context
 
 # Import our models so autogenerate can detect them
 from app.database.db import Base, DATABASE_SETTINGS  # noqa: F401 — Base registers all models
+
+# Must come after app.database.db: importing fastapi_users_db_sqlalchemy before
+# fastapi_users.db is a circular import that fastapi_users swallows silently,
+# leaving fastapi_users.db without SQLAlchemyUserDatabase.
+from fastapi_users_db_sqlalchemy.generics import GUID  # noqa: E402
 
 config = context.config
 
@@ -23,6 +28,21 @@ target_metadata = Base.metadata
 config.set_main_option("sqlalchemy.url", DATABASE_SETTINGS.url.replace("%", "%%"))
 
 
+def _compare_type(context, inspected_column, metadata_column, inspected_type, metadata_type):
+    # On SQLite the initial migration's sa.Uuid() is CHAR(32) while the models'
+    # GUID is CHAR(36). SQLite does not enforce CHAR lengths and the values
+    # round-trip correctly, so this is a cosmetic difference: don't report it,
+    # otherwise `alembic check` is unusable on SQLite. Everything else (other
+    # dialects, other types) uses Alembic's default comparison.
+    if (
+        context.dialect.name == "sqlite"
+        and isinstance(metadata_type, GUID)
+        and isinstance(inspected_type, CHAR)
+    ):
+        return False
+    return None
+
+
 def run_migrations_offline() -> None:
     url = config.get_main_option("sqlalchemy.url")
     context.configure(
@@ -31,6 +51,7 @@ def run_migrations_offline() -> None:
         literal_binds=True,
         dialect_opts={"paramstyle": "named"},
         render_as_batch=True,  # required for SQLite ALTER TABLE support
+        compare_type=_compare_type,
     )
     with context.begin_transaction():
         context.run_migrations()
@@ -41,6 +62,7 @@ def do_run_migrations(connection: Connection) -> None:
         connection=connection,
         target_metadata=target_metadata,
         render_as_batch=True,
+        compare_type=_compare_type,
     )
     with context.begin_transaction():
         context.run_migrations()
