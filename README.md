@@ -6,7 +6,7 @@
 
 [![License: MIT](https://img.shields.io/badge/license-MIT-AB5637.svg)](LICENSE)
 [![Python 3.12+](https://img.shields.io/badge/python-3.12+-3776AB.svg?logo=python&logoColor=white)](https://www.python.org)
-[![FastAPI](https://img.shields.io/badge/FastAPI-0.124-009688.svg?logo=fastapi&logoColor=white)](https://fastapi.tiangolo.com)
+[![FastAPI](https://img.shields.io/badge/FastAPI-0.165-009688.svg?logo=fastapi&logoColor=white)](https://fastapi.tiangolo.com)
 [![Next.js 16](https://img.shields.io/badge/Next.js-16-000000.svg?logo=nextdotjs&logoColor=white)](https://nextjs.org)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5-3178C6.svg?logo=typescript&logoColor=white)](https://www.typescriptlang.org)
 [![Docker](https://img.shields.io/badge/Docker-single_container-2496ED.svg?logo=docker&logoColor=white)](Dockerfile)
@@ -157,7 +157,7 @@ Compose starts PostgreSQL 16 (reachable only on the internal network) plus the P
 
 ## Local development
 
-**Prerequisites:** Python 3.12+, Node.js 20.9+ ([nvm](https://github.com/nvm-sh/nvm) recommended), and [`uv`](https://github.com/astral-sh/uv).
+**Prerequisites:** Python 3.12+, Node.js 24 LTS ([nvm](https://github.com/nvm-sh/nvm) recommended), and [`uv`](https://github.com/astral-sh/uv).
 
 ```bash
 git clone https://github.com/R15hav/blog.git
@@ -218,7 +218,7 @@ From then on, you activate other users and grant the **author** role from **Admi
 ### Common pitfalls
 
 - **Run backend commands from `backend/`, not the repository root.** `uv` looks for `pyproject.toml` in the current directory. From the root you'll get `ModuleNotFoundError: No module named 'uvicorn'`.
-- **Use Node.js 20.9 or newer.** The system Node on Debian/Ubuntu is often v18, which Next.js 16 rejects with `version ">=20.9.0" is required`.
+- **Use Node.js 24 (LTS).** That's what CI and the Docker image use, and some dependencies require it. The system Node on Debian/Ubuntu is often much older; Next.js 16 rejects anything below 20.9 with `version ">=20.9.0" is required`.
 - **Schema changes need an Alembic migration** (`uv run alembic revision --autogenerate -m "…"`). Creating tables at startup won't alter existing ones.
 
 ---
@@ -231,7 +231,7 @@ From then on, you activate other users and grant the **author** role from **Admi
 | **Docker Compose** | PostgreSQL + Paper on `localhost:8080` | [Quick start](#quick-start-docker-compose) |
 | **Any Docker host** | One image you can run anywhere | [User Manual → Deploy with Docker](https://r15hav.github.io/blog/guide.html#um-deploy-docker) |
 
-The production artifact is the root [`Dockerfile`](Dockerfile), a three-stage build: Next.js standalone build → Python dependencies with `uv` → slim runtime with nginx, supervisord and Node 20. At startup, [`deploy/start.sh`](deploy/start.sh) renders the nginx config, runs `alembic upgrade head` when `DATABASE_URL` is set, and hands off to supervisord.
+The production artifact is the root [`Dockerfile`](Dockerfile), a three-stage build: Next.js standalone build → Python dependencies with `uv` → slim runtime with nginx, supervisord and Node 24. At startup, [`deploy/start.sh`](deploy/start.sh) renders the nginx config, runs `alembic upgrade head` when `DATABASE_URL` is set, and hands off to supervisord.
 
 **Don't set `NEXT_PUBLIC_API_URL` for the single-container build.** The browser reaches the API on the same origin through nginx.
 

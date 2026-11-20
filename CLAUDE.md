@@ -41,7 +41,7 @@ npm run build     # production build (output: "standalone")
 npm run lint      # eslint
 ```
 
-Next.js 16 requires Node ≥ 20.9.0 (use [nvm](https://github.com/nvm-sh/nvm); the system Node on Debian/Ubuntu is often v18 and will refuse to start).
+Use Node 24 LTS, which CI and the Docker image use (Next.js 16 itself requires Node ≥ 20.9.0, and `@editorjs/embed` declares ≥ 24). Use [nvm](https://github.com/nvm-sh/nvm); the system Node on Debian/Ubuntu is often too old and will refuse to start.
 
 ## Architecture
 
@@ -111,7 +111,7 @@ The backend does **not** load `backend/.env` automatically (`python-dotenv` is a
 
 The production artifact is the **single-container** root [Dockerfile](Dockerfile): one image runs FastAPI (`127.0.0.1:8000`), Next.js standalone (`127.0.0.1:3000`), and nginx (`$PORT`, default 8080) under supervisord. **Only the nginx port is exposed publicly**; backend and frontend are loopback-only.
 
-- [Dockerfile](Dockerfile) — three-stage build: `frontend-builder` (node:20-alpine, no `NEXT_PUBLIC_API_URL` baked), `backend-builder` (python:3.12-slim + uv, `uv sync --frozen --no-dev`), `runtime` (python:3.12-slim + nginx + supervisor + Node 20). HEALTHCHECK curls `/healthz`.
+- [Dockerfile](Dockerfile) — three-stage build: `frontend-builder` (node:24-alpine, no `NEXT_PUBLIC_API_URL` baked), `backend-builder` (python:3.12-slim + uv, `uv sync --frozen --no-dev`), `runtime` (python:3.12-slim + nginx + supervisor + Node 24). HEALTHCHECK curls `/healthz`.
 - [deploy/nginx.conf.template](deploy/nginx.conf.template) — rendered by `envsubst '$PORT'` at startup. Routes `/api/v1/`, `/auth/`, `/users/`, `/uploads/`, `= /docs`, `= /openapi.json` → backend; everything else → frontend (Next.js); `/healthz` returns 200 inline.
 - [deploy/supervisord.conf](deploy/supervisord.conf) — supervises `backend` (uvicorn), `frontend` (`node /app/frontend/server.js`), and `nginx` (`daemon off;`).
 - [deploy/start.sh](deploy/start.sh) — renders nginx config, runs `alembic upgrade head` if `DATABASE_URL` is set, then `exec supervisord`.

@@ -10,7 +10,6 @@
   },
   "dependencies": {
     "@editorjs/checklist": "^1.6.0",
-    "@hcaptcha/react-hcaptcha": "^1.11.0",
     "@editorjs/code": "^2.9.4",
     "@editorjs/delimiter": "^1.4.2",
     "@editorjs/editorjs": "^2.31.0",
@@ -26,8 +25,9 @@
     "@editorjs/simple-image": "^1.6.0",
     "@editorjs/table": "^2.4.5",
     "@editorjs/warning": "^1.4.1",
+    "@hcaptcha/react-hcaptcha": "^1.11.0",
     "editorjs-alert": "^1.1.4",
-    "next": "16.1.0",
+    "next": "16.4.6",
     "react": "19.2.3",
     "react-dom": "19.2.3"
   },
@@ -37,7 +37,7 @@
     "@types/react": "^19",
     "@types/react-dom": "^19",
     "eslint": "^9",
-    "eslint-config-next": "16.1.0",
+    "eslint-config-next": "16.4.6",
     "tailwindcss": "^4",
     "typescript": "^5"
   }
