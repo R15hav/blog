@@ -4,7 +4,7 @@ from collections.abc import AsyncGenerator
 from datetime import datetime
 
 from fastapi import Depends
-from sqlalchemy import Boolean, Column, DateTime, Integer, String, ForeignKey, UniqueConstraint
+from sqlalchemy import Boolean, Column, DateTime, Index, Integer, String, ForeignKey, UniqueConstraint, func
 from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine, async_sessionmaker
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, relationship
 from fastapi_users.db import SQLAlchemyUserDatabase, SQLAlchemyBaseUserTableUUID
@@ -22,6 +22,11 @@ class Base(DeclarativeBase):
 
 class User(Base, SQLAlchemyBaseUserTableUUID):
     __tablename__ = "users"
+    # Overrides the fastapi-users mixin column (unique=True, index=True), whose
+    # unique index is case-sensitive. Uniqueness is enforced case-insensitively
+    # by ix_users_email_lower below; fastapi-users already looks emails up with
+    # lower(email) = lower(:email), so that index also serves logins.
+    email: Mapped[str] = mapped_column(String(length=320), nullable=False)
     # Overrides the fastapi-users mixin column (default=True). Self-registration
     # creates users with safe=True, which leaves is_active out of the INSERT, so
     # this default is what the initial row gets: new accounts are inactive from
@@ -37,6 +42,11 @@ class User(Base, SQLAlchemyBaseUserTableUUID):
     experiences = relationship("Experience", back_populates="user", cascade="all, delete-orphan")
     qualifications = relationship("Qualification", back_populates="user", cascade="all, delete-orphan")
     school_education = relationship("SchoolEducation", back_populates="user", cascade="all, delete-orphan")
+
+# One account per email address regardless of letter case, on PostgreSQL and
+# SQLite. Created by migration e7b2c4d9a1f0 on existing databases and by
+# create_all() on fresh ones.
+Index("ix_users_email_lower", func.lower(User.email), unique=True)
 
 class Post(Base):
     __tablename__ = "posts"
