@@ -150,6 +150,8 @@ export default function LoginForm({ allowRegistration = true, siteName = "Blog" 
           </button>
         </form>
 
+        <div className="auth-divider"><a href="/forgot-password">Forgot your password?</a></div>
+
         {allowRegistration && (
           <div className="auth-divider">
             No account? <a href="/register">Create one</a>
