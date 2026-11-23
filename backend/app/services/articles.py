@@ -62,6 +62,13 @@ def _post_opts():
 # callers who may not see a draft get the same 404 as for a missing article, so
 # draft IDs are not confirmed to exist.
 
+def _parse_uuid(value: str, detail: str) -> uuid.UUID:
+    try:
+        return uuid.UUID(value)
+    except ValueError:
+        raise HTTPException(status_code=400, detail=detail)
+
+
 def can_view_post(post: Post, user=None) -> bool:
     if str(post.published).lower() == "true":
         return True
@@ -211,7 +218,7 @@ async def update_article(session: AsyncSession, user, id_str: str, post):
 # ── Likes ──────────────────────────────────────────────────────────────────────
 
 async def toggle_like(session: AsyncSession, post_id_str: str, user) -> dict:
-    post_id = uuid.UUID(post_id_str)
+    post_id = _parse_uuid(post_id_str, "Invalid article ID")
     await get_visible_post(session, post_id, user)
     user_id = user.id
     result = await session.execute(
@@ -232,7 +239,7 @@ async def toggle_like(session: AsyncSession, post_id_str: str, user) -> dict:
 
 
 async def get_like_status(session: AsyncSession, post_id_str: str, user=None) -> dict:
-    post_id = uuid.UUID(post_id_str)
+    post_id = _parse_uuid(post_id_str, "Invalid article ID")
     await get_visible_post(session, post_id, user)
     user_id = getattr(user, "id", None)
     count = (await session.execute(
@@ -292,7 +299,7 @@ async def list_comments_for_author(session: AsyncSession, owner_id, skip: int = 
 # ── Comments ───────────────────────────────────────────────────────────────────
 
 async def list_comments(session: AsyncSession, post_id_str: str, user=None) -> list:
-    post_id = uuid.UUID(post_id_str)
+    post_id = _parse_uuid(post_id_str, "Invalid article ID")
     await get_visible_post(session, post_id, user)
     result = await session.execute(
         select(Comment)
@@ -304,7 +311,7 @@ async def list_comments(session: AsyncSession, post_id_str: str, user=None) -> l
 
 
 async def add_comment(session: AsyncSession, post_id_str: str, user, body: str) -> dict:
-    post_id = uuid.UUID(post_id_str)
+    post_id = _parse_uuid(post_id_str, "Invalid article ID")
     await get_visible_post(session, post_id, user)
     comment = Comment(post_id=post_id, author_id=user.id, body=body)
     session.add(comment)
@@ -317,7 +324,7 @@ async def add_comment(session: AsyncSession, post_id_str: str, user, body: str) 
 
 
 async def delete_comment(session: AsyncSession, comment_id_str: str, user) -> dict:
-    comment_id = uuid.UUID(comment_id_str)
+    comment_id = _parse_uuid(comment_id_str, "Invalid comment ID")
     result = await session.execute(select(Comment).where(Comment.id == comment_id))
     comment = result.scalars().first()
     if not comment:
