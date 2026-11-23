@@ -51,7 +51,7 @@ Writers compose articles in a block-based **Editor.js** editor. New accounts sta
 - Three roles: **guest** (read, like, comment), **author** (write and manage own articles), **admin** (everything)
 
 ### 🎨 Customization
-- Live theme switching: register external CSS theme URLs and activate one at a time
+- Live theme switching: register external CSS theme URLs and activate one at a time; start from the bundled `frontend/public/themes/default.css`, which lists every supported variable
 - Site settings: name, description, logo upload and social-sharing (OpenGraph/Twitter) metadata
 - A setting to open or close self-registration (the backend rejects sign-ups while it's closed)
 
@@ -260,7 +260,6 @@ Paper is still in development. These are known gaps today:
 - **Password reset isn't implemented.** The forgot-password page is a placeholder and no reset emails are sent.
 - **Articles can't upload images.** Article images are embedded by external URL. The site logo is the only file you can upload.
 - **No frontend tests, and lint isn't enforced.** CI ([`.github/workflows/ci.yml`](.github/workflows/ci.yml)) runs the backend test suite and the frontend production build on every pull request and push to `master`. There are no frontend tests, and `npm run lint` reports existing errors on `master`, so it isn't part of CI yet.
-- **The bundled theme stylesheet is out of date.** `frontend/public/themes/default.css` predates the current CSS variables and only partly applies if you activate it ([#28](https://github.com/R15hav/blog/issues/28)). Themes written against the current variables work.
 
 Contributions toward any of these are welcome. See [Contributing](#contributing).
 
