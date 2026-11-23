@@ -87,5 +87,8 @@ jobs:
       - name: Install dependencies (locked)
         run: npm ci
 
+      - name: Check bundled theme variables
+        run: npm run check:theme
+
       - name: Build
         run: npm run build

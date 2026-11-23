@@ -1126,7 +1126,7 @@ uv run alembic downgrade -1</pre>
   <h3>Build &amp; Test a Theme</h3>
   <p>A theme is a CSS file at any reachable URL. It overrides variables and selectors defined in <code>frontend/app/(blog)/globals.css</code> (and the equivalents in <code>(auth)</code> / <code>(admin)</code>).</p>
   <ol>
-    <li>Author a CSS file. Override CSS variables (<code>--paper</code>, <code>--ink</code>, <code>--accent</code>, etc.) and the new typography variable <code>--font-body</code> (commit <code>f43db54</code>).</li>
+    <li>Author a CSS file. Override CSS variables (<code>--paper</code>, <code>--ink</code>, <code>--accent</code>, etc.) and the new typography variable <code>--font-body</code> (commit <code>f43db54</code>). Start from <code>frontend/public/themes/default.css</code> (served at <code>/themes/default.css</code>), which lists every supported variable with the built-in values.</li>
     <li>Host it where the browser can reach it: GitHub raw, jsDelivr (<code>https://cdn.jsdelivr.net/gh/&lt;you&gt;/&lt;repo&gt;@main/theme.css</code>), Cloudflare Pages, an S3 bucket, anywhere.</li>
     <li>Register it via the admin panel (<code>/admin/theme</code>) or the API:</li>
   </ol>

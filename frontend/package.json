@@ -6,7 +6,8 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "check:theme": "node scripts/check-theme-variables.mjs"
   },
   "dependencies": {
     "@editorjs/checklist": "^1.6.0",
