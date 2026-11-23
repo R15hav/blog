@@ -328,7 +328,7 @@
     <span class="callout-icon">+</span>
     <div class="callout-body">
       <strong>Forgot password.</strong>
-      Password reset is not implemented yet. The forgot-password page is a placeholder and no reset email is sent. If you are locked out, contact the site operator.
+      There's no self-service password reset. Use the <strong>Forgot your password?</strong> link on the sign-in page, or ask the site administrator directly; they can set a new password for you.
     </div>
   </div>
 </section>
@@ -465,6 +465,7 @@
       The Activate button only sets <code>is_active=true</code>; the user starts as a Guest. Use <strong>Make author</strong> as a second step if they need write access.
     </div>
   </div>
+  <p><strong>Resetting a user's password.</strong> There is no admin screen for this yet (<a href="https://github.com/R15hav/blog/issues/29">#29</a>). Find the user's <code>id</code> with <code>GET /api/v1/admin/users?q=&lt;email&gt;</code>, then send <code>PATCH /users/{id}</code> with the body <code>{"password": "&lt;new password&gt;"}</code>, authenticated with your own bearer token. You can do this from <code>/docs</code> (Authorize, then try the request) or with <code>curl</code>. The old password stops working immediately. Share the new password with the user privately. The profile page has no password-change form; users can change their own password only through <code>PATCH /users/me</code>.</p>
 </section>
 
 <section id="um-admins-themes">
