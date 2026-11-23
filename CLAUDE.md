@@ -88,6 +88,7 @@ Admins can register external CSS URLs as `ThemeConfig` rows and activate one at 
 | `NEXT_PUBLIC_APP_URL` | `http://localhost:3000`          | [robots.js](frontend/app/robots.js), [sitemap.js](frontend/app/sitemap.js) |
 | `HCAPTCHA_ENABLED`    | `"false"`                        | [services/captcha.py](backend/app/services/captcha.py) — set `true`/`1`/`yes` (case-insensitive) to enable |
 | `HCAPTCHA_SECRET`     | (unset)                          | [services/captcha.py](backend/app/services/captcha.py) — required when `HCAPTCHA_ENABLED=true` |
+| `HCAPTCHA_VERIFY_URL` | `https://api.hcaptcha.com/siteverify` | [services/captcha.py](backend/app/services/captcha.py) — overrides the verify endpoint (tests and private mirrors) |
 | `NEXT_PUBLIC_HCAPTCHA_SITE_KEY` | (unset)              | [RegisterForm.js](frontend/app/(auth)/register/RegisterForm.js) — **build-time** (Next.js `NEXT_PUBLIC_*`); changing it requires a rebuild, not just a restart |
 
 The backend does **not** load `backend/.env` automatically (`python-dotenv` is a dependency but is never imported). Pass it explicitly: `uv run --env-file .env uvicorn app.app:app --reload --port 8000`.
