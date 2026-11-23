@@ -257,7 +257,7 @@ The production artifact is the root [`Dockerfile`](Dockerfile), a three-stage bu
 
 Paper is still in development. These are known gaps today:
 
-- **No self-service password reset.** Users who forget their password ask the administrator, who sets a new one through the API (`PATCH /users/{id}`); there is no admin screen for this yet ([#29](https://github.com/R15hav/blog/issues/29)).
+- **No self-service password reset.** Users who forget their password ask the administrator, who resets it from **Admin → Users** (**Reset password**); self-service recovery is tracked in [#29](https://github.com/R15hav/blog/issues/29).
 - **Articles can't upload images.** Article images are embedded by external URL. The site logo is the only file you can upload.
 - **No frontend tests, and lint isn't enforced.** CI ([`.github/workflows/ci.yml`](.github/workflows/ci.yml)) runs the backend test suite and the frontend production build on every pull request and push to `master`. There are no frontend tests, and `npm run lint` reports existing errors on `master`, so it isn't part of CI yet.
 - **The bundled theme stylesheet is out of date.** `frontend/public/themes/default.css` predates the current CSS variables and only partly applies if you activate it ([#28](https://github.com/R15hav/blog/issues/28)). Themes written against the current variables work.
