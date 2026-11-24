@@ -159,10 +159,10 @@ Compose starts PostgreSQL 16 (reachable only on the internal network) plus the P
 
 ### Upgrading: secret and first-admin changes
 
-- **`SECRET` is now required.** The backend will not start with a missing, placeholder, shorter than 32 characters or repetitive value, and the container exits before running migrations. Set a strong `SECRET` (in `.env` for Compose) before upgrading.
+- **`SECRET` is now required.** The backend will not start with a missing value, a known placeholder, fewer than 32 characters or an obviously repeated value, and the container exits before running migrations. These checks only catch clearly unsafe values; they cannot tell whether a secret is random. Generate one with `openssl rand -hex 32` and set it (in `.env` for Compose) before upgrading.
 - **Changing `SECRET` signs everyone out.** All existing login, password-reset and verification tokens become invalid. No data changes.
-- **`FIRST_ADMIN_EMAIL` alone no longer grants admin rights.** An account is never promoted because its email matches. Set `FIRST_ADMIN_PASSWORD` as well: the server creates that administrator on startup when no superuser exists, or promotes an existing account only if the password matches the one it registered with.
-- **Existing administrators keep their access.** `FIRST_ADMIN_*` are ignored (with a warning in the log) once any superuser exists.
+- **`FIRST_ADMIN_EMAIL` no longer promotes anyone.** The old "register, then restart to promote" flow is gone. With `FIRST_ADMIN_PASSWORD` also set, the server creates a **new** administrator account on startup when no superuser exists. If the email already belongs to an account (for example one you registered earlier), bootstrap refuses and logs an error: choose an address with no account, or promote that account with SQL (User Manual, *Bootstrapping the First Admin*, Path B).
+- **Existing administrators keep their access.** `FIRST_ADMIN_*` are ignored (with a warning in the log) once any superuser exists. Bootstrap never runs again after that, even if the only administrator is later deactivated; recover with the same SQL path.
 - **Closed registration has no first-admin exception.** Use the environment bootstrap instead.
 
 ---
@@ -220,7 +220,7 @@ npm run dev
 
 ### 3. Bootstrap the first administrator
 
-New accounts are created **inactive**, so the first administrator is created by the server instead. When the backend starts and no superuser exists, it creates the `FIRST_ADMIN_EMAIL` account as an active administrator with `FIRST_ADMIN_PASSWORD` (set in step 1). There is nothing to register or restart.
+New accounts are created **inactive**, so the first administrator is created by the server instead. When the backend starts and no superuser exists, it creates the `FIRST_ADMIN_EMAIL` account as a new, active administrator with `FIRST_ADMIN_PASSWORD` (set in step 1). Don't register that email first: an existing account is never promoted, and bootstrap refuses it.
 
 1. Log in at http://localhost:3000/login with those credentials.
 2. Open http://localhost:3000/admin to confirm you have administrator access.
@@ -255,8 +255,8 @@ The production artifact is the root [`Dockerfile`](Dockerfile), a three-stage bu
 | Variable | Default | Purpose |
 |---|---|---|
 | `DATABASE_URL` | `sqlite+aiosqlite:///./test.db` | Database connection. `postgres://` and `postgresql://` URLs are converted for asyncpg automatically. For PostgreSQL, `sslmode` accepts `disable`, `prefer` or `require`; **without it, SSL is required**. Use `?sslmode=disable` for a database without SSL, as [`docker-compose.yml`](docker-compose.yml) does. |
-| `SECRET` | (required) | JWT signing secret: at least 32 characters, not a placeholder. Startup fails otherwise. Generate with `openssl rand -hex 32`. Changing it invalidates all existing tokens. |
-| `FIRST_ADMIN_EMAIL` | (unset) | With `FIRST_ADMIN_PASSWORD`, the first administrator. Only used while no superuser exists: the account is created if missing, or promoted if it exists and `FIRST_ADMIN_PASSWORD` matches its password. Email matching alone never grants admin rights. |
+| `SECRET` | (required) | JWT signing secret. Startup fails if it is missing or obviously unsafe (at least 32 characters, not a placeholder or a repeated pattern); these checks don't prove randomness, so generate it with `openssl rand -hex 32`. Changing it invalidates all existing tokens. |
+| `FIRST_ADMIN_EMAIL` | (unset) | With `FIRST_ADMIN_PASSWORD`, the first administrator. Only used while no superuser exists: the server creates it as a **new** account. If the email already belongs to an account, bootstrap is refused; an existing account is never promoted. |
 | `FIRST_ADMIN_PASSWORD` | (unset) | Password for the first administrator (at least 12 characters). Remove it after the first start. |
 | `FRONTEND_URL` | `http://localhost:3000` | CORS allowed origin. In the single container, set it to the public URL. |
 | `PORT` | `8080` | Port nginx listens on in the container (Render sets this). |

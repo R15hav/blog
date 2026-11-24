@@ -1,10 +1,15 @@
 """First-administrator bootstrap from operator-controlled environment variables.
 
-An administrator is never granted because an account's email matches
-configuration. Only when no superuser exists, and both FIRST_ADMIN_EMAIL and
-FIRST_ADMIN_PASSWORD are set, the server itself creates that account, or
-promotes an existing one whose stored password hash matches
-FIRST_ADMIN_PASSWORD (which only the operator knows).
+Only when no superuser exists, and both FIRST_ADMIN_EMAIL and
+FIRST_ADMIN_PASSWORD are set, the server itself creates a NEW account as the
+first administrator. It never promotes or activates an existing account: if
+the configured email already belongs to an account (for example one created
+through public registration), bootstrap is refused and an error is logged.
+
+Once any superuser exists this is a no-op, so restarts never promote anyone
+and bootstrap never reopens. To recover a deactivated or lost sole
+administrator, use the documented SQL path (user manual, "Bootstrapping the
+First Admin", Path B).
 """
 from __future__ import annotations
 
@@ -24,9 +29,16 @@ logger = logging.getLogger(__name__)
 
 MIN_PASSWORD_LENGTH = 12
 
+_EXISTING_ACCOUNT_MESSAGE = (
+    "FIRST_ADMIN_EMAIL %s already belongs to an account, so no administrator was created. "
+    "Bootstrap only creates a new account and never promotes an existing one. "
+    "Set FIRST_ADMIN_EMAIL to an address that has no account and restart, or promote the "
+    "account manually with SQL (user manual: Bootstrapping the First Admin, Path B)."
+)
+
 
 async def bootstrap_first_admin() -> str:
-    """Return "skipped", "exists", "created", "promoted" or "refused" (for tests)."""
+    """Return "skipped", "exists", "created" or "refused" (for tests; lifespan ignores it)."""
     email = os.getenv("FIRST_ADMIN_EMAIL", "").strip()
     password = os.getenv("FIRST_ADMIN_PASSWORD", "")
 
@@ -47,7 +59,7 @@ async def bootstrap_first_admin() -> str:
         if not password:
             logger.error(
                 "FIRST_ADMIN_EMAIL is set but FIRST_ADMIN_PASSWORD is not; no administrator "
-                "was created. Email matching no longer grants admin rights."
+                "was created. Set both to create the first administrator."
             )
             return "skipped"
         if len(password) < MIN_PASSWORD_LENGTH or password.lower() == email.lower():
@@ -59,54 +71,38 @@ async def bootstrap_first_admin() -> str:
             return "refused"
 
         user_db = SQLAlchemyUserDatabase(session, User)
-        user_manager = UserManager(user_db)
-
-        user = await user_db.get_by_email(email)  # case-insensitive
-        if user is None:
-            try:
-                user = await user_manager.create(
-                    UserCreate(
-                        email=email,
-                        password=password,
-                        is_active=True,
-                        is_superuser=True,
-                        is_verified=True,
-                    ),
-                    safe=False,
-                )
-            except (exceptions.UserAlreadyExists, IntegrityError):
-                # A concurrent registration or another replica won the race.
-                await session.rollback()
-                user = await user_db.get_by_email(email)
-                if user is None:
-                    raise
-            else:
-                user.role = "admin"
-                await session.commit()
-                logger.warning(
-                    "Created first administrator %s. Remove FIRST_ADMIN_PASSWORD from the environment.",
-                    email,
-                )
-                return "created"
-
-        if user.is_superuser:
-            return "exists"  # a peer created/promoted it in the meantime
-
-        verified, _ = user_manager.password_helper.verify_and_update(password, user.hashed_password)
-        if not verified:
-            logger.error(
-                "An account with FIRST_ADMIN_EMAIL already exists and FIRST_ADMIN_PASSWORD does "
-                "not match it; it was NOT promoted. Use a different FIRST_ADMIN_EMAIL."
-            )
+        if await user_db.get_by_email(email) is not None:  # case-insensitive
+            logger.error(_EXISTING_ACCOUNT_MESSAGE, email)
             return "refused"
 
-        user.is_superuser = True
-        user.is_active = True
+        try:
+            user = await UserManager(user_db).create(
+                UserCreate(
+                    email=email,
+                    password=password,
+                    is_active=True,
+                    is_superuser=True,
+                    is_verified=True,
+                ),
+                safe=False,
+            )
+        except (exceptions.UserAlreadyExists, IntegrityError):
+            # Lost a race on the unique email index: either a peer replica created
+            # the administrator (fine) or a public registration took the address
+            # first (refuse; that account is never touched).
+            await session.rollback()
+            existing = await user_db.get_by_email(email)
+            if existing is None:
+                raise
+            if existing.is_superuser:
+                return "exists"
+            logger.error(_EXISTING_ACCOUNT_MESSAGE, email)
+            return "refused"
+
         user.role = "admin"
         await session.commit()
         logger.warning(
-            "Promoted existing account %s to administrator. Remove FIRST_ADMIN_PASSWORD "
-            "from the environment.",
-            user.email,
+            "Created first administrator %s. Remove FIRST_ADMIN_PASSWORD from the environment.",
+            email,
         )
-        return "promoted"
+        return "created"

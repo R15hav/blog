@@ -1,5 +1,6 @@
-"""Regression tests for #104: the first administrator is created from
-FIRST_ADMIN_EMAIL + FIRST_ADMIN_PASSWORD, never granted by an email match.
+"""Regression tests for #104: the first administrator is created as a NEW account
+from FIRST_ADMIN_EMAIL + FIRST_ADMIN_PASSWORD. An existing account is never
+promoted or activated, whatever its password.
 
 Run from backend/:
     uv run python -m unittest discover -s tests -v
@@ -108,33 +109,47 @@ class FirstAdminBootstrapTests(unittest.IsolatedAsyncioTestCase):
                      for u in (await s.execute(select(User))).scalars().all()}
         self.assertEqual(before, after)
 
-    async def test_attacker_preregistration_is_not_promoted(self):
-        r = await self._register(self.email.swapcase(), OTHER_PASSWORD)
+    async def _snapshot(self, email):
+        [user] = await self._accounts(email)
+        return (user.id, user.email, user.is_superuser, user.is_active, user.role, user.hashed_password)
+
+    async def _assert_existing_account_refused(self, registered_password):
+        r = await self._register(self.email.swapcase(), registered_password)
         self.assertEqual(r.status_code, 201, r.text)
+        before = await self._snapshot(self.email)
         self._configure()
         with self.assertLogs(LOGGER, "ERROR") as logs:
             self.assertEqual(await bootstrap_first_admin(), "refused")
-        self.assertNotIn(ADMIN_PASSWORD, "\n".join(logs.output))
-        self.assertNotIn(OTHER_PASSWORD, "\n".join(logs.output))
-        [user] = await self._accounts(self.email)
-        self.assertFalse(user.is_superuser)
-        self.assertFalse(user.is_active)
-        self.assertNotEqual(user.role, "admin")
+        output = "\n".join(logs.output)
+        self.assertIn("already belongs to an account", output)
+        self.assertIn("Path B", output)  # actionable: points at the SQL recovery path
+        self.assertNotIn(ADMIN_PASSWORD, output)
+        self.assertNotIn(registered_password, output)
+        # Untouched: not promoted, not activated, password and role unchanged.
+        self.assertEqual(await self._snapshot(self.email), before)
+        self.assertFalse(before[2] or before[3])
         self.assertEqual(await self._superusers(), [])
+        self.assertEqual(len(await self._accounts(self.email)), 1)
+        return before
 
-    async def test_operator_preregistration_is_promoted_and_spelling_kept(self):
-        r = await self._register(self.email, ADMIN_PASSWORD)
-        self.assertEqual(r.status_code, 201, r.text)
-        [before] = await self._accounts(self.email)
-        self._configure(email=self.email.lower())
-        with self.assertLogs(LOGGER, "WARNING"):
-            self.assertEqual(await bootstrap_first_admin(), "promoted")
-        [user] = await self._accounts(self.email)
-        self.assertEqual(user.id, before.id)
-        self.assertEqual(user.email, before.email)
-        self.assertTrue(user.is_superuser and user.is_active)
-        self.assertEqual(user.role, "admin")
-        self.assertEqual((await self._login(self.email, ADMIN_PASSWORD)).status_code, 200)
+    async def test_existing_account_with_different_password_is_not_promoted(self):
+        await self._assert_existing_account_refused(OTHER_PASSWORD)
+        r = await self._login(self.email, OTHER_PASSWORD)
+        self.assertEqual(r.status_code, 400, r.text)  # still inactive
+
+    async def test_existing_account_with_matching_password_is_not_promoted(self):
+        # Even the operator's own password does not make a public registration an admin.
+        await self._assert_existing_account_refused(ADMIN_PASSWORD)
+        r = await self._login(self.email, ADMIN_PASSWORD)
+        self.assertEqual(r.status_code, 400, r.text)  # still inactive
+
+    async def test_refused_bootstrap_stays_refused_across_restarts(self):
+        before = await self._assert_existing_account_refused(OTHER_PASSWORD)
+        for _ in range(3):  # three more "restarts"
+            with self.assertLogs(LOGGER, "ERROR"):
+                self.assertEqual(await bootstrap_first_admin(), "refused")
+        self.assertEqual(await self._snapshot(self.email), before)
+        self.assertEqual(await self._superusers(), [])
 
     async def test_email_only_legacy_configuration_does_not_promote(self):
         r = await self._register(self.email, OTHER_PASSWORD)
@@ -197,6 +212,31 @@ class FirstAdminBootstrapTests(unittest.IsolatedAsyncioTestCase):
         [admin] = await self._accounts(self.email)
         self.assertTrue(admin.is_superuser)
         self.assertEqual(len(await self._superusers()), 1)
+
+    async def test_concurrent_bootstrap_and_public_registration(self):
+        self._configure()
+        variants = [self.email, self.email.lower(), self.email.upper()]
+        results = await asyncio.gather(
+            *(bootstrap_first_admin() for _ in range(3)),
+            *(self._register(v, OTHER_PASSWORD) for v in variants),
+            return_exceptions=True)
+        for r in results:
+            self.assertNotIsInstance(r, BaseException, results)
+        outcomes, responses = results[:3], results[3:]
+        self.assertTrue(set(outcomes) <= {"created", "exists", "refused"}, outcomes)
+        self.assertNotIn(500, [r.status_code for r in responses])
+        [account] = await self._accounts(self.email)  # exactly one account
+        superusers = await self._superusers()
+        if superusers:
+            # The bootstrap won: the only superuser is the env-created account.
+            self.assertEqual([u.id for u in superusers], [account.id])
+            self.assertEqual(outcomes.count("created"), 1, outcomes)
+            self.assertEqual((await self._login(self.email, ADMIN_PASSWORD)).status_code, 200)
+        else:
+            # A public registration won: it is never promoted or activated.
+            self.assertFalse(account.is_superuser or account.is_active)
+            self.assertNotIn("created", outcomes)
+            self.assertEqual([r.status_code for r in responses].count(201), 1)
 
     async def test_concurrent_bootstrap_creates_one_account_and_one_superuser(self):
         self._configure()

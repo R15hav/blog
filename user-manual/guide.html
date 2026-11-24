@@ -556,8 +556,8 @@ cp .env.example .env     # then set SECRET (openssl rand -hex 32), FIRST_ADMIN_E
 docker compose up -d</pre>
   </div>
   <p>Once both containers are healthy, browse to <strong>http://localhost:8080</strong>. Nginx is the only public listener; the backend (8000) and frontend (3000) are not exposed.</p>
-  <p><code>SECRET</code> is required: <code>docker compose</code> stops with an error until it is set in <code>.env</code> (git-ignored, read automatically). To create the first admin, set <code>FIRST_ADMIN_EMAIL</code> and <code>FIRST_ADMIN_PASSWORD</code> in the same file. The server creates that account on startup, so there is nothing to register or restart. Remove <code>FIRST_ADMIN_PASSWORD</code> afterwards.</p>
-  <p><strong>Upgrading.</strong> Set a strong <code>SECRET</code> before upgrading; a missing or placeholder value stops the container. Changing <code>SECRET</code> signs every user out. <code>FIRST_ADMIN_EMAIL</code> alone no longer promotes anyone, and an existing admin keeps access (<code>FIRST_ADMIN_*</code> are then ignored, with a warning in the log).</p>
+  <p><code>SECRET</code> is required: <code>docker compose</code> stops with an error until it is set in <code>.env</code> (git-ignored, read automatically). To create the first admin, set <code>FIRST_ADMIN_EMAIL</code> and <code>FIRST_ADMIN_PASSWORD</code> in the same file. The server creates that address as a new account on startup, so there is nothing to register or restart. Don't register that email first: an existing account is never promoted. Remove <code>FIRST_ADMIN_PASSWORD</code> afterwards.</p>
+  <p><strong>Upgrading.</strong> Set <code>SECRET</code> (generate it with <code>openssl rand -hex 32</code>) before upgrading; a missing or obviously unsafe value stops the container. Changing <code>SECRET</code> signs every user out. <code>FIRST_ADMIN_EMAIL</code> no longer promotes anyone: the old register-then-restart flow is gone, and bootstrap refuses an email that already has an account (use Path B below for that). An existing admin keeps access (<code>FIRST_ADMIN_*</code> are then ignored, with a warning in the log).</p>
 </section>
 
 <section id="um-deploy-env">
@@ -567,8 +567,8 @@ docker compose up -d</pre>
     <thead><tr><th>Variable</th><th>Default</th><th>Purpose</th></tr></thead>
     <tbody>
       <tr><td><code>DATABASE_URL</code></td><td><code>sqlite+aiosqlite:///./test.db</code></td><td>Postgres or SQLite URL. Backend normalises <code>postgres://</code> / <code>postgresql://</code> to <code>postgresql+asyncpg://</code> and turns <code>sslmode</code> into the driver's SSL setting. Without <code>sslmode</code>, SSL is required; use <code>sslmode=disable</code> for a database without SSL (Docker Compose does this).</td></tr>
-      <tr><td><code>SECRET</code></td><td>(required)</td><td>JWT signing secret: at least 32 characters, not a placeholder. <strong>The backend and container refuse to start otherwise.</strong> Generate with <code>openssl rand -hex 32</code>. Rotating invalidates every existing token.</td></tr>
-      <tr><td><code>FIRST_ADMIN_EMAIL</code></td><td>(unset)</td><td>With <code>FIRST_ADMIN_PASSWORD</code>, the first administrator. Used only while no superuser exists: the account is created if missing, or promoted if it exists and <code>FIRST_ADMIN_PASSWORD</code> matches its password. Matching the email alone never grants admin rights.</td></tr>
+      <tr><td><code>SECRET</code></td><td>(required)</td><td>JWT signing secret. <strong>The backend and container refuse to start if it is missing or obviously unsafe</strong> (at least 32 characters, not a placeholder or a repeated pattern). These checks cannot tell whether a value is random, so generate it with <code>openssl rand -hex 32</code>. Rotating invalidates every existing token.</td></tr>
+      <tr><td><code>FIRST_ADMIN_EMAIL</code></td><td>(unset)</td><td>With <code>FIRST_ADMIN_PASSWORD</code>, the first administrator. Used only while no superuser exists: the server creates it as a <strong>new</strong> account. If the email already belongs to an account, bootstrap is refused and an error is logged; an existing account is never promoted.</td></tr>
       <tr><td><code>FIRST_ADMIN_PASSWORD</code></td><td>(unset)</td><td>Password for the first administrator (at least 12 characters). Remove it after the first start.</td></tr>
       <tr><td><code>FRONTEND_URL</code></td><td><code>http://localhost:3000</code></td><td>CORS allow-origin. Optional in single-image mode because the browser hits the same origin as the API; set it for honesty if you front the service with a custom domain.</td></tr>
       <tr><td><code>PORT</code></td><td><code>8080</code></td><td>The public port nginx binds to. Render overrides this automatically; leave it alone otherwise.</td></tr>
@@ -593,19 +593,19 @@ docker compose up -d</pre>
   <h4>Path A — <code>FIRST_ADMIN_EMAIL</code> and <code>FIRST_ADMIN_PASSWORD</code></h4>
   <ol>
     <li>Set <code>FIRST_ADMIN_EMAIL</code> and <code>FIRST_ADMIN_PASSWORD</code> (at least 12 characters) on the service.</li>
-    <li>Start or restart it. If no superuser exists, the lifespan handler creates that account as an active administrator. If an account with that email already exists, it is promoted only when the password matches the one it was registered with; otherwise an error is logged and nothing changes.</li>
+    <li>Start or restart it. If no superuser exists, the lifespan handler creates that address as a new, active administrator account. If an account with that email already exists (for example one registered through <code>/register</code>), nothing changes and an error is logged: use an address with no account, or Path B.</li>
     <li>Sign in at <code>/login</code> with those credentials and visit <code>/admin</code>.</li>
-    <li>Remove <code>FIRST_ADMIN_PASSWORD</code>. Once any superuser exists, both variables are ignored.</li>
+    <li>Remove <code>FIRST_ADMIN_PASSWORD</code>. Once any superuser exists, both variables are ignored and bootstrap never runs again.</li>
   </ol>
   <h4>Path B — direct SQL</h4>
-  <p>Useful when you can't redeploy, or you want to avoid promoting on every boot.</p>
+  <p>Use this to make an <em>existing</em> account an administrator (Path A never does), or to recover when the only administrator has been deactivated or is otherwise unavailable. Bootstrap does not reopen once a superuser exists, so this is the recovery path. With Compose, open a shell with <code>docker compose exec db psql -U blog_user -d blog_db</code>.</p>
   <div class="code-block">
     <div class="code-block-header"><span class="code-lang">sql</span></div>
     <pre>UPDATE users
 SET is_superuser = TRUE,
     is_active    = TRUE,
     role         = 'admin'
-WHERE email = 'you@example.com';</pre>
+WHERE lower(email) = lower('you@example.com');</pre>
   </div>
   <p>Run this against the database via Render's database shell, <code>psql</code> with the External URL, or any Postgres GUI (TablePlus, DBeaver). TablePlus does not auto-commit — press <kbd>Cmd</kbd>/<kbd>Ctrl</kbd>+<kbd>S</kbd> after running.</p>
 </section>
@@ -812,7 +812,7 @@ database/db.py         ← async SQLAlchemy models + session factory</pre>
    ─ 200 → context.user populated
    ─ 401 → token cleared, redirect to /login</pre>
   </div>
-  <p>JWT lifetime is <strong>3600 seconds (1 hour)</strong>, signed with the <code>SECRET</code> env var (required, at least 32 characters; the backend will not start without a strong one). See <code>backend/app/core/users.py</code>.</p>
+  <p>JWT lifetime is <strong>3600 seconds (1 hour)</strong>, signed with the <code>SECRET</code> env var (required; the backend will not start if it is missing or obviously unsafe — generate it with <code>openssl rand -hex 32</code>). See <code>backend/app/core/users.py</code>.</p>
   <p>Three guard layers, used as FastAPI <code>Depends(...)</code>:</p>
   <ul>
     <li><code>current_active_user</code> — any logged-in, active user</li>
@@ -1007,7 +1007,7 @@ NEXT_PUBLIC_APP_URL=http://localhost:3000</pre>
     <li><strong>New registrations are inactive by default.</strong> the user model's <code>is_active</code> column defaults to <code>False</code>; an admin must <code>PATCH /api/v1/admin/users/{id}/activate</code> before the user can log in.</li>
     <li><strong><code>reactStrictMode: false</code></strong> in <code>frontend/next.config.ts</code> is intentional — Editor.js double-init breaks under Strict Mode. Don't re-enable.</li>
     <li><strong>Postgres SSL defaults to required.</strong> <code>sslmode</code> is translated into asyncpg's <code>ssl</code> connect argument by <code>app/database/connection.py</code>; a URL without it requires SSL. A database without SSL (like the Compose one) needs <code>?sslmode=disable</code>. If you switch DB drivers, replicate this.</li>
-    <li><strong><code>SECRET</code> has no default</strong> — the backend refuses to start without a strong value (<code>app/core/secret.py</code>).</li>
+    <li><strong><code>SECRET</code> has no default</strong> — the backend refuses to start if it is missing or obviously unsafe (<code>app/core/secret.py</code>; sanity checks, not an entropy guarantee).</li>
     <li><strong><code>NEXT_PUBLIC_API_URL</code> is unset in the production single-image deploy</strong> — that's deliberate. The frontend bundle uses relative URLs which nginx routes to the backend on the same origin.</li>
   </ul>
 </section>

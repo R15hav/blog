@@ -26,7 +26,8 @@ from app.core.secret import (  # noqa: E402
 BACKEND_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 OLD_DEFAULT = "dev-secret-change-me"
 OLD_PLACEHOLDER = "change-me-use-a-long-random-string-in-production"
-DISTINCT_32 = "abcdefgh" * 4  # exactly 32 chars, exactly 8 distinct
+# Exactly 32 chars and exactly 8 distinct, but not one chunk repeated.
+DISTINCT_32 = "abcdefgh" * 3 + "hgfedcba"
 
 
 class ValidateSecretTests(unittest.TestCase):
@@ -43,6 +44,9 @@ class ValidateSecretTests(unittest.TestCase):
             "31 chars": "abcdefgh" * 3 + "abcdefg",
             "32 x 'a'": "a" * 32,
             "7 distinct chars": "abcdefg" * 5,
+            "8-char chunk repeated 4x": "abcdefgh" * 4,
+            "hex-looking 32-char chunk repeated 2x": secrets.token_hex(16) * 2,
+            "two-char chunk repeated": "Zq" * 20,
         }
         for name, value in cases.items():
             with self.subTest(name):
@@ -58,6 +62,14 @@ class ValidateSecretTests(unittest.TestCase):
         self.assertTrue(all(v == v.lower() for v in KNOWN_INSECURE_SECRETS))
         self.assertIn(OLD_DEFAULT, KNOWN_INSECURE_SECRETS)
         self.assertIn(OLD_PLACEHOLDER, KNOWN_INSECURE_SECRETS)
+
+    def test_messages_never_disclose_the_secret(self):
+        # A long, otherwise plausible value that fails only the repetition check.
+        unit = secrets.token_hex(8)
+        with self.assertRaises(InsecureSecretError) as ctx:
+            validate_secret(unit * 4)
+        self.assertNotIn(unit, str(ctx.exception))
+        self.assertNotIn(unit[:8], str(ctx.exception))
 
     def test_accepted_values(self):
         for value in (secrets.token_hex(32), DISTINCT_32, _isolated_db.TEST_SECRET):

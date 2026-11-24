@@ -179,8 +179,9 @@ class ConcurrentRegistrationPostgresTests(unittest.TestCase):
             self.assertTrue(out["password_is_env"], out)
             self.assertFalse(out["password_is_public"], out)
         else:
-            # Every bootstrap lost to a public registration, which is never promoted.
+            # Every bootstrap lost to a public registration, which is never promoted or activated.
             self.assertFalse(account["is_superuser"], out)
+            self.assertFalse(account["is_active"], out)
             self.assertEqual(statuses.count(201), 1, out)
             self.assertTrue(all(b in ("refused", "skipped") for b in out["bootstrap"]), out)
 

@@ -51,8 +51,8 @@ services:
       SECRET: "${SECRET:?Set SECRET in .env (generate with: openssl rand -hex 32)}"
       # Same-origin in compose; nginx serves both backend and frontend on :8080.
       FRONTEND_URL: http://localhost:8080
-      # Optional: when no superuser exists, create (or, if its password matches,
-      # promote) this administrator on startup. Both variables are required.
+      # Optional: when no superuser exists, create this administrator as a NEW
+      # account on startup (an existing account is never promoted). Both required.
       FIRST_ADMIN_EMAIL: ${FIRST_ADMIN_EMAIL:-}
       FIRST_ADMIN_PASSWORD: ${FIRST_ADMIN_PASSWORD:-}
       # hCaptcha — defaults keep registration open so `docker compose up`
