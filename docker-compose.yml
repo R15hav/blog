@@ -68,9 +68,9 @@ services:
       # Persist logos / avatars across `docker compose down`.
       - uploads:/app/backend/uploads
     healthcheck:
-      test: ["CMD-SHELL", "curl -fsS http://localhost:8080/healthz || exit 1"]
+      test: ["CMD", "/deploy/healthcheck.sh"]
       interval: 10s
-      timeout: 5s
+      timeout: 10s
       retries: 5
       start_period: 30s
 

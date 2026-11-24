@@ -14,6 +14,7 @@ from app.api.v1.profile import router as profile_router
 from app.api.v1.author import router as author_router
 from app.api.v1.register import router as register_router
 from app.api.v1.login import router as login_router
+from app.api.v1.health import router as health_router
 from app.database.db import create_db_and_tables, get_async_session
 from app.core.users import fastapi_users, auth_backend
 from app.services.bootstrap import bootstrap_first_admin
@@ -82,6 +83,7 @@ app.include_router(articles_router, prefix="/api/v1", tags=["articles"])
 app.include_router(admin_router, prefix="/api/v1", tags=["admin"])
 app.include_router(profile_router, prefix="/api/v1", tags=["profile"])
 app.include_router(author_router, prefix="/api/v1", tags=["author"])
+app.include_router(health_router, prefix="/api/v1", tags=["health"])
 
 
 @app.get("/api/v1/theme/active", response_model=ThemeActiveResponse, tags=["theme"])

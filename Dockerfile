@@ -109,7 +109,7 @@ COPY --from=frontend-builder /app/frontend/public /app/frontend/public
 
 # Deploy assets (nginx template, supervisord conf, entrypoint)
 COPY deploy/ /deploy/
-RUN chmod +x /deploy/start.sh
+RUN chmod +x /deploy/start.sh /deploy/healthcheck.sh
 
 # Uploads dir must exist & be writable. In production this should be a
 # mounted volume so logos survive container restarts.
@@ -117,9 +117,10 @@ RUN mkdir -p /app/backend/uploads && chmod 0755 /app/backend/uploads
 
 EXPOSE 8080
 
-# Healthcheck hits the nginx-served /healthz which does not depend on backend
-# or frontend being ready -- it confirms the proxy itself is alive.
-HEALTHCHECK --interval=30s --timeout=5s --start-period=20s --retries=3 \
-    CMD curl -fsS "http://127.0.0.1:${PORT}/healthz" || exit 1
+# /deploy/healthcheck.sh checks nginx /healthz (which proxies to the backend
+# and runs SELECT 1 against the database) and that the Next.js server is
+# serving. The timeout covers its two bounded requests.
+HEALTHCHECK --interval=30s --timeout=10s --start-period=20s --retries=3 \
+    CMD ["/deploy/healthcheck.sh"]
 
 ENTRYPOINT ["/deploy/start.sh"]
