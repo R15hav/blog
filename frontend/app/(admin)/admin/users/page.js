@@ -3,7 +3,7 @@
 import { useEffect, useState, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "../../../context/AuthContext";
-import { getUsers, activateUser, deactivateUser, setUserRole, getAdminStats } from "../../../_lib/api_callout";
+import { getUsers, activateUser, deactivateUser, setUserRole, resetUserPassword, getAdminStats } from "../../../_lib/api_callout";
 
 const PAGE_SIZE = 20;
 
@@ -40,6 +40,13 @@ export default function UsersPage() {
 
   const [sortKey, setSortKey] = useState(null); // "status" | "role" | null
   const [sortDir, setSortDir] = useState("desc");
+
+  const [resetTarget, setResetTarget] = useState(null); // user object or null
+  const [newPassword, setNewPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [resetError, setResetError] = useState(null);
+  const [resetNotice, setResetNotice] = useState(null);
+  const [resetting, setResetting] = useState(false);
 
   const isSearchMode = debouncedQuery.trim().length > 0;
   const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE));
@@ -135,6 +142,44 @@ export default function UsersPage() {
     }));
   }
 
+  function openReset(user) {
+    setResetTarget(user);
+    setNewPassword("");
+    setConfirmPassword("");
+    setResetError(null);
+    setResetNotice(null);
+  }
+
+  function cancelReset() {
+    setResetTarget(null);
+    setNewPassword("");
+    setConfirmPassword("");
+    setResetError(null);
+  }
+
+  async function submitReset(e) {
+    e.preventDefault();
+    if (!resetTarget || resetting) return;
+    if (!newPassword || !confirmPassword || newPassword !== confirmPassword || newPassword.length < 8) {
+      setResetError("Passwords must match and be at least 8 characters.");
+      return;
+    }
+    setResetError(null);
+    setResetting(true);
+    const { success, detail } = await resetUserPassword(resetTarget.id, newPassword, token);
+    setResetting(false);
+    if (!success) {
+      const d = detail?.detail;
+      setResetError(d?.reason ?? (typeof d === "string" ? d : "Password reset failed."));
+      return;
+    }
+    const email = resetTarget.email;
+    setNewPassword("");
+    setConfirmPassword("");
+    setResetTarget(null);
+    setResetNotice(`Password updated for ${email}. Share it with them privately.`);
+  }
+
   const kpiTotal   = stats?.users?.total  ?? total;
   const kpiActive  = stats?.users?.active ?? "—";
   const kpiPending = stats?.users?.total != null ? stats.users.total - stats.users.active : "—";
@@ -153,6 +198,47 @@ export default function UsersPage() {
       </div>
 
       {error && <p className="msg-error" role="alert" style={{ marginBottom: 16 }}>{error}</p>}
+
+      {resetNotice && <p className="msg-success" role="status" style={{ marginBottom: 16 }}>{resetNotice}</p>}
+
+      {resetTarget && (
+        <form
+          onSubmit={submitReset}
+          style={{
+            display: "flex", flexDirection: "column", gap: 10, maxWidth: 360, marginBottom: 20,
+            padding: 16, background: "var(--paper-2)", border: "1px solid var(--rule)", borderRadius: "var(--r)",
+          }}
+        >
+          <h2 style={{ fontSize: 16, margin: 0 }}>Reset password for {resetTarget.email}</h2>
+          <label style={{ display: "flex", flexDirection: "column", gap: 4, fontFamily: "var(--font-sans)", fontSize: 13 }}>
+            New password
+            <input
+              type="password"
+              autoComplete="new-password"
+              value={newPassword}
+              onChange={(e) => setNewPassword(e.target.value)}
+            />
+          </label>
+          <label style={{ display: "flex", flexDirection: "column", gap: 4, fontFamily: "var(--font-sans)", fontSize: 13 }}>
+            Confirm new password
+            <input
+              type="password"
+              autoComplete="new-password"
+              value={confirmPassword}
+              onChange={(e) => setConfirmPassword(e.target.value)}
+            />
+          </label>
+          {resetError && <p className="msg-error" role="alert" style={{ margin: 0 }}>{resetError}</p>}
+          <div style={{ display: "flex", gap: 8 }}>
+            <button type="submit" className="btn btn-sm" disabled={resetting}>
+              {resetting ? "Saving…" : "Save"}
+            </button>
+            <button type="button" className="btn btn-ghost btn-sm" onClick={cancelReset}>
+              Cancel
+            </button>
+          </div>
+        </form>
+      )}
 
       <div className="kpi-row">
         <div className="kpi"><div className="kpi-label">Total</div><div className="kpi-value">{kpiTotal}</div></div>
@@ -252,6 +338,11 @@ export default function UsersPage() {
                         >
                           {u.is_active ? "Deactivate" : "Activate"}
                         </button>
+                        {!isSelf && (
+                          <button className="btn btn-ghost btn-sm" onClick={() => openReset(u)}>
+                            Reset password
+                          </button>
+                        )}
                         {!isSelf && u.is_superuser && (
                           <span style={{ color: "var(--ink-4)", fontFamily: "var(--font-sans)", fontSize: 13 }}>
                             locked

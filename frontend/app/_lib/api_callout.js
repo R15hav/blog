@@ -125,6 +125,19 @@ export async function setUserRole(userId, role, token) {
     return res.ok ? { success: true, detail: data } : { success: false, detail: data };
 }
 
+export async function resetUserPassword(userId, password, token) {
+    const res = await fetch(`${API}/users/${userId}`, {
+        method: "PATCH",
+        headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({ password }),
+    });
+    const data = await res.json().catch(() => null);
+    return res.ok ? { success: true, detail: data } : { success: false, detail: data };
+}
+
 // ── Admin — themes ─────────────────────────────────────────────────────────────
 
 export async function getThemes(token) {
