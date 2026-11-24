@@ -6,7 +6,10 @@
 #   2. Ensure uploads dir exists
 #   3. Validate configuration (SECRET) -- exit non-zero before anything else runs
 #   4. Run alembic migrations (loud failure if they break)
-#   5. exec supervisord -> backend + frontend + nginx
+#   5. Run supervisord (backend + frontend + nginx) as a child; this script stays
+#      PID 1, forwards TERM/INT/QUIT to it, and exits 1 if a program went FATAL
+#      (marker /run/paper-fatal, see supervisor_fatal_exit.py) so the restart
+#      policy can recover the container
 #
 # Required env at runtime:
 #   - DATABASE_URL  (postgres or sqlite URL)
@@ -53,5 +56,24 @@ else
     echo "[start.sh] WARNING: backend will fall back to sqlite+aiosqlite:///./test.db" >&2
 fi
 
-echo "[start.sh] Handing off to supervisord..."
-exec /usr/bin/supervisord -c /deploy/supervisord.conf
+echo "[start.sh] Starting supervisord..."
+rm -f /run/paper-fatal
+/usr/bin/supervisord -c /deploy/supervisord.conf &
+SUPERVISOR_PID=$!
+
+trap 'kill -TERM "$SUPERVISOR_PID" 2>/dev/null || true' TERM INT
+trap 'kill -QUIT "$SUPERVISOR_PID" 2>/dev/null || true' QUIT
+
+set +e
+STATUS=0
+# A trapped signal interrupts `wait`, so loop until supervisord is really gone.
+while kill -0 "$SUPERVISOR_PID" 2>/dev/null; do
+    wait "$SUPERVISOR_PID"
+    STATUS=$?
+done
+
+if [ -f /run/paper-fatal ]; then
+    echo "[start.sh] FATAL: $(cat /run/paper-fatal) failed to start; exiting so the restart policy can recover the container" >&2
+    exit 1
+fi
+exit "$STATUS"

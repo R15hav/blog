@@ -45,11 +45,15 @@ http {
         listen      [::]:${PORT} default_server;
         server_name _;
 
-        # Liveness probe -- does NOT depend on backend or frontend
+        # Container health probe -- proxied to the backend's /api/v1/health,
+        # which runs SELECT 1 against the database. Backend down -> 502,
+        # database down -> 503 (passed through). Timeouts are kept short and
+        # the read timeout exceeds the backend's own 3s database bound.
         location = /healthz {
             access_log off;
-            add_header Content-Type text/plain;
-            return 200 'ok';
+            proxy_pass http://backend/api/v1/health;
+            proxy_connect_timeout 2s;
+            proxy_read_timeout    5s;
         }
 
         # ---- Backend (FastAPI) routes -----------------------------------
