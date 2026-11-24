@@ -7,8 +7,6 @@ so the frontend error contract is unchanged.
 """
 from __future__ import annotations
 
-import os
-
 from fastapi import APIRouter, Depends, HTTPException, Request, status
 from fastapi_users import exceptions
 from fastapi_users.router.common import ErrorCode
@@ -27,35 +25,15 @@ router = APIRouter()
 REGISTRATION_CLOSED_DETAIL = "Registration is currently closed."
 
 
-def _configured_first_admin_email() -> str:
-    return os.getenv("FIRST_ADMIN_EMAIL", "").strip()
+async def _registration_policy(session: AsyncSession) -> None:
+    """Enforce the admin "Allow self-registration" setting: 403 when closed.
 
-
-async def _registration_policy(session: AsyncSession, email: str) -> str | None:
-    """Enforce the admin "Allow self-registration" setting.
-
-    Returns None for an ordinary allowed registration, or the configured
-    FIRST_ADMIN_EMAIL spelling when the first-admin bootstrap exception applies.
-    Raises 403 otherwise.
-
-    Bootstrap exception: while self-registration is disabled, the address in
-    FIRST_ADMIN_EMAIL may still register, but only until any superuser exists.
-    That keeps a closed site bootstrappable (the startup routine promotes this
-    account) without reopening registration for anyone else afterwards.
+    There is no exception for any address: the first administrator is created
+    by the server at startup (app/services/bootstrap.py), never by a public request.
     """
     config = await get_site_config(session)
-    if config.allow_registration:
-        return None
-
-    first_admin = _configured_first_admin_email()
-    if first_admin and email.strip().lower() == first_admin.lower():
-        superuser_exists = (
-            await session.execute(select(exists().where(User.is_superuser.is_(True))))
-        ).scalar()
-        if not superuser_exists:
-            return first_admin
-
-    raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail=REGISTRATION_CLOSED_DETAIL)
+    if not config.allow_registration:
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail=REGISTRATION_CLOSED_DETAIL)
 
 
 class _InsertDuplicateGuard:
@@ -107,21 +85,14 @@ async def register(
     user_manager: UserManager = Depends(get_user_manager),
     session: AsyncSession = Depends(get_async_session),
 ) -> UserRead:
-    # Policy first: a closed site rejects ordinary sign-ups before any captcha
-    # call. Requests that pass (including the bootstrap exception) still go
-    # through hCaptcha below.
-    bootstrap_email = await _registration_policy(session, str(user_create.email))
+    # Policy first: a closed site rejects sign-ups before any captcha call.
+    await _registration_policy(session)
 
     remote_ip = request.client.host if request.client else None
     await verify_hcaptcha(user_create.hcaptcha_token, remote_ip=remote_ip)
 
     base_payload = user_create.model_dump(exclude={"hcaptcha_token"})
     new_user = UserCreate(**base_payload)
-    if bootstrap_email:
-        # Store the exact configured spelling: the startup promotion matches
-        # FIRST_ADMIN_EMAIL exactly, and concurrent bootstrap attempts then
-        # collide on the unique email index instead of creating case variants.
-        new_user.email = bootstrap_email
     user_manager.user_db = _InsertDuplicateGuard(user_manager.user_db)  # this request only
     try:
         created_user = await user_manager.create(new_user, safe=True, request=request)

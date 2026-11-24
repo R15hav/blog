@@ -1,5 +1,5 @@
 """Regression tests: the admin "Allow self-registration" setting is enforced by
-the backend, with a narrow FIRST_ADMIN_EMAIL bootstrap exception.
+the backend, with no exception for FIRST_ADMIN_EMAIL.
 
 Run from backend/:
     uv run python -m unittest discover -s tests -v
@@ -7,7 +7,6 @@ Run from backend/:
 Uses the shared throwaway SQLite database and fictional example.com accounts.
 hCaptcha's verification endpoint is mocked; no network access is needed.
 """
-import asyncio
 import os
 import sys
 import unittest
@@ -21,7 +20,7 @@ import httpx  # noqa: E402
 from sqlalchemy import func, select, update  # noqa: E402
 from sqlalchemy.exc import IntegrityError  # noqa: E402
 
-from app.app import _promote_first_admin, app  # noqa: E402
+from app.app import app  # noqa: E402
 from app.core.users import UserManager  # noqa: E402
 from app.database.db import User, async_session_maker, create_db_and_tables, engine  # noqa: E402
 from app.services.site_settings import update_site_config  # noqa: E402
@@ -106,14 +105,6 @@ class RegistrationPolicyTests(unittest.IsolatedAsyncioTestCase):
             rows = await s.execute(select(User).where(func.lower(User.email) == email.lower()))
             return rows.scalars().all()
 
-    async def _make_superuser(self):
-        email = self._email("existing-admin")
-        r = await self._register(email)
-        self.assertEqual(r.status_code, 201, r.text)
-        async with async_session_maker() as s:
-            await s.execute(update(User).where(User.email == email).values(is_superuser=True, is_active=True))
-            await s.commit()
-
     # ── setting enabled / disabled ─────────────────────────────────────────────
 
     async def test_open_registration_succeeds_and_account_is_inactive(self):
@@ -142,77 +133,14 @@ class RegistrationPolicyTests(unittest.IsolatedAsyncioTestCase):
                 self.assertEqual(r.status_code, 403, r.text)
                 self.assertEqual(await self._users_matching(other), [])
 
-    # ── first-admin bootstrap exception ────────────────────────────────────────
-
-    async def test_closed_registration_allows_first_admin_before_promotion(self):
+    async def test_closed_registration_rejects_first_admin_email(self):
         await self._set_registration(False)
         email = self._email("founder")
         os.environ["FIRST_ADMIN_EMAIL"] = email
-        r = await self._register(email)
-        self.assertEqual(r.status_code, 201, r.text)
-        [user] = await self._users_matching(email)
-        self.assertFalse(user.is_active)  # still needs the startup promotion
-        self.assertFalse(user.is_superuser)
-
-    async def test_bootstrap_then_restart_promotes_and_closes_exception(self):
-        await self._set_registration(False)
-        email = self._email("founder")
-        os.environ["FIRST_ADMIN_EMAIL"] = email
-        self.assertEqual((await self._register(email)).status_code, 201)
-
-        await _promote_first_admin()  # what the lifespan handler runs on restart
-
-        [user] = await self._users_matching(email)
-        self.assertTrue(user.is_superuser and user.is_active)
-        self.assertEqual(user.role, "admin")
-        r = await self.client.post("/auth/jwt/login", data={"username": email, "password": PASSWORD})
-        self.assertEqual(r.status_code, 200, r.text)
-
-        # The exception is gone once a superuser exists, even for a newly configured address.
-        os.environ["FIRST_ADMIN_EMAIL"] = self._email("second-founder")
-        r = await self._register(self._email("second-founder"))
-        self.assertEqual(r.status_code, 403, r.text)
-        self.assertEqual(await self._users_matching(self._email("second-founder")), [])
-
-    async def test_exception_unavailable_when_a_superuser_already_exists(self):
-        await self._make_superuser()
-        await self._set_registration(False)
-        email = self._email("founder")
-        os.environ["FIRST_ADMIN_EMAIL"] = email
-        r = await self._register(email)
-        self.assertEqual(r.status_code, 403, r.text)
+        for attempt in (email, email.upper()):
+            r = await self._register(attempt)
+            self.assertEqual(r.status_code, 403, r.text)
         self.assertEqual(await self._users_matching(email), [])
-
-    async def test_first_admin_match_is_case_insensitive_and_stores_configured_spelling(self):
-        await self._set_registration(False)
-        configured = f"  First.Admin+{self.suffix}@Example.COM  "   # odd case + whitespace in the env var
-        os.environ["FIRST_ADMIN_EMAIL"] = configured
-        r = await self._register(f"first.admin+{self.suffix}@example.com")
-        self.assertEqual(r.status_code, 201, r.text)
-        [user] = await self._users_matching(configured.strip())
-        self.assertEqual(user.email, configured.strip())  # exact spelling the promotion matches
-        await _promote_first_admin()
-        [user] = await self._users_matching(configured.strip())
-        self.assertTrue(user.is_superuser and user.is_active)
-
-    async def test_bootstrap_email_cannot_be_registered_twice(self):
-        await self._set_registration(False)
-        email = self._email("founder")
-        os.environ["FIRST_ADMIN_EMAIL"] = email
-        self.assertEqual((await self._register(email)).status_code, 201)
-        r = await self._register(email.upper())
-        self.assertEqual(r.status_code, 400, r.text)
-        self.assertEqual(len(await self._users_matching(email)), 1)
-
-    async def test_concurrent_bootstrap_attempts_create_one_account(self):
-        await self._set_registration(False)
-        email = self._email("founder")
-        os.environ["FIRST_ADMIN_EMAIL"] = email
-        results = await asyncio.gather(self._register(email), self._register(email.replace("founder", "FOUNDER")))
-        codes = sorted(r.status_code for r in results)
-        self.assertEqual(codes[0], 201, [r.text for r in results])
-        self.assertIn(codes[1], (400, 201))
-        self.assertEqual(len(await self._users_matching(email)), 1)
 
     # ── duplicate handling is limited to the INSERT ────────────────────────────
 
@@ -293,20 +221,6 @@ class RegistrationPolicyTests(unittest.IsolatedAsyncioTestCase):
             r = await self._register(self._email("blocked"), hcaptcha_token="good-token")
         self.assertEqual(r.status_code, 403, r.text)
         self.assertEqual(calls, [])  # policy is checked first; no captcha call made
-
-    async def test_hcaptcha_still_required_for_first_admin_bootstrap(self):
-        await self._set_registration(False)
-        email = self._email("founder")
-        os.environ["FIRST_ADMIN_EMAIL"] = email
-        Client, calls = fake_captcha_client()
-        with mock.patch.dict(os.environ, {"HCAPTCHA_ENABLED": "true", "HCAPTCHA_SECRET": "test-secret"}), \
-                mock.patch("app.services.captcha.httpx.AsyncClient", Client):
-            r = await self._register(email)
-            self.assertEqual(r.status_code, 400, r.text)              # exception does not skip captcha
-            self.assertEqual(await self._users_matching(email), [])
-            r = await self._register(email, hcaptcha_token="good-token")
-            self.assertEqual(r.status_code, 201, r.text)
-        self.assertEqual(len(calls), 1)
 
     async def test_hcaptcha_disabled_needs_no_token(self):
         r = await self._register(self._email("plain"))

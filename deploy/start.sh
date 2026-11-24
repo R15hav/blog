@@ -4,15 +4,19 @@
 #
 #   1. Render nginx.conf.template -> /etc/nginx/nginx.conf (substituting $PORT)
 #   2. Ensure uploads dir exists
-#   3. Run alembic migrations (loud failure if they break)
-#   4. exec supervisord -> backend + frontend + nginx
+#   3. Validate configuration (SECRET) -- exit non-zero before anything else runs
+#   4. Run alembic migrations (loud failure if they break)
+#   5. exec supervisord -> backend + frontend + nginx
 #
 # Required env at runtime:
 #   - DATABASE_URL  (postgres or sqlite URL)
-#   - SECRET        (JWT signing secret -- MUST override the dev default)
+#   - SECRET        (JWT signing secret: at least 32 characters, not a
+#                    placeholder; the container exits otherwise.
+#                    Generate with: openssl rand -hex 32)
 # Optional:
 #   - PORT             (default 8080, set by Dockerfile)
-#   - FIRST_ADMIN_EMAIL
+#   - FIRST_ADMIN_EMAIL + FIRST_ADMIN_PASSWORD  (both required to create the
+#                       first administrator on startup when none exists)
 #   - FRONTEND_URL     (CORS allow-origin -- in single-image mode this is
 #                       the public URL of the container itself)
 
@@ -33,6 +37,9 @@ nginx -t -c /etc/nginx/nginx.conf
 echo "[start.sh] Ensuring uploads directory exists..."
 mkdir -p /app/backend/uploads
 chmod 0755 /app/backend/uploads
+
+echo "[start.sh] Validating configuration..."
+(cd /app/backend && /app/backend/.venv/bin/python -m app.core.secret)
 
 if [ -n "${DATABASE_URL:-}" ]; then
     echo "[start.sh] Running alembic migrations..."

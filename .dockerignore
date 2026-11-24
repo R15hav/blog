@@ -22,6 +22,10 @@ todo.txt
 product-requirements.md
 user-manual
 
+# Operator secrets (root .env is read by docker compose, never baked into the build context)
+.env
+.env.*
+
 # Backend host artifacts -- rebuilt inside the image
 backend/.venv
 backend/__pycache__

@@ -190,7 +190,7 @@
       <div class="step">
         <div class="step-num">01</div>
         <h3 class="step-title">Deploy</h3>
-        <p class="step-desc">Run <code>docker compose up</code> locally, or deploy the same single-container <code>Dockerfile</code> with the included Render blueprint. The database schema is created on first start; set <code>FIRST_ADMIN_EMAIL</code> to choose your first admin.</p>
+        <p class="step-desc">Run <code>docker compose up</code> locally, or deploy the same single-container <code>Dockerfile</code> with the included Render blueprint. The database schema is created on first start. Set <code>SECRET</code> (required), plus <code>FIRST_ADMIN_EMAIL</code> and <code>FIRST_ADMIN_PASSWORD</code>: the server creates your first admin as a new account on startup.</p>
       </div>
       <div class="step">
         <div class="step-num">02</div>
@@ -226,7 +226,7 @@
       <div class="role-panel active" id="role-admin">
         <div>
           <span class="tag tag-accent" style="margin-bottom: 16px">Full control</span>
-          <p class="role-panel-desc">Set <code>FIRST_ADMIN_EMAIL</code>, register with that address, then restart: the startup process promotes that account to admin. Admins have complete control over the platform.</p>
+          <p class="role-panel-desc">Set <code>FIRST_ADMIN_EMAIL</code> and <code>FIRST_ADMIN_PASSWORD</code> before the first start: while no admin exists, the server creates that address as a new admin account, and you sign in with those credentials. Don't register that email first. An existing account is never promoted; use an unused address or the <a href="guide.html#um-deploy-admin">SQL recovery path</a>. Admins have complete control over the platform.</p>
           <ul class="role-capabilities">
             <li>Approve, deactivate or make any user an author</li>
             <li>Edit or delete any article (not just own)</li>

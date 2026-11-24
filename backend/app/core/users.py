@@ -1,4 +1,3 @@
-import os
 import uuid
 from fastapi import Depends, HTTPException, status
 from fastapi_users import BaseUserManager, FastAPIUsers, UUIDIDMixin
@@ -8,9 +7,10 @@ from fastapi_users.authentication import (
         JWTStrategy
     )
 from fastapi_users.db import SQLAlchemyUserDatabase
+from app.core.secret import load_secret
 from app.database.db import User, get_user_db
 
-SECRET = os.getenv("SECRET", "dev-secret-change-me")
+SECRET = load_secret()
 
 class UserManager(UUIDIDMixin, BaseUserManager[User, uuid.UUID]):
     reset_password_token_secret = SECRET
