@@ -8,8 +8,10 @@
 #   docker compose up --build
 # Then browse to http://localhost:8080.
 #
-# To auto-promote an admin on first boot:
-#   FIRST_ADMIN_EMAIL=you@example.com docker compose up --build
+# Before the first start, copy .env.example to .env and set:
+#   SECRET               required; generate with: openssl rand -hex 32
+#   FIRST_ADMIN_EMAIL    } create the first administrator on startup (only
+#   FIRST_ADMIN_PASSWORD } while no superuser exists); remove the password afterwards
 
 services:
   db:
@@ -45,12 +47,14 @@ services:
       # sslmode=disable: the local postgres container does not serve SSL, and
       # the backend requires SSL when sslmode is absent (hosted default).
       DATABASE_URL: postgresql+asyncpg://blog_user:blog_pass@db:5432/blog_db?sslmode=disable
-      # Dev-only secret. Override in production / Render via env vars.
-      SECRET: dev-secret-change-me
+      # JWT signing secret. Required: set it in .env (compose refuses to start without it).
+      SECRET: "${SECRET:?Set SECRET in .env (generate with: openssl rand -hex 32)}"
       # Same-origin in compose; nginx serves both backend and frontend on :8080.
       FRONTEND_URL: http://localhost:8080
-      # Optional: auto-promote this email to admin on every startup.
+      # Optional: when no superuser exists, create (or, if its password matches,
+      # promote) this administrator on startup. Both variables are required.
       FIRST_ADMIN_EMAIL: ${FIRST_ADMIN_EMAIL:-}
+      FIRST_ADMIN_PASSWORD: ${FIRST_ADMIN_PASSWORD:-}
       # hCaptcha — defaults keep registration open so `docker compose up`
       # works without hCaptcha credentials. Flip ENABLED=true and set
       # HCAPTCHA_SECRET to enforce captcha on /auth/register.

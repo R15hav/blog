@@ -528,8 +528,8 @@
     <li><strong>Add environment variables.</strong>
       <ul>
         <li><code>DATABASE_URL</code> — paste the Internal URL from step 2.</li>
-        <li><code>SECRET</code> — generate one with <code>openssl rand -hex 32</code>. Do not reuse the dev default.</li>
-        <li><code>FIRST_ADMIN_EMAIL</code> — optional, but the easiest way to bootstrap an admin (see below).</li>
+        <li><code>SECRET</code> — generate one with <code>openssl rand -hex 32</code>. Required: the container exits at start if it is missing, a placeholder or shorter than 32 characters.</li>
+        <li><code>FIRST_ADMIN_EMAIL</code> and <code>FIRST_ADMIN_PASSWORD</code> — optional, but the easiest way to bootstrap an admin (see below).</li>
       </ul>
     </li>
     <li><strong>Add a persistent disk.</strong> Disks tab → <strong>Add Disk</strong>. Name <code>uploads</code>, mount path <code>/app/backend/uploads</code>, size <strong>1 GB</strong>. Without this, every redeploy wipes uploaded logos.</li>
@@ -552,15 +552,12 @@
     <div class="code-block-header"><span class="code-lang">bash</span></div>
     <pre>git clone https://github.com/&lt;your-fork&gt;/blog.git
 cd blog
+cp .env.example .env     # then set SECRET (openssl rand -hex 32), FIRST_ADMIN_EMAIL, FIRST_ADMIN_PASSWORD
 docker compose up -d</pre>
   </div>
   <p>Once both containers are healthy, browse to <strong>http://localhost:8080</strong>. Nginx is the only public listener; the backend (8000) and frontend (3000) are not exposed.</p>
-  <p>To bootstrap the first admin via env var, set <code>FIRST_ADMIN_EMAIL</code> when bringing the stack up:</p>
-  <div class="code-block">
-    <div class="code-block-header"><span class="code-lang">bash</span></div>
-    <pre>FIRST_ADMIN_EMAIL=you@example.com docker compose up -d</pre>
-  </div>
-  <p>Register that email through the UI first so the password is hashed correctly, then restart the <code>app</code> container — the lifespan handler will promote the row.</p>
+  <p><code>SECRET</code> is required: <code>docker compose</code> stops with an error until it is set in <code>.env</code> (git-ignored, read automatically). To create the first admin, set <code>FIRST_ADMIN_EMAIL</code> and <code>FIRST_ADMIN_PASSWORD</code> in the same file. The server creates that account on startup, so there is nothing to register or restart. Remove <code>FIRST_ADMIN_PASSWORD</code> afterwards.</p>
+  <p><strong>Upgrading.</strong> Set a strong <code>SECRET</code> before upgrading; a missing or placeholder value stops the container. Changing <code>SECRET</code> signs every user out. <code>FIRST_ADMIN_EMAIL</code> alone no longer promotes anyone, and an existing admin keeps access (<code>FIRST_ADMIN_*</code> are then ignored, with a warning in the log).</p>
 </section>
 
 <section id="um-deploy-env">
@@ -570,8 +567,9 @@ docker compose up -d</pre>
     <thead><tr><th>Variable</th><th>Default</th><th>Purpose</th></tr></thead>
     <tbody>
       <tr><td><code>DATABASE_URL</code></td><td><code>sqlite+aiosqlite:///./test.db</code></td><td>Postgres or SQLite URL. Backend normalises <code>postgres://</code> / <code>postgresql://</code> to <code>postgresql+asyncpg://</code> and turns <code>sslmode</code> into the driver's SSL setting. Without <code>sslmode</code>, SSL is required; use <code>sslmode=disable</code> for a database without SSL (Docker Compose does this).</td></tr>
-      <tr><td><code>SECRET</code></td><td><code>dev-secret-change-me</code></td><td>JWT signing secret. <strong>Must be overridden in production.</strong> Rotating invalidates every existing token.</td></tr>
-      <tr><td><code>FIRST_ADMIN_EMAIL</code></td><td>(unset)</td><td>If set, the account with this email address (letter case ignored) is promoted to <code>is_superuser=true</code>, <code>is_active=true</code>, <code>role='admin'</code> on every container start.</td></tr>
+      <tr><td><code>SECRET</code></td><td>(required)</td><td>JWT signing secret: at least 32 characters, not a placeholder. <strong>The backend and container refuse to start otherwise.</strong> Generate with <code>openssl rand -hex 32</code>. Rotating invalidates every existing token.</td></tr>
+      <tr><td><code>FIRST_ADMIN_EMAIL</code></td><td>(unset)</td><td>With <code>FIRST_ADMIN_PASSWORD</code>, the first administrator. Used only while no superuser exists: the account is created if missing, or promoted if it exists and <code>FIRST_ADMIN_PASSWORD</code> matches its password. Matching the email alone never grants admin rights.</td></tr>
+      <tr><td><code>FIRST_ADMIN_PASSWORD</code></td><td>(unset)</td><td>Password for the first administrator (at least 12 characters). Remove it after the first start.</td></tr>
       <tr><td><code>FRONTEND_URL</code></td><td><code>http://localhost:3000</code></td><td>CORS allow-origin. Optional in single-image mode because the browser hits the same origin as the API; set it for honesty if you front the service with a custom domain.</td></tr>
       <tr><td><code>PORT</code></td><td><code>8080</code></td><td>The public port nginx binds to. Render overrides this automatically; leave it alone otherwise.</td></tr>
       <tr><td><code>PYTHONUNBUFFERED</code></td><td>(unset)</td><td>Set to <code>1</code> so Python log output is live in the platform's log viewer.</td></tr>
@@ -592,12 +590,12 @@ docker compose up -d</pre>
 <section id="um-deploy-admin">
   <h3>Bootstrapping the First Admin</h3>
   <p>There is no admin out of the box. You have two paths to create the first one.</p>
-  <h4>Path A — <code>FIRST_ADMIN_EMAIL</code> auto-promote</h4>
+  <h4>Path A — <code>FIRST_ADMIN_EMAIL</code> and <code>FIRST_ADMIN_PASSWORD</code></h4>
   <ol>
-    <li>Go to <code>/register</code> on the live site and create an account with the email you want to be admin. (You will see "pending approval" — that is fine.)</li>
-    <li>Set <code>FIRST_ADMIN_EMAIL</code> on the service to that exact email.</li>
-    <li>Trigger a redeploy / restart. The lifespan handler in <code>backend/app/app.py</code> finds the row and sets <code>is_superuser=true, is_active=true, role='admin'</code>.</li>
-    <li>Sign in at <code>/login</code> and visit <code>/admin</code>.</li>
+    <li>Set <code>FIRST_ADMIN_EMAIL</code> and <code>FIRST_ADMIN_PASSWORD</code> (at least 12 characters) on the service.</li>
+    <li>Start or restart it. If no superuser exists, the lifespan handler creates that account as an active administrator. If an account with that email already exists, it is promoted only when the password matches the one it was registered with; otherwise an error is logged and nothing changes.</li>
+    <li>Sign in at <code>/login</code> with those credentials and visit <code>/admin</code>.</li>
+    <li>Remove <code>FIRST_ADMIN_PASSWORD</code>. Once any superuser exists, both variables are ignored.</li>
   </ol>
   <h4>Path B — direct SQL</h4>
   <p>Useful when you can't redeploy, or you want to avoid promoting on every boot.</p>
@@ -667,7 +665,7 @@ WHERE email = 'you@example.com';</pre>
   <p>You have <code>is_active=true</code> but still have <code>role='guest'</code>. Activation and role promotion are two separate steps. Ask your admin to click <strong>Make author</strong> next to your account in <strong>/admin/users</strong>.</p>
 
   <h3>How do I change a user's role from the UI?</h3>
-  <p>Open <strong>/admin/users</strong> and find the user's row. The row shows one role button — <strong>Make author</strong> if the user is currently a Guest, or <strong>Make guest</strong> if they are currently an Author. The button is hidden on your own row and on superuser rows. To grant admin access, set <code>FIRST_ADMIN_EMAIL</code> to that user's email and restart the service, or update <code>is_superuser</code> directly in the database.</p>
+  <p>Open <strong>/admin/users</strong> and find the user's row. The row shows one role button — <strong>Make author</strong> if the user is currently a Guest, or <strong>Make guest</strong> if they are currently an Author. The button is hidden on your own row and on superuser rows. To grant admin access to someone else, update <code>is_superuser</code> directly in the database (see Bootstrapping the First Admin, Path B).</p>
 
   <h3>Can I run this on SQLite in production?</h3>
   <p>It works, but it's not recommended. SQLite cannot handle concurrent writers as well as Postgres, and the SQLite file lives <em>inside</em> the container by default — a stateless redeploy will erase it unless you mount the file onto a persistent disk. Use Postgres for any deployment you care about.</p>
@@ -682,7 +680,7 @@ WHERE email = 'you@example.com';</pre>
   <p>One hour. The JWT carries a 3600-second lifetime, and the frontend stores it in <code>localStorage</code> as <code>access_token</code>. There is no refresh-token flow today; users sign in again after expiry.</p>
 
   <h3>How do I disable new registrations entirely?</h3>
-  <p><strong>Admin → Site Settings</strong>, untick <strong>Allow Registration</strong>, save. The register links disappear from the navigation, the form is hidden, and <code>POST /auth/register</code> returns 403 ("Registration is currently closed."). One exception: until an admin account exists, the address in <code>FIRST_ADMIN_EMAIL</code> can still register, so a closed site can be bootstrapped.</p>
+  <p><strong>Admin → Site Settings</strong>, untick <strong>Allow Registration</strong>, save. The register links disappear from the navigation, the form is hidden, and <code>POST /auth/register</code> returns 403 ("Registration is currently closed."). There is no exception: the first admin is created by the server from <code>FIRST_ADMIN_EMAIL</code> and <code>FIRST_ADMIN_PASSWORD</code>, not by registering.</p>
 
   <h3>The theme I activated isn't showing for visitors.</h3>
   <p>Either the CSS URL returned a non-200, or the URL is not HTTPS while the site is HTTPS (mixed content gets blocked). Open the URL in a browser and confirm it returns valid CSS, then give the server-side cache up to 60 seconds to revalidate.</p>
@@ -814,7 +812,7 @@ database/db.py         ← async SQLAlchemy models + session factory</pre>
    ─ 200 → context.user populated
    ─ 401 → token cleared, redirect to /login</pre>
   </div>
-  <p>JWT lifetime is <strong>3600 seconds (1 hour)</strong>, signed with the <code>SECRET</code> env var (default <code>dev-secret-change-me</code> — must override in prod). See <code>backend/app/core/users.py</code>.</p>
+  <p>JWT lifetime is <strong>3600 seconds (1 hour)</strong>, signed with the <code>SECRET</code> env var (required, at least 32 characters; the backend will not start without a strong one). See <code>backend/app/core/users.py</code>.</p>
   <p>Three guard layers, used as FastAPI <code>Depends(...)</code>:</p>
   <ul>
     <li><code>current_active_user</code> — any logged-in, active user</li>
@@ -907,7 +905,7 @@ public  ──▶│  nginx :$PORT (default 8080)                  │
 uv run uvicorn app.app:app --reload --host 0.0.0.0 --port 8000</pre>
   </div>
   <p>Or just <code>uv run python main.py</code>. <strong>Must be run from <code>backend/</code></strong> — that's where <code>pyproject.toml</code> lives, and <code>uv</code> walks up from the cwd to find it. Running from repo root fails with <code>ModuleNotFoundError: No module named 'uvicorn'</code>.</p>
-  <p>Defaults: <code>DATABASE_URL=sqlite+aiosqlite:///./test.db</code> (creates <code>backend/test.db</code> on first run), <code>SECRET=dev-secret-change-me</code>. <code>backend/.env</code> is <strong>not</strong> loaded automatically; pass it explicitly, e.g. <code>uv run --env-file .env uvicorn app.app:app --reload --port 8000</code>.</p>
+  <p>Defaults: <code>DATABASE_URL=sqlite+aiosqlite:///./test.db</code> (creates <code>backend/test.db</code> on first run), <code>SECRET</code> has no default and must be set. <code>backend/.env</code> is <strong>not</strong> loaded automatically; pass it explicitly, e.g. <code>uv run --env-file .env uvicorn app.app:app --reload --port 8000</code>.</p>
   <div class="callout callout-info">
     <span class="callout-icon">ℹ️</span>
     <div class="callout-body">
@@ -980,7 +978,7 @@ NEXT_PUBLIC_APP_URL=http://localhost:3000</pre>
   <h2>Code Tour</h2>
   <p>One-liner per directory. Read top-down.</p>
   <ul>
-    <li><code>backend/app/app.py</code> — FastAPI entry; mounts auth routers, application routers, static <code>/uploads/</code>; lifespan promotes <code>FIRST_ADMIN_EMAIL</code> on startup</li>
+    <li><code>backend/app/app.py</code> — FastAPI entry; mounts auth routers, application routers, static <code>/uploads/</code>; lifespan runs <code>bootstrap_first_admin()</code> on startup (creates the first admin from <code>FIRST_ADMIN_EMAIL</code> + <code>FIRST_ADMIN_PASSWORD</code> when no superuser exists)</li>
     <li><code>backend/app/api/v1/</code> — thin route handlers (<code>articles</code>, <code>admin</code>, <code>author</code>, <code>profile</code>)</li>
     <li><code>backend/app/services/</code> — business logic, transactions, ownership checks</li>
     <li><code>backend/app/database/db.py</code> — all SQLAlchemy models + async session factory + Postgres URL normalisation</li>
@@ -1009,7 +1007,7 @@ NEXT_PUBLIC_APP_URL=http://localhost:3000</pre>
     <li><strong>New registrations are inactive by default.</strong> the user model's <code>is_active</code> column defaults to <code>False</code>; an admin must <code>PATCH /api/v1/admin/users/{id}/activate</code> before the user can log in.</li>
     <li><strong><code>reactStrictMode: false</code></strong> in <code>frontend/next.config.ts</code> is intentional — Editor.js double-init breaks under Strict Mode. Don't re-enable.</li>
     <li><strong>Postgres SSL defaults to required.</strong> <code>sslmode</code> is translated into asyncpg's <code>ssl</code> connect argument by <code>app/database/connection.py</code>; a URL without it requires SSL. A database without SSL (like the Compose one) needs <code>?sslmode=disable</code>. If you switch DB drivers, replicate this.</li>
-    <li><strong><code>SECRET</code> defaults to <code>dev-secret-change-me</code></strong> — must be overridden in production.</li>
+    <li><strong><code>SECRET</code> has no default</strong> — the backend refuses to start without a strong value (<code>app/core/secret.py</code>).</li>
     <li><strong><code>NEXT_PUBLIC_API_URL</code> is unset in the production single-image deploy</strong> — that's deliberate. The frontend bundle uses relative URLs which nginx routes to the backend on the same origin.</li>
   </ul>
 </section>
@@ -1212,7 +1210,7 @@ uv run alembic downgrade -1</pre>
   <p>Two paths once you've forked the repo. Both build the consolidated single-image container.</p>
 
   <h3>1. Render (managed Web Service)</h3>
-  <p>The full click-by-click is in the operator manual — see <strong>User Manual → Deploy on Render</strong> (<code>#um-deploy-render</code>). The only fork-specific step is pointing the Web Service at <em>your fork's</em> repo URL instead of the upstream. Everything else (envs, Postgres add-on, <code>FIRST_ADMIN_EMAIL</code>) is identical.</p>
+  <p>The full click-by-click is in the operator manual — see <strong>User Manual → Deploy on Render</strong> (<code>#um-deploy-render</code>). The only fork-specific step is pointing the Web Service at <em>your fork's</em> repo URL instead of the upstream. Everything else (envs, Postgres add-on, <code>FIRST_ADMIN_EMAIL</code> and <code>FIRST_ADMIN_PASSWORD</code>) is identical.</p>
 
   <h3>2. Self-hosted Docker / VPS</h3>
   <p>Any Linux VPS with Docker installed. Five commands:</p>
@@ -1220,7 +1218,7 @@ uv run alembic downgrade -1</pre>
     <div class="code-block-header"><span class="code-lang">bash</span></div>
     <pre>git clone https://github.com/&lt;you&gt;/blog.git
 cd blog
-# edit docker-compose.yml — at minimum override SECRET and FIRST_ADMIN_EMAIL
+# copy .env.example to .env — at minimum set SECRET, FIRST_ADMIN_EMAIL and FIRST_ADMIN_PASSWORD
 docker compose up -d --build
 # verify
 curl http://localhost:8080/healthz</pre>

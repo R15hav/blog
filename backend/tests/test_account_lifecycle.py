@@ -19,8 +19,9 @@ import _isolated_db  # noqa: E402,F401  (must run before any app import)
 import httpx  # noqa: E402
 from sqlalchemy import func, select, update  # noqa: E402
 
-from app.app import _promote_first_admin, app  # noqa: E402
+from app.app import app  # noqa: E402
 from app.core.users import UserManager  # noqa: E402
+from app.services.bootstrap import bootstrap_first_admin  # noqa: E402
 from app.database.db import User, async_session_maker, create_db_and_tables, engine  # noqa: E402
 from app.services.site_settings import update_site_config  # noqa: E402
 # Import after the app: importing the db package first triggers a circular import.
@@ -51,6 +52,7 @@ class AccountLifecycleTests(unittest.IsolatedAsyncioTestCase):
         self.env = mock.patch.dict(os.environ, {"HCAPTCHA_ENABLED": "false"})
         self.env.start()
         os.environ.pop("FIRST_ADMIN_EMAIL", None)
+        os.environ.pop("FIRST_ADMIN_PASSWORD", None)
 
     async def asyncTearDown(self):
         self.env.stop()
@@ -164,23 +166,23 @@ class AccountLifecycleTests(unittest.IsolatedAsyncioTestCase):
 
     # ── first-admin bootstrap ──────────────────────────────────────────────────
 
-    async def test_first_admin_is_stored_inactive_then_promoted_and_can_log_in(self):
-        async with async_session_maker() as s:
-            await update_site_config(s, allow_registration=False)
+    async def test_env_bootstrap_creates_active_admin_who_can_log_in(self):
         email = self._email("founder")
         os.environ["FIRST_ADMIN_EMAIL"] = email
+        os.environ["FIRST_ADMIN_PASSWORD"] = PASSWORD
 
-        self.assertEqual((await self._register(email)).status_code, 201)
-        self.assertIs(await _db_is_active(email), False)
-        self.assertEqual((await self._login(email)).status_code, 400)
-
-        await _promote_first_admin()   # what the lifespan handler runs on restart
+        self.assertEqual(await bootstrap_first_admin(), "created")   # what the lifespan handler runs
 
         async with async_session_maker() as s:
             user = (await s.execute(select(User).where(User.email == email))).scalars().one()
         self.assertTrue(user.is_active and user.is_superuser)
         self.assertEqual(user.role, "admin")
-        self.assertEqual((await self._login(email)).status_code, 200)
+        r = await self._login(email)
+        self.assertEqual(r.status_code, 200, r.text)
+        me = await self.client.get("/users/me", headers={"Authorization": f"Bearer {r.json()['access_token']}"})
+        self.assertEqual(me.status_code, 200, me.text)
+        self.assertTrue(me.json()["is_superuser"])
+        self.assertEqual(me.json()["role"], "admin")
 
 
 if __name__ == "__main__":

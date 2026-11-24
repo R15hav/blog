@@ -131,7 +131,18 @@ The fastest way to see Paper running. You only need Docker.
 ```bash
 git clone https://github.com/R15hav/blog.git
 cd blog
-FIRST_ADMIN_EMAIL=you@example.com docker compose up --build -d
+cp .env.example .env
+```
+
+Open `.env` and set:
+
+- `SECRET`: required. Generate one with `openssl rand -hex 32`. Compose refuses to start without it.
+- `FIRST_ADMIN_EMAIL` and `FIRST_ADMIN_PASSWORD`: the first administrator, created on startup. The password needs at least 12 characters.
+
+Then start the stack:
+
+```bash
+docker compose up --build -d
 ```
 
 The app takes a little while to start. It waits for PostgreSQL, runs database migrations, then launches its services. Check its status:
@@ -142,16 +153,17 @@ docker compose ps
 
 Wait until the `app` service's STATUS shows `(healthy)` rather than `(health: starting)`. Requests made before then may fail.
 
-Then:
+Then log in at **http://localhost:8080/login** with `FIRST_ADMIN_EMAIL` and `FIRST_ADMIN_PASSWORD`. The admin panel is at **http://localhost:8080/admin**. Once you are in, remove `FIRST_ADMIN_PASSWORD` from `.env`; it is ignored whenever an administrator already exists.
 
-1. Open **http://localhost:8080/register** and sign up with the email you passed as `FIRST_ADMIN_EMAIL`.
-2. Restart the app so the startup routine promotes and activates that account:
-   ```bash
-   docker compose restart app
-   ```
-3. Log in. The admin panel is at **http://localhost:8080/admin**.
+Compose starts PostgreSQL 16 (reachable only on the internal network) plus the Paper container, and keeps uploads in a named volume. `.env` is git-ignored, so no tracked file needs editing.
 
-Compose starts PostgreSQL 16 (reachable only on the internal network) plus the Paper container, and keeps uploads in a named volume. The `SECRET` in [`docker-compose.yml`](docker-compose.yml) is a development value; change it for anything public.
+### Upgrading: secret and first-admin changes
+
+- **`SECRET` is now required.** The backend will not start with a missing, placeholder, shorter than 32 characters or repetitive value, and the container exits before running migrations. Set a strong `SECRET` (in `.env` for Compose) before upgrading.
+- **Changing `SECRET` signs everyone out.** All existing login, password-reset and verification tokens become invalid. No data changes.
+- **`FIRST_ADMIN_EMAIL` alone no longer grants admin rights.** An account is never promoted because its email matches. Set `FIRST_ADMIN_PASSWORD` as well: the server creates that administrator on startup when no superuser exists, or promotes an existing account only if the password matches the one it registered with.
+- **Existing administrators keep their access.** `FIRST_ADMIN_*` are ignored (with a warning in the log) once any superuser exists.
+- **Closed registration has no first-admin exception.** Use the environment bootstrap instead.
 
 ---
 
@@ -171,10 +183,12 @@ cd backend
 touch .env   # creates backend/.env only if it is missing; never overwrites an existing file
 ```
 
-Open `backend/.env` and add this line, or update it if it already exists. Leave every other setting in the file as it is:
+Open `backend/.env` and add these lines, or update them if they already exist. Leave every other setting in the file as it is:
 
 ```dotenv
+SECRET=<output of: openssl rand -hex 32>
 FIRST_ADMIN_EMAIL=you@example.com
+FIRST_ADMIN_PASSWORD=<at least 12 characters>
 ```
 
 Then, still in `backend/`, start the API:
@@ -184,7 +198,7 @@ uv run --env-file .env uvicorn app.app:app --reload --port 8000
 ```
 
 - With no `DATABASE_URL` set, the backend uses SQLite (`backend/test.db`) and creates the tables on first start.
-- **Pass `--env-file .env`.** Neither `uv` nor the app loads `backend/.env` automatically, so without the flag `FIRST_ADMIN_EMAIL` and any other values in the file are ignored.
+- **Pass `--env-file .env`.** Neither `uv` nor the app loads `backend/.env` automatically, so without the flag `SECRET` is missing (the backend refuses to start) and the other values in the file are ignored.
 - [`backend/.env.example`](backend/.env.example) lists every backend option. Its `DATABASE_URL` points to a local PostgreSQL server, so leave that line out if you want SQLite.
 
 ### 2. Frontend (terminal 2)
@@ -206,12 +220,11 @@ npm run dev
 
 ### 3. Bootstrap the first administrator
 
-New accounts are created **inactive**. The backend promotes and activates the `FIRST_ADMIN_EMAIL` account **when it starts**, so do it in this order:
+New accounts are created **inactive**, so the first administrator is created by the server instead. When the backend starts and no superuser exists, it creates the `FIRST_ADMIN_EMAIL` account as an active administrator with `FIRST_ADMIN_PASSWORD` (set in step 1). There is nothing to register or restart.
 
-1. Set `FIRST_ADMIN_EMAIL` in `backend/.env` (done in step 1).
-2. Register at http://localhost:3000/register using that email (letter case doesn't matter).
-3. Restart the backend (stop with `Ctrl+C`, then run the `uv run --env-file .env …` command again).
-4. Log in and open http://localhost:3000/admin to confirm you have administrator access.
+1. Log in at http://localhost:3000/login with those credentials.
+2. Open http://localhost:3000/admin to confirm you have administrator access.
+3. Remove `FIRST_ADMIN_PASSWORD` from `backend/.env`.
 
 From then on, you activate other users and grant the **author** role from **Admin → Users**.
 
@@ -242,8 +255,9 @@ The production artifact is the root [`Dockerfile`](Dockerfile), a three-stage bu
 | Variable | Default | Purpose |
 |---|---|---|
 | `DATABASE_URL` | `sqlite+aiosqlite:///./test.db` | Database connection. `postgres://` and `postgresql://` URLs are converted for asyncpg automatically. For PostgreSQL, `sslmode` accepts `disable`, `prefer` or `require`; **without it, SSL is required**. Use `?sslmode=disable` for a database without SSL, as [`docker-compose.yml`](docker-compose.yml) does. |
-| `SECRET` | `dev-secret-change-me` | JWT signing secret. **Override it in production.** |
-| `FIRST_ADMIN_EMAIL` | (unset) | Promotes and activates this account as administrator on every backend startup. |
+| `SECRET` | (required) | JWT signing secret: at least 32 characters, not a placeholder. Startup fails otherwise. Generate with `openssl rand -hex 32`. Changing it invalidates all existing tokens. |
+| `FIRST_ADMIN_EMAIL` | (unset) | With `FIRST_ADMIN_PASSWORD`, the first administrator. Only used while no superuser exists: the account is created if missing, or promoted if it exists and `FIRST_ADMIN_PASSWORD` matches its password. Email matching alone never grants admin rights. |
+| `FIRST_ADMIN_PASSWORD` | (unset) | Password for the first administrator (at least 12 characters). Remove it after the first start. |
 | `FRONTEND_URL` | `http://localhost:3000` | CORS allowed origin. In the single container, set it to the public URL. |
 | `PORT` | `8080` | Port nginx listens on in the container (Render sets this). |
 | `NEXT_PUBLIC_API_URL` | `http://localhost:8000` in `frontend/.env.example` | Backend URL for the browser in **local development only**. Leave it unset for Docker builds. |

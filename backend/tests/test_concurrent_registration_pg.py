@@ -22,6 +22,7 @@ import _pg_temp  # noqa: E402
 BACKEND_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 DUPLICATE = "REGISTER_USER_ALREADY_EXISTS"
 VARIANTS = 6
+_TEST_SECRET = "0f1e2d3c4b5a69788796a5b4c3d2e1f00112233445566778899aabbccddeeff0"
 
 # Runs inside the subprocess. Prints one JSON object on its last line.
 _PROBE = textwrap.dedent("""
@@ -29,12 +30,14 @@ _PROBE = textwrap.dedent("""
     from unittest import mock
     import httpx
     from sqlalchemy import func, select, text
-    from app.app import app, _promote_first_admin
+    from app.app import app
+    from app.services.bootstrap import bootstrap_first_admin
     from app.database.db import SiteConfig, User, async_session_maker
     from app.services.site_settings import update_site_config
     from fastapi_users_db_sqlalchemy import SQLAlchemyUserDatabase
 
     PASSWORD = "Concurrency-Test-Passw0rd!"
+    ADMIN_PASSWORD = "Operator-Bootstrap-Passw0rd!"
     scenario, email = sys.argv[1], sys.argv[2]
     n = int(sys.argv[3])
 
@@ -81,20 +84,26 @@ _PROBE = textwrap.dedent("""
                     out["site_config_rows"] = (await s.execute(select(func.count()).select_from(SiteConfig))).scalar_one()
             elif scenario == "natural_burst":
                 out["responses"] = await burst(client, variants(email))
-            elif scenario == "closed_and_bootstrap":
-                async with async_session_maker() as s:
-                    await update_site_config(s, allow_registration=False)
-                other = "outsider@example.com"
-                out["closed"] = await burst(client, [other])
-                out["closed_accounts"] = await accounts(other)
+            elif scenario == "bootstrap_race":
+                # 4 server-side bootstraps race 4 public registrations of case
+                # variants of the same address, with a different password.
                 os.environ["FIRST_ADMIN_EMAIL"] = email
-                out["bootstrap"] = await burst(client, variants(email))
-                out["bootstrap_accounts"] = await accounts(email)
-                await _promote_first_admin()
-                out["promoted"] = await accounts(email)
-                out["after_promotion"] = await burst(client, [email.upper()])
-                login = await client.post("/auth/jwt/login", data={"username": email.swapcase(), "password": PASSWORD})
-                out["login_other_case"] = login.status_code
+                os.environ["FIRST_ADMIN_PASSWORD"] = ADMIN_PASSWORD
+                results = await asyncio.gather(
+                    *(bootstrap_first_admin() for _ in range(4)),
+                    burst(client, variants(email)[:4]),
+                    return_exceptions=True)
+                out["bootstrap"] = [r if isinstance(r, str) else repr(r) for r in results[:4]]
+                out["register"] = results[4] if isinstance(results[4], list) else repr(results[4])
+                async with async_session_maker() as s:
+                    out["superusers"] = [u.email for u in (await s.execute(
+                        select(User).where(User.is_superuser.is_(True)))).scalars().all()]
+                    user = (await s.execute(select(User).where(func.lower(User.email) == email.lower()))).scalars().one_or_none()
+                    from fastapi_users.password import PasswordHelper
+                    out["password_is_env"] = bool(user and PasswordHelper().verify_and_update(
+                        ADMIN_PASSWORD, user.hashed_password)[0])
+                    out["password_is_public"] = bool(user and PasswordHelper().verify_and_update(
+                        PASSWORD, user.hashed_password)[0])
             elif scenario == "inactive_login":
                 out["register"] = await burst(client, [email])
                 r = await client.post("/auth/jwt/login", data={"username": email, "password": PASSWORD})
@@ -114,7 +123,8 @@ class ConcurrentRegistrationPostgresTests(unittest.TestCase):
     def _run(self, scenario, email):
         with _pg_temp.temp_database() as url:
             env = {**os.environ, "DATABASE_URL": url, "HCAPTCHA_ENABLED": "false"}
-            for k in ("PGSSLMODE", "FIRST_ADMIN_EMAIL"):
+            env["SECRET"] = _TEST_SECRET  # same constant as tests/_isolated_db.py
+            for k in ("PGSSLMODE", "FIRST_ADMIN_EMAIL", "FIRST_ADMIN_PASSWORD"):
                 env.pop(k, None)
             mig = subprocess.run([sys.executable, "-m", "alembic", "upgrade", "head"], cwd=BACKEND_DIR,
                                  env=env, capture_output=True, text=True, timeout=180)
@@ -150,19 +160,29 @@ class ConcurrentRegistrationPostgresTests(unittest.TestCase):
         self.assertEqual(out["statuses"], [200] * 10, out)
         self.assertEqual(out["site_config_rows"], 1, out)
 
-    def test_registration_policy_and_first_admin_bootstrap_on_postgres(self):
+    def test_bootstrap_race_never_yields_a_public_superuser_on_postgres(self):
         email = "Founder@Example.com"
-        out = self._run("closed_and_bootstrap", email)
-        self.assertEqual([r["status"] for r in out["closed"]], [403], out)
-        self.assertEqual(out["closed_accounts"], [])
-        self.assertExactlyOneCreated(out["bootstrap"])
-        [account] = out["bootstrap_accounts"]
-        self.assertEqual(account["email"], email)  # configured spelling stored
-        self.assertFalse(account["is_active"])
-        [promoted] = out["promoted"]
-        self.assertTrue(promoted["is_superuser"] and promoted["is_active"])
-        self.assertEqual([r["status"] for r in out["after_promotion"]], [403], out)  # exception closed
-        self.assertEqual(out["login_other_case"], 200)  # email lookup at login stays case-insensitive
+        out = self._run("bootstrap_race", email)
+        self.assertEqual(len(out["accounts"]), 1, out)          # exactly one account for the email
+        self.assertLessEqual(len(out["superusers"]), 1, out)
+        self.assertTrue(all(isinstance(b, str) for b in out["bootstrap"]), out)  # no exception
+        self.assertIsInstance(out["register"], list, out)
+        statuses = [r["status"] for r in out["register"]]
+        self.assertNotIn(500, statuses, out)
+        self.assertTrue(set(statuses) <= {201, 400}, out)
+        self.assertLessEqual(statuses.count(201), 1, out)
+        [account] = out["accounts"]
+        if out["superusers"]:
+            # The superuser is the env-created account, authenticated by the operator's password.
+            self.assertEqual(len(out["superusers"]), 1, out)
+            self.assertTrue(account["is_superuser"], out)
+            self.assertTrue(out["password_is_env"], out)
+            self.assertFalse(out["password_is_public"], out)
+        else:
+            # Every bootstrap lost to a public registration, which is never promoted.
+            self.assertFalse(account["is_superuser"], out)
+            self.assertEqual(statuses.count(201), 1, out)
+            self.assertTrue(all(b in ("refused", "skipped") for b in out["bootstrap"]), out)
 
     def test_new_account_is_inactive_and_cannot_log_in(self):
         out = self._run("inactive_login", "Pending.Reader@Example.com")
