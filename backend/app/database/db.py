@@ -30,8 +30,8 @@ class User(Base, SQLAlchemyBaseUserTableUUID):
     # Overrides the fastapi-users mixin column (default=True). Self-registration
     # creates users with safe=True, which leaves is_active out of the INSERT, so
     # this default is what the initial row gets: new accounts are inactive from
-    # the first commit until an admin approves them (or FIRST_ADMIN_EMAIL
-    # promotion activates the first admin). Python-side default only; the
+    # the first commit until an admin approves them. The first admin is created
+    # active by bootstrap_first_admin() (safe=False). Python-side default only; the
     # column itself (NOT NULL, no server default) is unchanged, so no migration.
     is_active: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
     role = Column(String, nullable=False, default="guest", server_default="guest")
